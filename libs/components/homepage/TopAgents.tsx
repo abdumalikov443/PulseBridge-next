@@ -27,7 +27,7 @@ const TopAgents = (props: TopAgentsProps) => {
 		loading: getAgentsLoading, 
 		data: getAgentsData, 
 		error: getAgentsError, 
-		refetch: getAgentssRefetch 
+		refetch: getAgentsRefetch 
 	} = useQuery(GET_AGENTS, {
 		fetchPolicy: "cache-and-network",
 		variables: { input: initialInput },
