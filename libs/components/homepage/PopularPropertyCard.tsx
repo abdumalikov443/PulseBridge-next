@@ -21,9 +21,13 @@ const PopularPropertyCard = (props: PopularPropertyCardProps) => {
 
 	/** HANDLERS **/
 
+	const pushDetailhandler = (propertyId: string) => {
+		router.push(`/property/detail?id=${propertyId}`);
+	};
+
 	if (device === 'mobile') {
 		return (
-			<Stack className="popular-card-box">
+			<Stack className="popular-card-box" onClick={() => pushDetailhandler(property?._id)}>
 				<Box
 					component={'div'}
 					className={'card-img'}
@@ -72,7 +76,7 @@ const PopularPropertyCard = (props: PopularPropertyCardProps) => {
 		);
 	} else {
 		return (
-			<Stack className="popular-card-box">
+			<Stack className="popular-card-box" onClick={() => pushDetailhandler(property?._id)}>
 				<Box
 					component={'div'}
 					className={'card-img'}

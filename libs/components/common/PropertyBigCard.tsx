@@ -23,7 +23,7 @@ const PropertyBigCard = (props: PropertyBigCardProps) => {
 	const router = useRouter();
 
 	/** HANDLERS **/
-	const goPropertyDetatilPage = (propertyId: string) => {
+	const pushDetailhandler = (propertyId: string) => {
 		router.push(`/property/detail?id=${propertyId}`);
 	};
 
@@ -31,7 +31,7 @@ const PropertyBigCard = (props: PropertyBigCardProps) => {
 		return <div>APARTMEND BIG CARD</div>;
 	} else {
 		return (
-			<Stack className="property-big-card-box" onClick={() => goPropertyDetatilPage(property?._id)}>
+			<Stack className="property-big-card-box" onClick={() => pushDetailhandler(property?._id)}>
 				<Box
 					component={'div'}
 					className={'card-img'}

@@ -23,9 +23,13 @@ const TrendPropertyCard = (props: TrendPropertyCardProps) => {
 
 	/** HANDLERS **/
 
+	const pushDetailhandler = (propertyId: string) => {
+		router.push(`/property/detail?id=${propertyId}`);
+	};
+
 	if (device === 'mobile') {
 		return (
-			<Stack className="trend-card-box" key={property._id}>
+			<Stack className="trend-card-box" key={property._id} onClick={() => pushDetailhandler(property?._id)}>
 				<Box
 					component={'div'}
 					className={'card-img'}
@@ -61,7 +65,13 @@ const TrendPropertyCard = (props: TrendPropertyCardProps) => {
 								<RemoveRedEyeIcon />
 							</IconButton>
 							<Typography className="view-cnt">{property?.propertyViews}</Typography>
-							<IconButton color={'default'} onClick={() => likePropertyHandler(user, property?._id)}>
+							<IconButton
+								color={'default'}
+								onClick={(e: any) => {
+									e.stopPropagation();
+									likePropertyHandler(user, property?._id);
+								}}
+							>
 								{property?.meLiked && property?.meLiked[0]?.myFavorite ? (
 									<FavoriteIcon style={{ color: 'red' }} />
 								) : (
@@ -76,7 +86,7 @@ const TrendPropertyCard = (props: TrendPropertyCardProps) => {
 		);
 	} else {
 		return (
-			<Stack className="trend-card-box" key={property._id}>
+			<Stack className="trend-card-box" key={property._id} onClick={() => pushDetailhandler(property?._id)}>
 				<Box
 					component={'div'}
 					className={'card-img'}
@@ -112,7 +122,13 @@ const TrendPropertyCard = (props: TrendPropertyCardProps) => {
 								<RemoveRedEyeIcon />
 							</IconButton>
 							<Typography className="view-cnt">{property?.propertyViews}</Typography>
-							<IconButton color={'default'} onClick={() => likePropertyHandler(user, property?._id)}>
+							<IconButton
+								color={'default'}
+								onClick={(e: any) => {
+									e.stopPropagation();
+									likePropertyHandler(user, property?._id);
+								}}
+							>
 								{property?.meLiked && property?.meLiked[0]?.myFavorite ? (
 									<FavoriteIcon style={{ color: 'red' }} />
 								) : (
