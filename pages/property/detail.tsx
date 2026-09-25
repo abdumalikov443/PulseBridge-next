@@ -108,8 +108,8 @@ const PropertyDetail: NextPage = ({ initialComment, ...props }: any) => {
 	const {
 		loading: getCommensLoadings, // backendan animation data kelgancha
 		data: getCommentsData,
-		error: getCoemmentsError,
-		refetch: getCoemmentsRefetch
+		error: getCommentsError,
+		refetch: getCommentsRefetch
 	} = useQuery(GET_COMMENTS, {
 		fetchPolicy: "cache-and-network",
 		variables: { input: initialComment },
@@ -140,7 +140,7 @@ const PropertyDetail: NextPage = ({ initialComment, ...props }: any) => {
 
 	useEffect(() => {
 		if (commentInquiry.search.commentRefId) {
-			getCoemmentsRefetch({ input: commentInquiry })
+			getCommentsRefetch({ input: commentInquiry })
 		}
 	}, [commentInquiry]);
 
@@ -188,9 +188,9 @@ const PropertyDetail: NextPage = ({ initialComment, ...props }: any) => {
 
 			setInsertCommentData({ ...insertCommentData, commentContent: "" });
 
-			await getCoemmentsRefetch({ input: commentInquiry });
+			await getCommentsRefetch({ input: commentInquiry });
 		} catch (err) {
-			sweetErrorHandling(err)
+			await sweetErrorHandling(err)
 		}
 	}
 
