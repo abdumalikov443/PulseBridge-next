@@ -87,10 +87,8 @@ const PropertyList: NextPage = ({ initialInput, ...props }: any) => {
 		try {
 			if (!id) return;
 			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
-			// execute likeTargetProperty Mutation
 			await likeTargetProperty({ variables: { input: id } });
-			// execute getPropertiesRefetch
-			await getPropertiesRefetch({ input: initialInput });
+			await getPropertiesRefetch({ input: searchFilter });
 
 			await sweetTopSmallSuccessAlert('success', 800);
 		} catch (err: any) {

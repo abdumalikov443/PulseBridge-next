@@ -106,7 +106,7 @@ const PropertyDetail: NextPage = ({ initialComment, ...props }: any) => {
 
 
 	const {
-		loading: getCommensLoadings, // backendan animation data kelgancha
+		loading: getCommentsLoadings, // backendan animation data kelgancha
 		data: getCommentsData,
 		error: getCommentsError,
 		refetch: getCommentsRefetch
