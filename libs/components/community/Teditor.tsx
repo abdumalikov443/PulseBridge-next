@@ -6,8 +6,12 @@ import { getJwtToken } from '../../auth';
 import { REACT_APP_API_URL } from '../../config';
 import { useRouter } from 'next/router';
 import axios from 'axios';
-import { T } from '../../types/common';
+import { T } from '../../types/common'; //@ts-ignore
 import '@toast-ui/editor/dist/toastui-editor.css';
+import { useMutation } from '@apollo/client';
+import { CREATE_BOARD_ARTICLE } from '../../../apollo/user/mutation';
+import { sweetErrorHandling, sweetTopSuccessAlert } from '../../sweetAlert';
+import { Message } from '../../enums/common.enum';
 
 const TuiEditor = () => {
 	const editorRef = useRef<Editor>(null),
@@ -16,8 +20,9 @@ const TuiEditor = () => {
 	const [articleCategory, setArticleCategory] = useState<BoardArticleCategory>(BoardArticleCategory.FREE);
 
 	/** APOLLO REQUESTS **/
+	const [ createBoardArticle ] = useMutation(CREATE_BOARD_ARTICLE);
 
-	const memoizedValues = useMemo(() => {
+	const memorizedValues = useMemo(() => {
 		const articleTitle = '',
 			articleContent = '',
 			articleImage = '';
@@ -59,7 +64,7 @@ const TuiEditor = () => {
 
 			const responseImage = response.data.data.imageUploader;
 			console.log('=responseImage: ', responseImage);
-			memoizedValues.articleImage = responseImage;
+			memorizedValues.articleImage = responseImage;
 
 			return `${REACT_APP_API_URL}/${responseImage}`;
 		} catch (err) {
@@ -73,13 +78,36 @@ const TuiEditor = () => {
 
 	const articleTitleHandler = (e: T) => {
 		console.log(e.target.value);
-		memoizedValues.articleTitle = e.target.value;
+		memorizedValues.articleTitle = e.target.value;
 	};
 
-	const handleRegisterButton = async () => {};
+	const handleRegisterButton = async () => {
+		try {
+			const editor = editorRef.current;
+			const articleContent = editor?.getInstance().getHTML() as string;
+			memorizedValues.articleContent = articleContent;
+
+			if (memorizedValues.articleContent === '' && memorizedValues.articleTitle === '') {
+				throw new Error(Message.INSERT_ALL_INPUTS);
+			}
+
+			await createBoardArticle({
+				variables: {input: {...memorizedValues, articleCategory} }
+			});
+
+			await sweetTopSuccessAlert('Artcle has been created successfully', 700);
+			await router.push({
+				pathname: '/mypage',
+				query: { category: 'myArticles'},
+			});
+		} catch (err: any) {
+			console.log(err);
+			sweetErrorHandling(new Error(Message.INSERT_ALL_INPUTS)).then();			
+		}
+	};
 
 	const doDisabledCheck = () => {
-		if (memoizedValues.articleContent === '' || memoizedValues.articleTitle === '') {
+		if (memorizedValues.articleContent === '' || memorizedValues.articleTitle === '') {
 			return true;
 		}
 	};
