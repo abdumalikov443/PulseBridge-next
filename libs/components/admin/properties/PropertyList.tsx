@@ -155,7 +155,7 @@ export const PropertyPanelList = (props: PropertyPanelListType) => {
 									<TableRow hover key={property?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
 										<TableCell align="left">{property._id}</TableCell>
 										<TableCell align="left" className={'name'}>
-											{property.propertyStatus === PropertyStatus.DELETE ? (
+											{property.propertyStatus === PropertyStatus.ACTIVE ? (
 												<Stack direction={'row'}>
 													<Link href={`/property/detail?id=${property?._id}`}>
 														<div>
