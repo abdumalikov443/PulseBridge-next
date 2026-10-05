@@ -20,11 +20,10 @@ import { CommentGroup, CommentStatus } from '../../libs/enums/comment.enum';
 import { T } from '../../libs/types/common';
 import EditIcon from '@mui/icons-material/Edit';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { BoardArticle } from '../../libs/types/board-article/board-article';
-import { CREATE_COMMENT, LIKE_TARGET_BOARD_ARTICLE, UPDATE_COMMENT } from '../../apollo/user/mutation';
-import { GET_COMMENTS } from '../../apollo/admin/query';
-import { GET_BOARD_ARTICLE } from '../../apollo/user/query';
-import { Messages } from '../../libs/config';
+import { Article } from '../../libs/types/article/article';
+import { CREATE_COMMENT, LIKE_TARGET_ARTICLE, UPDATE_COMMENT } from '../../apollo/user/mutation';
+import { GET_ARTICLE, GET_COMMENTS } from '../../apollo/user/query';
+import { getImageUrl, getMemberName, Messages } from '../../libs/config';
 import { sweetConfirmAlert, sweetMixinErrorAlert, sweetMixinSuccessAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
 import { CommentUpdate } from '../../libs/types/comment/comment.update';
 const ToastViewerComponent = dynamic(() => import('../../libs/components/community/TViewer'), { ssr: false });
@@ -41,7 +40,6 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 	const { query } = router;
 
 	const articleId = query?.id as string;
-	const articleCategory = query?.articleCategory as string;
 
 	const [comment, setComment] = useState<string>('');
 	const [wordsCnt, setWordsCnt] = useState<number>(0);
@@ -60,11 +58,11 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 	const [updatedComment, setUpdatedComment] = useState<string>('');
 	const [updatedCommentId, setUpdatedCommentId] = useState<string>('');
 	const [likeLoading, setLikeLoading] = useState<boolean>(false);
-	const [boardArticle, setBoardArticle] = useState<BoardArticle>();
+	const [boardArticle, setBoardArticle] = useState<Article>();
 
 	/** APOLLO REQUESTS **/
 
-	const [ likeTargetBoardArticle ] = useMutation(LIKE_TARGET_BOARD_ARTICLE);
+	const [likeTargetArticle] = useMutation(LIKE_TARGET_ARTICLE);
 	const [ createComment ] = useMutation(CREATE_COMMENT);
 	const [ updateComment ] = useMutation(UPDATE_COMMENT);
 
@@ -73,14 +71,15 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 		data: boardArticleData, 
 		error: boardArticleError, 
 		refetch: boardArticleRefetch 
-	} = useQuery(GET_BOARD_ARTICLE, {
+	} = useQuery(GET_ARTICLE, {
 		fetchPolicy: "network-only",
 		variables: { input: articleId },
+		skip: !articleId,
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: any) => {
-			setBoardArticle(data?.getBoardArticle);
-			if (data?.getBoardArticle?.memberData?.memberImage) {
-				setMemberImage(`${process.env.REACT_APP_API_URL}/${data?.getBoardArticle?.memberData?.memberImage}`);
+			setBoardArticle(data?.getArticle);
+			if (data?.getArticle?.memberData?.memberImage) {
+				setMemberImage(getImageUrl(data?.getArticle?.memberData?.memberImage));
 			}
 		},
 	});
@@ -93,6 +92,7 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 	} = useQuery(GET_COMMENTS, {
 		fetchPolicy: "cache-and-network",
 		variables: { input: searchFilter },
+		skip: !searchFilter?.search?.commentRefId,
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: any) => {
 			setComments(data.getComments?.list);
@@ -110,7 +110,7 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 		router.replace(
 			{
 				pathname: '/community',
-				query: { articleCategory: value },
+				query: { sort: value },
 			},
 			'/community',
 			{ shallow: true },
@@ -125,7 +125,7 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 
 			setLikeLoading(true);
 			
-			await likeTargetBoardArticle({ variables: { input: id } });
+			await likeTargetArticle({ variables: { input: id } });
 			
 			await boardArticleRefetch({ input: articleId });
 			await sweetTopSmallSuccessAlert('success', 800);
@@ -240,39 +240,22 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 							</Stack>
 							<Tabs
 								orientation="vertical"
-								aria-label="lab API tabs example"
+								aria-label="community sort tabs"
 								TabIndicatorProps={{
 									style: { display: 'none' },
 								}}
 								onChange={tabChangeHandler}
-								value={articleCategory}
+								value={false}
 							>
-								<Tab
-									value={'FREE'}
-									label={'Free Board'}
-									className={`tab-button ${articleCategory === 'FREE' ? 'active' : ''}`}
-								/>
-								<Tab
-									value={'RECOMMEND'}
-									label={'Recommendation'}
-									className={`tab-button ${articleCategory === 'RECOMMEND' ? 'active' : ''}`}
-								/>
-								<Tab
-									value={'NEWS'}
-									label={'News'}
-									className={`tab-button ${articleCategory === 'NEWS' ? 'active' : ''}`}
-								/>
-								<Tab
-									value={'HUMOR'}
-									label={'Humor'}
-									className={`tab-button ${articleCategory === 'HUMOR' ? 'active' : ''}`}
-								/>
+								<Tab value={'createdAt'} label={'Latest'} className={'tab-button'} />
+								<Tab value={'articleViews'} label={'Popular'} className={'tab-button'} />
+								<Tab value={'articleLikes'} label={'Most Liked'} className={'tab-button'} />
 							</Tabs>
 						</Stack>
 						<div className="community-detail-config">
 							<Stack className="title-box">
 								<Stack className="left">
-									<Typography className="title">{articleCategory} BOARD</Typography>
+									<Typography className="title">Health Community</Typography>
 									<Typography className="sub-title">
 										Express your opinions freely here without content restrictions
 									</Typography>
@@ -304,7 +287,7 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 													onClick={() => goMemberPage(boardArticle?.memberData?._id)}
 												/>
 												<Typography className="member-nick" onClick={() => goMemberPage(boardArticle?.memberData?._id)}>
-													{boardArticle?.memberData?.memberNick}
+													{getMemberName(boardArticle?.memberData)}
 												</Typography>
 												<Stack className="divider"></Stack>
 												<Moment className={'time-added'} format={'DD.MM.YY HH:mm'}>
@@ -315,9 +298,9 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 										<Stack className="info">
 											<Stack className="icon-info">
 												{boardArticle?.meLiked && boardArticle?.meLiked[0]?.myFavorite ? (
-													<ThumbUpAltIcon onClick={() => likeBoardArticleHandler(user, boardArticle?._id)}/>
+													<ThumbUpAltIcon onClick={() => likeBoardArticleHandler(user, boardArticle?._id as string)}/>
 												) : (
-													<ThumbUpOffAltIcon onClick={() => likeBoardArticleHandler(user, boardArticle?._id)}/>
+													<ThumbUpOffAltIcon onClick={() => likeBoardArticleHandler(user, boardArticle?._id as string)}/>
 												)}
 												<Typography className="text">{boardArticle?.articleLikes}</Typography>
 											</Stack>
@@ -340,9 +323,9 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 										<Stack className="top">
 											<Button>
 												{boardArticle?.meLiked && boardArticle?.meLiked[0]?.myFavorite ? (
-													<ThumbUpAltIcon onClick={() => likeBoardArticleHandler(user, boardArticle?._id)}/>
+													<ThumbUpAltIcon onClick={() => likeBoardArticleHandler(user, boardArticle?._id as string)}/>
 												) : (
-													<ThumbUpOffAltIcon onClick={() => likeBoardArticleHandler(user, boardArticle?._id)}/>
+													<ThumbUpOffAltIcon onClick={() => likeBoardArticleHandler(user, boardArticle?._id as string)}/>
 												)}
 												<Typography className="text">{boardArticle?.articleLikes}</Typography>
 											</Button>

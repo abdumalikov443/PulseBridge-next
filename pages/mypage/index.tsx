@@ -4,10 +4,12 @@ import { NextPage } from 'next';
 import { Stack } from '@mui/material';
 import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import MyProperties from '../../libs/components/mypage/MyProperties';
+import ClinicDoctors from '../../libs/components/mypage/ClinicDoctors';
 import MyFavorites from '../../libs/components/mypage/MyFavorites';
 import RecentlyVisited from '../../libs/components/mypage/RecentlyVisited';
-import AddProperty from '../../libs/components/mypage/AddNewProperty';
+import MyClinic from '../../libs/components/mypage/MyClinic';
+import MyAppointments from '../../libs/components/mypage/MyAppointments';
+import JoinRequests from '../../libs/components/mypage/JoinRequests';
 import MyProfile from '../../libs/components/mypage/MyProfile';
 import MyArticles from '../../libs/components/mypage/MyArticles';
 import { useMutation, useReactiveVar } from '@apollo/client';
@@ -18,7 +20,7 @@ import MemberFollowers from '../../libs/components/member/MemberFollowers';
 import { sweetErrorHandling, sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
 import MemberFollowings from '../../libs/components/member/MemberFollowings';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from '../../apollo/user/mutation';
+import { SUBSCRIBE, UNSUBSCRIBE } from '../../apollo/user/mutation';
 import { Messages } from '../../libs/config';
 
 export const getStaticProps = async ({ locale }: any) => ({
@@ -36,7 +38,6 @@ const MyPage: NextPage = () => {
 	/** APOLLO REQUESTS **/
 	const [ subscribe ] = useMutation(SUBSCRIBE)
 	const [ unsubscribe ] = useMutation(UNSUBSCRIBE);
-	const [ likeTargetMember ] = useMutation(LIKE_TARGET_MEMBER);
 
 	/** LIFECYCLES **/
 	useEffect(() => {
@@ -76,22 +77,6 @@ const MyPage: NextPage = () => {
 		}
 	};
 
-	const likeMemberHandler = async (refetch: any, id: string, query: any) => {
-		try {
-			if (!id) return;
-			if (!user._id) throw new Error(Messages.error2);
-			
-			await likeTargetMember({ variables: { input: id } });
-			
-			await sweetTopSmallSuccessAlert('success', 800);
-			await refetch({ input: query });
-		} catch (err: any) {
-			console.log("ERROR, likeMemberHandler: ", err.message);
-			sweetMixinErrorAlert(err.message).then();
-		}
-	};	
-
-
 	const redirectToMemberPageHandler = async (memberId: string) => {
 		try {
 			if (memberId === user?._id) await router.push(`/mypage?memberId=${memberId}`);
@@ -114,8 +99,10 @@ const MyPage: NextPage = () => {
 							</Stack>
 							<Stack className="main-config" mb={'76px'}>
 								<Stack className={'list-config'}>
-									{category === 'addProperty' && <AddProperty />}
-									{category === 'myProperties' && <MyProperties />}
+									{category === 'myClinic' && <MyClinic />}
+									{category === 'clinicDoctors' && <ClinicDoctors />}
+									{category === 'joinRequests' && <JoinRequests />}
+									{category === 'myAppointments' && <MyAppointments />}
 									{category === 'myFavorites' && <MyFavorites />}
 									{category === 'recentlyVisited' && <RecentlyVisited />}
 									{category === 'myArticles' && <MyArticles />}
@@ -125,7 +112,6 @@ const MyPage: NextPage = () => {
 										<MemberFollowers
 											subscribeHandler={subscribeHandler}
 											unsubscribeHandler={unsubscribeHandler}
-											likeMemberHandler={likeMemberHandler}
 											redirectToMemberPageHandler={redirectToMemberPageHandler}
 										/>
 									)}
@@ -133,7 +119,6 @@ const MyPage: NextPage = () => {
 										<MemberFollowings
 											subscribeHandler={subscribeHandler}
 											unsubscribeHandler={unsubscribeHandler}
-											likeMemberHandler={likeMemberHandler}
 											redirectToMemberPageHandler={redirectToMemberPageHandler}
 										/>
 									)}

@@ -2,11 +2,11 @@ import { NextPage } from 'next';
 import useDeviceDetect from '../libs/hooks/useDeviceDetect';
 import withLayoutMain from '../libs/components/layout/LayoutHome';
 import CommunityBoards from '../libs/components/homepage/CommunityBoards';
-import PopularProperties from '../libs/components/homepage/PopularProperties';
-import TopAgents from '../libs/components/homepage/TopAgents';
+import PopularDoctors from '../libs/components/homepage/PopularDoctors';
+import TopDoctors from '../libs/components/homepage/TopDoctors';
 import Events from '../libs/components/homepage/Events';
-import TrendProperties from '../libs/components/homepage/TrendProperties';
-import TopProperties from '../libs/components/homepage/TopProperties';
+import TrendClinics from '../libs/components/homepage/TrendClinics';
+import TopClinics from '../libs/components/homepage/TopClinics';
 import { Stack } from '@mui/material';
 import Advertisement from '../libs/components/homepage/Advertisement';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -23,21 +23,21 @@ const Home: NextPage = () => {
 	if (device === 'mobile') {
 		return (
 			<Stack className={'home-page'}>
-				<TrendProperties />
-				<PopularProperties />
+				<TrendClinics />
+				<PopularDoctors />
 				<Advertisement />
-				<TopProperties />
-				<TopAgents />
+				<TopClinics />
+				<TopDoctors />
 			</Stack>
 		);
 	} else {
 		return (
 			<Stack className={'home-page'}>
-				<TrendProperties />
-				<PopularProperties />
+				<TrendClinics />
+				<PopularDoctors />
 				<Advertisement />
-				<TopProperties />
-				<TopAgents />
+				<TopClinics />
+				<TopDoctors />
 				<Events />
 				<CommunityBoards />
 			</Stack>

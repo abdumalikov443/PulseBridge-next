@@ -10,6 +10,8 @@ import { userVar } from '../../../apollo/store';
 import { MemberUpdate } from '../../types/member/member.update';
 import { UPDATE_MEMBER } from '../../../apollo/user/mutation';
 import { sweetErrorHandling, sweetMixinSuccessAlert } from '../../sweetAlert';
+import { MemberType } from '../../enums/member.enum';
+import DoctorProfileBox from './DoctorProfileBox';
 
 const MyProfile: NextPage = ({ initialValues, ...props }: any) => {
 	const device = useDeviceDetect();
@@ -106,7 +108,6 @@ const MyProfile: NextPage = ({ initialValues, ...props }: any) => {
 		}
 	};
 
-	console.log('+updateData', updateData);
 
 	if (device === 'mobile') {
 		return <>MY PROFILE PAGE MOBILE</>;
@@ -195,6 +196,7 @@ const MyProfile: NextPage = ({ initialValues, ...props }: any) => {
 							</svg>
 						</Button>
 					</Stack>
+					{user.memberType === MemberType.DOCTOR && <DoctorProfileBox />}
 				</Stack>
 			</div>
 		);

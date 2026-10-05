@@ -30,8 +30,10 @@ const AdminMenuList = (props: any) => {
 		if (device === 'mobile') setMobileLayout(true);
 
 		switch (pathnames[1]) {
-			case 'properties':
-				setClickMenu(['Properties']);
+			case 'clinics':
+			case 'doctors':
+			case 'appointments':
+				setClickMenu(['Clinics']);
 				break;
 			case 'community':
 				setClickMenu(['Community']);
@@ -43,6 +45,9 @@ const AdminMenuList = (props: any) => {
 				setClickMenu(['Users']);
 				break;
 		}
+
+		if (pathnames[1] === 'doctors') return setClickSubMenu('Doctors');
+		if (pathnames[1] === 'appointments') return setClickSubMenu('Appointments');
 
 		switch (pathnames[2]) {
 			case 'logs':
@@ -84,9 +89,9 @@ const AdminMenuList = (props: any) => {
 			on_click: () => subMenuChangeHandler('Users'),
 		},
 		{
-			title: 'Properties',
+			title: 'Clinics',
 			icon: <UserCircleGear size={20} color="#bdbdbd" weight="fill" />,
-			on_click: () => subMenuChangeHandler('Properties'),
+			on_click: () => subMenuChangeHandler('Clinics'),
 		},
 		{
 			title: 'Community',
@@ -102,7 +107,11 @@ const AdminMenuList = (props: any) => {
 
 	const sub_menu_set: any = {
 		Users: [{ title: 'List', url: '/_admin/users' }],
-		Properties: [{ title: 'List', url: '/_admin/properties' }],
+		Clinics: [
+			{ title: 'List', url: '/_admin/clinics' },
+			{ title: 'Doctors', url: '/_admin/doctors' },
+			{ title: 'Appointments', url: '/_admin/appointments' },
+		],
 		Community: [{ title: 'List', url: '/_admin/community' }],
 		Cs: [
 			{ title: 'FAQ', url: '/_admin/cs/faq' },

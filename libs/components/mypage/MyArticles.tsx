@@ -6,9 +6,9 @@ import CommunityCard from '../common/CommunityCard';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { T } from '../../types/common';
-import { BoardArticle } from '../../types/board-article/board-article';
-import { LIKE_TARGET_BOARD_ARTICLE } from '../../../apollo/user/mutation';
-import { GET_BOARD_ARTICLES } from '../../../apollo/user/query';
+import { Article } from '../../types/article/article';
+import { LIKE_TARGET_ARTICLE } from '../../../apollo/user/mutation';
+import { GET_ARTICLES } from '../../../apollo/user/query';
 import { Messages } from '../../config';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
 
@@ -19,24 +19,24 @@ const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 		...initialInput,
 		search: { memberId: user._id },
 	});
-	const [boardArticles, setBoardArticles] = useState<BoardArticle[]>([]);
+	const [boardArticles, setBoardArticles] = useState<Article[]>([]);
 	const [totalCount, setTotalCount] = useState<number>(0);
 
 	/** APOLLO REQUESTS **/
-	const [ likeTargetBoardArticle ] = useMutation(LIKE_TARGET_BOARD_ARTICLE);
+	const [ likeTargetArticle ] = useMutation(LIKE_TARGET_ARTICLE);
 
 	const {
 		loading: boardArticlesLoading,
 		data: boardArticlesData, 
 		error: boardArticlesError, 
 		refetch: boardArticlesRefetch 
-	} = useQuery(GET_BOARD_ARTICLES, {
+	} = useQuery(GET_ARTICLES, {
 		fetchPolicy: "network-only",
 		variables: { input: searchCommunity },
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: any) => {
-			setBoardArticles(data?.getBoardArticles?.list);
-			setTotalCount(data?.getBoardArticles?.metaCounter[0]?.total);
+			setBoardArticles(data?.getArticles?.list);
+			setTotalCount(data?.getArticles?.metaCounter[0]?.total);
 		},
 	});
 
@@ -51,7 +51,7 @@ const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 			if (!id) return;
 			if (!user._id) throw new Error(Messages.error2);
 
-			await likeTargetBoardArticle({ variables: { input: id } });
+			await likeTargetArticle({ variables: { input: id } });
 			
 			await boardArticlesRefetch({ input: searchCommunity });
 			await sweetTopSmallSuccessAlert('success', 750);
@@ -74,8 +74,8 @@ const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 				</Stack>
 				<Stack className="article-list-box">
 					{boardArticles?.length > 0 ? (
-						boardArticles?.map((boardArticle: BoardArticle) => {
-							return <CommunityCard boardArticle={boardArticle} key={boardArticle?._id} size={'small'} likeArticleHandler={likeBoardArticleHandler}/>;
+						boardArticles?.map((boardArticle: Article) => {
+							return <CommunityCard article={boardArticle} key={boardArticle?._id} size={'small'} likeArticleHandler={likeBoardArticleHandler}/>;
 						})
 					) : (
 						<div className={'no-data'}>

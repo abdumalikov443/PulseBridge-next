@@ -4,129 +4,68 @@ import { gql } from '@apollo/client';
  *         MEMBER         *
  *************************/
 
-export const GET_AGENTS = gql`
-	query GetAgents($input: AgentsInquiry!) {
-		getAgents(input: $input) {
-			list {
-				_id
-				memberType
-				memberStatus
-				memberAuthType
-				memberPhone
-				memberNick
-				memberFullName
-				memberImage
-				memberAddress
-				memberDesc
-				memberWarnings
-				memberBlocks
-				memberProperties
-				memberRank
-				memberPoints
-				memberLikes
-				memberViews
-				deletedAt
-				createdAt
-				updatedAt
-				accessToken
-				meLiked {
-					memberId
-					likeRefId
-					myFavorite
-				}
-			}
-			metaCounter {
-				total
-			}
-		}
-	}
-`;
-
 export const GET_MEMBER = gql(`
 	query GetMember($input: String!) {
 		getMember(memberId: $input) {
 			_id
 			memberType
 			memberStatus
-			memberAuthType
 			memberPhone
 			memberNick
 			memberFullName
 			memberImage
 			memberAddress
 			memberDesc
-			memberProperties
 			memberArticles
+			memberFollowers
+			memberFollowings
 			memberPoints
 			memberLikes
 			memberViews
-			memberFollowings
-					memberFollowers
+			memberComments
 			memberRank
-			memberWarnings
-			memberBlocks
 			deletedAt
 			createdAt
 			updatedAt
-			accessToken
 			meFollowed {
-						followingId
-						followerId
-						myFollowing
-					}
+				followingId
+				followerId
+				myFollowing
+			}
 		}
 	}
 `);
 
 /**************************
- *        PROPERTY        *
+ *         CLINIC         *
  *************************/
 
-export const GET_PROPERTY = gql`
-	query GetProperty($input: String!) {
-		getProperty(propertyId: $input) {
+export const GET_CLINIC = gql`
+	query GetClinic($input: String!) {
+		getClinic(clinicId: $input) {
 			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
+			clinicStatus
+			clinicType
+			clinicName
+			clinicAddress
+			clinicDesc
+			clinicImage
+			clinicViews
+			clinicLikes
+			clinicComments
+			clinicDoctors
+			clinicRank
 			memberId
-			soldAt
-			deletedAt
-			constructedAt
 			createdAt
 			updatedAt
 			memberData {
 				_id
 				memberType
-				memberStatus
-				memberAuthType
-				memberPhone
 				memberNick
 				memberFullName
 				memberImage
+				memberPhone
 				memberAddress
-				memberDesc
-				memberWarnings
-				memberBlocks
-				memberPoints
-				memberLikes
-				memberViews
-				deletedAt
-				createdAt
-				updatedAt
-				accessToken
 			}
 			meLiked {
 				memberId
@@ -137,55 +76,25 @@ export const GET_PROPERTY = gql`
 	}
 `;
 
-export const GET_PROPERTIES = gql`
-	query GetProperties($input: PropertiesInquiry!) {
-		getProperties(input: $input) {
+export const GET_CLINICS = gql`
+	query GetClinics($input: ClinicsInquiry!) {
+		getClinics(input: $input) {
 			list {
 				_id
-				propertyType
-				propertyStatus
-				propertyLocation
-				propertyAddress
-				propertyTitle
-				propertyPrice
-				propertySquare
-				propertyBeds
-				propertyRooms
-				propertyViews
-				propertyLikes
-				propertyRank
-				propertyImages
-				propertyDesc
-				propertyBarter
-				propertyRent
+				clinicStatus
+				clinicType
+				clinicName
+				clinicAddress
+				clinicDesc
+				clinicImage
+				clinicViews
+				clinicLikes
+				clinicComments
+				clinicDoctors
+				clinicRank
 				memberId
-				soldAt
-				deletedAt
-				constructedAt
 				createdAt
 				updatedAt
-				memberData {
-					_id
-					memberType
-					memberStatus
-					memberAuthType
-					memberPhone
-					memberNick
-					memberFullName
-					memberImage
-					memberAddress
-					memberDesc
-					memberWarnings
-					memberBlocks
-					memberProperties
-					memberRank
-					memberPoints
-					memberLikes
-					memberViews
-					deletedAt
-					createdAt
-					updatedAt
-				}
 				meLiked {
 					memberId
 					likeRefId
@@ -199,94 +108,51 @@ export const GET_PROPERTIES = gql`
 	}
 `;
 
-export const GET_AGENT_PROPERTIES = gql`
-	query GetAgentProperties($input: AgentPropertiesInquiry!) {
-		getAgentProperties(input: $input) {
-			list {
-				_id
-				propertyType
-				propertyStatus
-				propertyLocation
-				propertyAddress
-				propertyTitle
-				propertyPrice
-				propertySquare
-				propertyBeds
-				propertyRooms
-				propertyViews
-				propertyLikes
-				propertyImages
-				propertyDesc
-				propertyBarter
-				propertyRent
-				memberId
-				soldAt
-				deletedAt
-				constructedAt
-				createdAt
-				updatedAt
-			}
-			metaCounter {
-				total
-			}
+export const GET_MY_CLINIC = gql`
+	query GetMyClinic {
+		getMyClinic {
+			_id
+			clinicStatus
+			clinicType
+			clinicName
+			clinicAddress
+			clinicDesc
+			clinicImage
+			clinicViews
+			clinicLikes
+			clinicComments
+			clinicDoctors
+			clinicRank
+			memberId
+			createdAt
+			updatedAt
 		}
 	}
 `;
 
-export const GET_FAVORITES = gql`
-	query GetFavorites($input: OrdinaryInquiry!) {
-		getFavorites(input: $input) {
+export const GET_FAVORITE_CLINICS = gql`
+	query GetFavoriteClinics($input: OrdinaryInquiry!) {
+		getFavoriteClinics(input: $input) {
 			list {
 				_id
-				propertyType
-				propertyStatus
-				propertyLocation
-				propertyAddress
-				propertyTitle
-				propertyPrice
-				propertySquare
-				propertyBeds
-				propertyRooms
-				propertyViews
-				propertyLikes
-				propertyComments
-				propertyRank
-				propertyImages
-				propertyDesc
-				propertyBarter
-				propertyRent
+				clinicStatus
+				clinicType
+				clinicName
+				clinicAddress
+				clinicDesc
+				clinicImage
+				clinicViews
+				clinicLikes
+				clinicComments
+				clinicDoctors
+				clinicRank
 				memberId
-				soldAt
-				deletedAt
-				constructedAt
 				createdAt
 				updatedAt
-				memberData {
-					_id
-					memberType
-					memberStatus
-					memberAuthType
-					memberPhone
-					memberNick
-					memberFullName
-					memberImage
-					memberAddress
-					memberDesc
-					memberProperties
-					memberArticles
-					memberPoints
-					memberLikes
-					memberViews
-					memberComments
-					memberFollowings
-					memberFollowers
-					memberRank
-					memberWarnings
-					memberBlocks
-					deletedAt
-					createdAt
-					updatedAt
-					accessToken
+				meLiked {
+					memberId
+					likeRefId
+					myFavorite
 				}
 			}
 			metaCounter {
@@ -296,60 +162,29 @@ export const GET_FAVORITES = gql`
 	}
 `;
 
-export const GET_VISITED = gql`
-	query GetVisited($input: OrdinaryInquiry!) {
-		getVisited(input: $input) {
+export const GET_VISITED_CLINICS = gql`
+	query GetVisitedClinics($input: OrdinaryInquiry!) {
+		getVisitedClinics(input: $input) {
 			list {
 				_id
-				propertyType
-				propertyStatus
-				propertyLocation
-				propertyAddress
-				propertyTitle
-				propertyPrice
-				propertySquare
-				propertyBeds
-				propertyRooms
-				propertyViews
-				propertyLikes
-				propertyComments
-				propertyRank
-				propertyImages
-				propertyDesc
-				propertyBarter
-				propertyRent
+				clinicStatus
+				clinicType
+				clinicName
+				clinicAddress
+				clinicDesc
+				clinicImage
+				clinicViews
+				clinicLikes
+				clinicComments
+				clinicDoctors
+				clinicRank
 				memberId
-				soldAt
-				deletedAt
-				constructedAt
 				createdAt
 				updatedAt
-				memberData {
-					_id
-					memberType
-					memberStatus
-					memberAuthType
-					memberPhone
-					memberNick
-					memberFullName
-					memberImage
-					memberAddress
-					memberDesc
-					memberProperties
-					memberArticles
-					memberPoints
-					memberLikes
-					memberViews
-					memberComments
-					memberFollowings
-					memberFollowers
-					memberRank
-					memberWarnings
-					memberBlocks
-					deletedAt
-					createdAt
-					updatedAt
-					accessToken
+				meLiked {
+					memberId
+					likeRefId
+					myFavorite
 				}
 			}
 			metaCounter {
@@ -360,14 +195,317 @@ export const GET_VISITED = gql`
 `;
 
 /**************************
- *      BOARD-ARTICLE     *
+ *         DOCTOR         *
  *************************/
 
-export const GET_BOARD_ARTICLE = gql`
-	query GetBoardArticle($input: String!) {
-		getBoardArticle(articleId: $input) {
+export const GET_DOCTOR = gql`
+	query GetDoctor($input: String!) {
+		getDoctor(doctorId: $input) {
 			_id
-			articleCategory
+			memberId
+			clinicId
+			specialty
+			experience
+			doctorViews
+			doctorLikes
+			doctorComments
+			doctorRank
+			createdAt
+			updatedAt
+			meLiked {
+				memberId
+				likeRefId
+				myFavorite
+			}
+			memberData {
+				_id
+				memberNick
+				memberFullName
+				memberImage
+				memberPhone
+				memberDesc
+				memberFollowers
+				memberFollowings
+			}
+			clinicData {
+				_id
+				clinicType
+				clinicName
+				clinicAddress
+				clinicImage
+			}
+		}
+	}
+`;
+
+export const GET_DOCTORS = gql`
+	query GetDoctors($input: DoctorsInquiry!) {
+		getDoctors(input: $input) {
+			list {
+				_id
+				memberId
+				clinicId
+				specialty
+				experience
+				doctorViews
+				doctorLikes
+				doctorComments
+				doctorRank
+				createdAt
+				updatedAt
+				meLiked {
+					memberId
+					likeRefId
+					myFavorite
+				}
+				memberData {
+					_id
+					memberNick
+					memberFullName
+					memberImage
+				}
+				clinicData {
+					_id
+					clinicType
+					clinicName
+					clinicAddress
+				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+export const GET_MY_DOCTOR_PROFILE = gql`
+	query GetMyDoctorProfile {
+		getMyDoctorProfile {
+			_id
+			memberId
+			clinicId
+			specialty
+			experience
+			doctorViews
+			doctorLikes
+			doctorComments
+			doctorRank
+			createdAt
+			updatedAt
+			clinicData {
+				_id
+				clinicType
+				clinicName
+				clinicAddress
+				clinicImage
+			}
+		}
+	}
+`;
+
+export const GET_FAVORITE_DOCTORS = gql`
+	query GetFavoriteDoctors($input: OrdinaryInquiry!) {
+		getFavoriteDoctors(input: $input) {
+			list {
+				_id
+				memberId
+				clinicId
+				specialty
+				experience
+				doctorViews
+				doctorLikes
+				doctorComments
+				doctorRank
+				meLiked {
+					memberId
+					likeRefId
+					myFavorite
+				}
+				memberData {
+					_id
+					memberNick
+					memberFullName
+					memberImage
+				}
+				clinicData {
+					_id
+					clinicName
+				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+export const GET_VISITED_DOCTORS = gql`
+	query GetVisitedDoctors($input: OrdinaryInquiry!) {
+		getVisitedDoctors(input: $input) {
+			list {
+				_id
+				memberId
+				clinicId
+				specialty
+				experience
+				doctorViews
+				doctorLikes
+				doctorComments
+				doctorRank
+				meLiked {
+					memberId
+					likeRefId
+					myFavorite
+				}
+				memberData {
+					_id
+					memberNick
+					memberFullName
+					memberImage
+				}
+				clinicData {
+					_id
+					clinicName
+				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+export const GET_MY_JOIN_REQUESTS = gql`
+	query GetMyJoinRequests($input: OrdinaryInquiry!) {
+		getMyJoinRequests(input: $input) {
+			list {
+				_id
+				doctorId
+				clinicId
+				requestStatus
+				createdAt
+				updatedAt
+				clinicData {
+					_id
+					clinicType
+					clinicName
+					clinicAddress
+					clinicImage
+				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+export const GET_CLINIC_JOIN_REQUESTS = gql`
+	query GetClinicJoinRequests($input: OrdinaryInquiry!) {
+		getClinicJoinRequests(input: $input) {
+			list {
+				_id
+				doctorId
+				clinicId
+				requestStatus
+				createdAt
+				updatedAt
+				doctorData {
+					_id
+					specialty
+					experience
+					memberData {
+						_id
+						memberNick
+						memberFullName
+						memberImage
+						memberPhone
+					}
+				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+/**************************
+ *       APPOINTMENT      *
+ *************************/
+
+const APPOINTMENT_LIST_FIELDS = `
+	list {
+		_id
+		appointmentDate
+		appointmentTime
+		appointmentStatus
+		appointmentReason
+		memberId
+		doctorId
+		clinicId
+		createdAt
+		updatedAt
+		memberData {
+			_id
+			memberNick
+			memberFullName
+			memberImage
+			memberPhone
+		}
+		doctorData {
+			_id
+			specialty
+			memberData {
+				_id
+				memberNick
+				memberFullName
+				memberImage
+			}
+		}
+		clinicData {
+			_id
+			clinicName
+			clinicAddress
+		}
+	}
+	metaCounter {
+		total
+	}
+`;
+
+export const GET_MY_APPOINTMENTS = gql`
+	query GetMyAppointments($input: AppointmentsInquiry!) {
+		getMyAppointments(input: $input) {
+			${APPOINTMENT_LIST_FIELDS}
+		}
+	}
+`;
+
+export const GET_DOCTOR_APPOINTMENTS = gql`
+	query GetDoctorAppointments($input: AppointmentsInquiry!) {
+		getDoctorAppointments(input: $input) {
+			${APPOINTMENT_LIST_FIELDS}
+		}
+	}
+`;
+
+export const GET_CLINIC_APPOINTMENTS = gql`
+	query GetClinicAppointments($input: AppointmentsInquiry!) {
+		getClinicAppointments(input: $input) {
+			${APPOINTMENT_LIST_FIELDS}
+		}
+	}
+`;
+
+/**************************
+ *         ARTICLE        *
+ *************************/
+
+export const GET_ARTICLE = gql`
+	query GetArticle($input: String!) {
+		getArticle(articleId: $input) {
+			_id
 			articleStatus
 			articleTitle
 			articleContent
@@ -381,24 +519,9 @@ export const GET_BOARD_ARTICLE = gql`
 			memberData {
 				_id
 				memberType
-				memberStatus
-				memberAuthType
-				memberPhone
 				memberNick
 				memberFullName
 				memberImage
-				memberAddress
-				memberDesc
-				memberWarnings
-				memberBlocks
-				memberProperties
-				memberRank
-				memberPoints
-				memberLikes
-				memberViews
-				deletedAt
-				createdAt
-				updatedAt
 			}
 			meLiked {
 				memberId
@@ -409,12 +532,11 @@ export const GET_BOARD_ARTICLE = gql`
 	}
 `;
 
-export const GET_BOARD_ARTICLES = gql`
-	query GetBoardArticles($input: BoardArticlesInquiry!) {
-		getBoardArticles(input: $input) {
+export const GET_ARTICLES = gql`
+	query GetArticles($input: ArticlesInquiry!) {
+		getArticles(input: $input) {
 			list {
 				_id
-				articleCategory
 				articleStatus
 				articleTitle
 				articleContent
@@ -433,24 +555,9 @@ export const GET_BOARD_ARTICLES = gql`
 				memberData {
 					_id
 					memberType
-					memberStatus
-					memberAuthType
-					memberPhone
 					memberNick
 					memberFullName
 					memberImage
-					memberAddress
-					memberDesc
-					memberWarnings
-					memberBlocks
-					memberProperties
-					memberRank
-					memberPoints
-					memberLikes
-					memberViews
-					deletedAt
-					createdAt
-					updatedAt
 				}
 			}
 			metaCounter {
@@ -479,25 +586,9 @@ export const GET_COMMENTS = gql`
 				memberData {
 					_id
 					memberType
-					memberStatus
-					memberAuthType
-					memberPhone
 					memberNick
 					memberFullName
 					memberImage
-					memberAddress
-					memberDesc
-					memberWarnings
-					memberBlocks
-					memberProperties
-					memberRank
-					memberPoints
-					memberLikes
-					memberViews
-					deletedAt
-					createdAt
-					updatedAt
-					accessToken
 				}
 			}
 			metaCounter {
@@ -533,27 +624,15 @@ export const GET_MEMBER_FOLLOWERS = gql`
 					_id
 					memberType
 					memberStatus
-					memberAuthType
-					memberPhone
 					memberNick
 					memberFullName
 					memberImage
-					memberAddress
-					memberDesc
-					memberProperties
 					memberArticles
-					memberPoints
+					memberFollowers
+					memberFollowings
 					memberLikes
 					memberViews
-					memberComments
-					memberFollowings
-					memberFollowers
-					memberRank
-					memberWarnings
-					memberBlocks
-					deletedAt
 					createdAt
-					updatedAt
 				}
 			}
 			metaCounter {
@@ -576,28 +655,15 @@ export const GET_MEMBER_FOLLOWINGS = gql`
 					_id
 					memberType
 					memberStatus
-					memberAuthType
-					memberPhone
 					memberNick
 					memberFullName
 					memberImage
-					memberAddress
-					memberDesc
-					memberProperties
 					memberArticles
-					memberPoints
+					memberFollowers
+					memberFollowings
 					memberLikes
 					memberViews
-					memberComments
-					memberFollowings
-					memberFollowers
-					memberRank
-					memberWarnings
-					memberBlocks
-					deletedAt
 					createdAt
-					updatedAt
-					accessToken
 				}
 				meLiked {
 					memberId
@@ -608,6 +674,38 @@ export const GET_MEMBER_FOLLOWINGS = gql`
 					followingId
 					followerId
 					myFollowing
+				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+/**************************
+ *      NOTIFICATION      *
+ *************************/
+
+export const GET_NOTIFICATIONS = gql`
+	query GetNotifications($input: NotificationsInquiry!) {
+		getNotifications(input: $input) {
+			list {
+				_id
+				notificationType
+				notificationStatus
+				notificationGroup
+				notificationTitle
+				notificationDesc
+				authorId
+				receiverId
+				articleId
+				appointmentId
+				createdAt
+				authorData {
+					_id
+					memberNick
+					memberImage
 				}
 			}
 			metaCounter {

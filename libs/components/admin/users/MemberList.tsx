@@ -17,7 +17,7 @@ import Typography from '@mui/material/Typography';
 import { Stack } from '@mui/material';
 import { Member } from '../../../types/member/member';
 import { REACT_APP_API_URL } from '../../../config';
-import { MemberStatus, MemberType } from '../../../enums/member.enum';
+import { MemberStatus } from '../../../enums/member.enum';
 
 interface Data {
 	id: string;
@@ -84,13 +84,13 @@ const headCells: readonly HeadCell[] = [
 		id: 'warning',
 		numeric: false,
 		disablePadding: false,
-		label: 'WARNING',
+		label: 'ARTICLES',
 	},
 	{
 		id: 'block',
 		numeric: false,
 		disablePadding: false,
-		label: 'BLOCK CRIMES',
+		label: 'LIKES',
 	},
 	{
 		id: 'state',
@@ -181,38 +181,12 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 										<TableCell align="left">{member.memberPhone}</TableCell>
 
 										<TableCell align="center">
-											<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={'badge success'}>
-												{member.memberType}
-											</Button>
-
-											<Menu
-												className={'menu-modal'}
-												MenuListProps={{
-													'aria-labelledby': 'fade-button',
-												}}
-												anchorEl={anchorEl[index]}
-												open={Boolean(anchorEl[index])}
-												onClose={menuIconCloseHandler}
-												TransitionComponent={Fade}
-												sx={{ p: 1 }}
-											>
-												{Object.values(MemberType)
-													.filter((ele) => ele !== member?.memberType)
-													.map((type: string) => (
-														<MenuItem
-															onClick={() => updateMemberHandler({ _id: member._id, memberType: type })}
-															key={type}
-														>
-															<Typography variant={'subtitle1'} component={'span'}>
-																{type}
-															</Typography>
-														</MenuItem>
-													))}
-											</Menu>
+											{/* memberType is fixed at signup */}
+											<Button className={'badge success'}>{member.memberType}</Button>
 										</TableCell>
 
-										<TableCell align="center">{member.memberWarnings}</TableCell>
-										<TableCell align="center">{member.memberBlocks}</TableCell>
+										<TableCell align="center">{member.memberArticles}</TableCell>
+										<TableCell align="center">{member.memberLikes}</TableCell>
 										<TableCell align="center">
 											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={'badge success'}>
 												{member.memberStatus}

@@ -3,48 +3,33 @@ import Link from 'next/link';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Stack, Typography } from '@mui/material';
 import CommunityCard from './CommunityCard';
-import { BoardArticle } from '../../types/board-article/board-article';
-import { GET_BOARD_ARTICLES } from '../../../apollo/user/query';
+import { Article } from '../../types/article/article';
+import { GET_ARTICLES } from '../../../apollo/user/query';
 import { useQuery } from '@apollo/client';
-import { BoardArticleCategory } from '../../enums/board-article.enum';
 import { T } from '../../types/common';
 
+// articles have no categories: popular (by views) on the left, latest on the right
 const CommunityBoards = () => {
 	const device = useDeviceDetect();
-	const [searchCommunity, setSearchCommunity] = useState({
-		page: 1,
-		sort: 'articleViews',
-		direction: 'DESC',
-	});
-	const [newsArticles, setNewsArticles] = useState<BoardArticle[]>([]);
-	const [freeArticles, setFreeArticles] = useState<BoardArticle[]>([]);
+	const [popularArticles, setPopularArticles] = useState<Article[]>([]);
+	const [latestArticles, setLatestArticles] = useState<Article[]>([]);
 
 	/** APOLLO REQUESTS **/
-	const {
-		loading: getNewsArticlesLoading, 
-		data: getNewsArticlesData, 
-		error: getNewsArticlesError, 
-		refetch: getNewsArticlesRefetch 
-	} = useQuery(GET_BOARD_ARTICLES, {
-		fetchPolicy: "network-only",
-		variables: { input: {...searchCommunity, limit: 6, search: {articleCategory: BoardArticleCategory.NEWS }} },
+	useQuery(GET_ARTICLES, {
+		fetchPolicy: 'network-only',
+		variables: { input: { page: 1, limit: 6, sort: 'articleViews', direction: 'DESC', search: {} } },
 		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => { 
-			setNewsArticles(data?.getBoardArticles?.list);
+		onCompleted: (data: T) => {
+			setPopularArticles(data?.getArticles?.list);
 		},
 	});
 
-	const {
-		loading: getFreeArticlesLoading, 
-		data: getFreArticlesData, 
-		error: getFreArticlesError, 
-		refetch: getFreArticlesRefetch 
-	} = useQuery(GET_BOARD_ARTICLES, {
-		fetchPolicy: "network-only",
-		variables: { input: {...searchCommunity, limit: 3, search: {articleCategory: BoardArticleCategory.FREE }} },
+	useQuery(GET_ARTICLES, {
+		fetchPolicy: 'network-only',
+		variables: { input: { page: 1, limit: 3, sort: 'createdAt', direction: 'DESC', search: {} } },
 		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => { 
-			setFreeArticles(data?.getBoardArticles?.list);
+		onCompleted: (data: T) => {
+			setLatestArticles(data?.getArticles?.list);
 		},
 	});
 
@@ -55,31 +40,31 @@ const CommunityBoards = () => {
 			<Stack className={'community-board'}>
 				<Stack className={'container'}>
 					<Stack>
-						<Typography variant={'h1'}>COMMUNITY BOARD HIGHLIGHTS</Typography>
+						<Typography variant={'h1'}>HEALTH COMMUNITY HIGHLIGHTS</Typography>
 					</Stack>
 					<Stack className="community-main">
 						<Stack className={'community-left'}>
 							<Stack className={'content-top'}>
-								<Link href={'/community?articleCategory=NEWS'}>
-									<span>News</span>
+								<Link href={'/community?sort=articleViews'}>
+									<span>Popular</span>
 								</Link>
 								<img src="/img/icons/arrowBig.svg" alt="" />
 							</Stack>
 							<Stack className={'card-wrap'}>
-								{newsArticles.map((article, index) => {
+								{popularArticles.map((article, index) => {
 									return <CommunityCard vertical={true} article={article} index={index} key={article?._id} />;
 								})}
 							</Stack>
 						</Stack>
 						<Stack className={'community-right'}>
 							<Stack className={'content-top'}>
-								<Link href={'/community?articleCategory=FREE'}>
-									<span>Free</span>
+								<Link href={'/community'}>
+									<span>Latest</span>
 								</Link>
 								<img src="/img/icons/arrowBig.svg" alt="" />
 							</Stack>
 							<Stack className={'card-wrap vertical'}>
-								{freeArticles.map((article, index) => {
+								{latestArticles.map((article, index) => {
 									return <CommunityCard vertical={false} article={article} index={index} key={article?._id} />;
 								})}
 							</Stack>

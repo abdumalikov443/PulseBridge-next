@@ -1,9 +1,8 @@
-import { MemberStatus, MemberType } from '../../enums/member.enum';
+import { MemberStatus } from '../../enums/member.enum';
 
+// memberType is never changed after signup
 export interface MemberUpdate {
 	_id: string;
-	memberType?: MemberType;
-	memberStatus?: MemberStatus;
 	memberPhone?: string;
 	memberNick?: string;
 	memberPassword?: string;
@@ -11,12 +10,11 @@ export interface MemberUpdate {
 	memberImage?: string;
 	memberAddress?: string;
 	memberDesc?: string;
-	deletedAt?: Date;
 }
 
+// memberStatus is changed only by admin
 export interface AdminMemberUpdate {
 	_id: string;
-	memberType?: MemberType;
 	memberStatus?: MemberStatus;
 	memberPhone?: string;
 	memberNick?: string;
@@ -24,5 +22,4 @@ export interface AdminMemberUpdate {
 	memberImage?: string;
 	memberAddress?: string;
 	memberDesc?: string;
-	deletedAt?: Date;
 }

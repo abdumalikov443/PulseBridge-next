@@ -5,11 +5,59 @@ import useDeviceDetect from '../../hooks/useDeviceDetect';
 import Link from 'next/link';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
-import PortraitIcon from '@mui/icons-material/Portrait';
-import IconButton from '@mui/material/IconButton';
-import { REACT_APP_API_URL } from '../../config';
+import { getImageUrl } from '../../config';
+import { MemberType } from '../../enums/member.enum';
 import { logOut } from '../../auth';
 import { sweetConfirmAlert, sweetMixinErrorAlert } from '../../sweetAlert';
+
+interface MenuItemType {
+	category: string;
+	title: string;
+	icon: string;
+	activeIcon: string;
+}
+
+const appointmentsItem: MenuItemType = {
+	category: 'myAppointments',
+	title: 'Appointments',
+	icon: '/img/icons/review.svg',
+	activeIcon: '/img/icons/reviewWhite.svg',
+};
+const joinRequestsItem: MenuItemType = {
+	category: 'joinRequests',
+	title: 'Join Requests',
+	icon: '/img/icons/chat.svg',
+	activeIcon: '/img/icons/chatWhite.svg',
+};
+const commonItems: MenuItemType[] = [
+	{ category: 'myFavorites', title: 'My Favorites', icon: '/img/icons/like.svg', activeIcon: '/img/icons/likeWhite.svg' },
+	{
+		category: 'recentlyVisited',
+		title: 'Recently Visited',
+		icon: '/img/icons/search.svg',
+		activeIcon: '/img/icons/searchWhite.svg',
+	},
+];
+
+// menu items depend on the role: patients book, doctors join clinics, clinics manage doctors
+const getListingItems = (memberType: string): MenuItemType[] => {
+	switch (memberType) {
+		case MemberType.CLINIC:
+			return [
+				{ category: 'myClinic', title: 'My Clinic', icon: '/img/icons/home.svg', activeIcon: '/img/icons/homeWhite.svg' },
+				{ category: 'clinicDoctors', title: 'Doctors', icon: '/img/icons/newTab.svg', activeIcon: '/img/icons/whiteTab.svg' },
+				joinRequestsItem,
+				appointmentsItem,
+				...commonItems,
+			];
+		case MemberType.DOCTOR:
+			return [appointmentsItem, joinRequestsItem, ...commonItems];
+		case MemberType.PATIENT:
+			return [appointmentsItem, ...commonItems];
+		default:
+			return commonItems;
+	}
+};
 
 const MyMenu = () => {
 	const device = useDeviceDetect();
@@ -17,6 +65,7 @@ const MyMenu = () => {
 	const pathname = router.query.category ?? 'myProfile';
 	const category: any = router.query?.category ?? 'myProfile';
 	const user = useReactiveVar(userVar);
+	const listingItems = getListingItems(user.memberType);
 
 	/** HANDLERS **/
 	const logoutHandler = async () => {
@@ -35,7 +84,7 @@ const MyMenu = () => {
 				<Stack className={'profile'}>
 					<Box component={'div'} className={'profile-img'}>
 						<img
-							src={user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : '/img/profile/defaultUser.svg'}
+							src={getImageUrl(user?.memberImage)}
 							alt={'member-photo'}
 						/>
 					</Box>
@@ -45,7 +94,7 @@ const MyMenu = () => {
 							<img src={'/img/icons/call.svg'} alt={'icon'} />
 							<Typography className={'p-number'}>{user?.memberPhone}</Typography>
 						</Box>
-						{user?.memberType === 'ADMIN' ? (
+						{user?.memberType === MemberType.ADMIN ? (
 							<a href="/_admin/users" target={'_blank'}>
 								<Typography className={'view-list'}>{user?.memberType}</Typography>
 							</a>
@@ -55,103 +104,27 @@ const MyMenu = () => {
 					</Stack>
 				</Stack>
 				<Stack className={'sections'}>
-					<Stack className={'section'} style={{ height: user.memberType === 'AGENT' ? '228px' : '153px' }}>
+					<Stack className={'section'} style={{ height: `${(listingItems.length + 2) * 38 + 3}px` }}>
 						<Typography className="title" variant={'h5'}>
-							MANAGE LISTINGS
+							MANAGE
 						</Typography>
 						<List className={'sub-section'}>
-							{user.memberType === 'AGENT' && (
-								<>
-									<ListItem className={pathname === 'addProperty' ? 'focus' : ''}>
-										<Link
-											href={{
-												pathname: '/mypage',
-												query: { category: 'addProperty' },
-											}}
-											scroll={false}
-										>
-											<div className={'flex-box'}>
-												{category === 'addProperty' ? (
-													<img className={'com-icon'} src={'/img/icons/whiteTab.svg'} alt={'com-icon'} />
-												) : (
-													<img className={'com-icon'} src={'/img/icons/newTab.svg'} alt={'com_icon'} />
-												)}
-												<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
-													Add Property
-												</Typography>
-												<IconButton aria-label="delete" sx={{ ml: '40px' }}>
-													<PortraitIcon style={{ color: 'red' }} />
-												</IconButton>
-											</div>
-										</Link>
-									</ListItem>
-									<ListItem className={pathname === 'myProperties' ? 'focus' : ''}>
-										<Link
-											href={{
-												pathname: '/mypage',
-												query: { category: 'myProperties' },
-											}}
-											scroll={false}
-										>
-											<div className={'flex-box'}>
-												{category === 'myProperties' ? (
-													<img className={'com-icon'} src={'/img/icons/homeWhite.svg'} alt={'com-icon'} />
-												) : (
-													<img className={'com-icon'} src={'/img/icons/home.svg'} alt={'com-icon'} />
-												)}
-												<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
-													My Properties
-												</Typography>
-												<IconButton aria-label="delete" sx={{ ml: '36px' }}>
-													<PortraitIcon style={{ color: 'red' }} />
-												</IconButton>
-											</div>
-										</Link>
-									</ListItem>
-								</>
-							)}
-							<ListItem className={pathname === 'myFavorites' ? 'focus' : ''}>
-								<Link
-									href={{
-										pathname: '/mypage',
-										query: { category: 'myFavorites' },
-									}}
-									scroll={false}
-								>
-									<div className={'flex-box'}>
-										{category === 'myFavorites' ? (
-											<img className={'com-icon'} src={'/img/icons/likeWhite.svg'} alt={'com-icon'} />
-										) : (
-											<img className={'com-icon'} src={'/img/icons/like.svg'} alt={'com-icon'} />
-										)}
-
-										<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
-											My Favorites
-										</Typography>
-									</div>
-								</Link>
-							</ListItem>
-							<ListItem className={pathname === 'recentlyVisited' ? 'focus' : ''}>
-								<Link
-									href={{
-										pathname: '/mypage',
-										query: { category: 'recentlyVisited' },
-									}}
-									scroll={false}
-								>
-									<div className={'flex-box'}>
-										{category === 'recentlyVisited' ? (
-											<img className={'com-icon'} src={'/img/icons/searchWhite.svg'} alt={'com-icon'} />
-										) : (
-											<img className={'com-icon'} src={'/img/icons/search.svg'} alt={'com-icon'} />
-										)}
-
-										<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
-											Recently Visited
-										</Typography>
-									</div>
-								</Link>
-							</ListItem>
+							{listingItems.map((item: MenuItemType) => (
+								<ListItem className={pathname === item.category ? 'focus' : ''} key={item.category}>
+									<Link href={{ pathname: '/mypage', query: { category: item.category } }} scroll={false}>
+										<div className={'flex-box'}>
+											<img
+												className={'com-icon'}
+												src={category === item.category ? item.activeIcon : item.icon}
+												alt={'com-icon'}
+											/>
+											<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
+												{item.title}
+											</Typography>
+										</div>
+									</Link>
+								</ListItem>
+							))}
 							<ListItem className={pathname === 'followers' ? 'focus' : ''}>
 								<Link
 									href={{

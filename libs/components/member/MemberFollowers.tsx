@@ -6,8 +6,6 @@ import { FollowInquiry } from '../../types/follow/follow.input';
 import { useQuery, useReactiveVar } from '@apollo/client';
 import { Follower } from '../../types/follow/follow';
 import { REACT_APP_API_URL } from '../../config';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { userVar } from '../../../apollo/store';
 import { T } from '../../types/common';
 import { GET_MEMBER_FOLLOWERS } from '../../../apollo/user/query';
@@ -17,7 +15,7 @@ interface MemberFollowsProps {
 	subscribeHandler: any;
 	unsubscribeHandler: any;
 	redirectToMemberPageHandler: any;
-	likeMemberHandler: any;
+	likeMemberHandler?: any;
 }
 
 const MemberFollowers = (props: MemberFollowsProps) => {
@@ -65,7 +63,7 @@ const MemberFollowers = (props: MemberFollowsProps) => {
 	};
 
 	if (device === 'mobile') {
-		return <div>NESTAR FOLLOWS MOBILE</div>;
+		return <div>FOLLOWS MOBILE</div>;
 	} else {
 		return (
 			<div id="member-follows-page">
@@ -110,14 +108,8 @@ const MemberFollowers = (props: MemberFollowsProps) => {
 										<span>({follower?.followerData?.memberFollowings})</span>
 									</Box>
 									<Box className={'info-box'} component={'div'}>
-										{follower?.meLiked && follower?.meLiked[0]?.myFavorite ? (
-											<FavoriteIcon color="primary" 
-											onClick={likeMemberHandler(follower?.followerData?._id, getMemberFollowersRefetch, followInquiry)}/>
-										) : (
-											<FavoriteBorderIcon 
-											onClick={likeMemberHandler(follower?.followerData?._id, getMemberFollowersRefetch, followInquiry)}/>
-										)}
-										<span>({follower?.followerData?.memberLikes})</span>
+										<p>Articles</p>
+										<span>({follower?.followerData?.memberArticles})</span>
 									</Box>
 								</Stack>
 								{user?._id !== follower?.followerId && (

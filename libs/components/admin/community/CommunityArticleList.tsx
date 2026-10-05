@@ -19,11 +19,11 @@ import Avatar from '@mui/material/Avatar';
 import Stack from '@mui/material/Stack';
 import OpenInBrowserRoundedIcon from '@mui/icons-material/OpenInBrowserRounded';
 import Moment from 'react-moment';
-import { BoardArticle } from '../../../types/board-article/board-article';
+import { Article } from '../../../types/article/article';
 import { REACT_APP_API_URL } from '../../../config';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Typography from '@mui/material/Typography';
-import { BoardArticleStatus } from '../../../enums/board-article.enum';
+import { ArticleStatus } from '../../../enums/article.enum';
 
 interface Data {
 	category: string;
@@ -55,12 +55,6 @@ const headCells: readonly HeadCell[] = [
 		numeric: true,
 		disablePadding: false,
 		label: 'TITLE',
-	},
-	{
-		id: 'category',
-		numeric: true,
-		disablePadding: false,
-		label: 'CATEGORY',
 	},
 	{
 		id: 'writer',
@@ -120,7 +114,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 }
 
 interface CommunityArticleListProps {
-	articles: BoardArticle[];
+	articles: Article[];
 	anchorEl: any;
 	menuIconClickHandler: any;
 	menuIconCloseHandler: any;
@@ -148,15 +142,15 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 						)}
 
 						{articles.length !== 0 &&
-							articles.map((article: BoardArticle, index: number) => (
+							articles.map((article: Article, index: number) => (
 								<TableRow hover key={article._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
 									<TableCell align="left">{article._id}</TableCell>
 									<TableCell align="left">
 										<Box component={'div'}>
 											{article.articleTitle}
-											{article.articleStatus === BoardArticleStatus.ACTIVE && (
+											{article.articleStatus === ArticleStatus.ACTIVE && (
 												<Link
-													href={`/community/detail?articleCategory=${article.articleCategory}&id=${article._id}`}
+													href={`/community/detail?id=${article._id}`}
 													className={'img_box'}
 												>
 													<IconButton className="btn_window">
@@ -168,7 +162,6 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 											)}
 										</Box>
 									</TableCell>
-									<TableCell align="left">{article.articleCategory}</TableCell>
 									<TableCell align="left" className={'name'}>
 										<Link href={`/member?memberId=${article?.memberData?._id}`}>
 											<Avatar
@@ -189,7 +182,7 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 										<Moment format={'DD.MM.YY HH:mm'}>{article?.createdAt}</Moment>
 									</TableCell>
 									<TableCell align="center">
-										{article.articleStatus === BoardArticleStatus.DELETE ? (
+										{article.articleStatus === ArticleStatus.DELETE ? (
 											<Button
 												variant="outlined"
 												sx={{ p: '3px', border: 'none', ':hover': { border: '1px solid #000000' } }}
@@ -214,9 +207,9 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 													TransitionComponent={Fade}
 													sx={{ p: 1 }}
 												>
-													{Object.values(BoardArticleStatus)
+													{Object.values(ArticleStatus)
 														.filter((ele) => ele !== article.articleStatus)
-														.map((status: string) => (
+														.map((status: ArticleStatus) => (
 															<MenuItem
 																onClick={() => updateArticleHandler({ _id: article._id, articleStatus: status })}
 																key={status}

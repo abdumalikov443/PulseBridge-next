@@ -1,29 +1,21 @@
-import { MemberAuthType, MemberStatus, MemberType } from '../../enums/member.enum';
+import { MemberStatus, MemberType } from '../../enums/member.enum';
 import { Direction } from '../../enums/common.enum';
+import { DoctorProfileInput } from '../doctor/doctor.input';
+import { ClinicInput } from '../clinic/clinic.input';
 
 export interface MemberInput {
 	memberNick: string;
 	memberPassword: string;
 	memberPhone: string;
-	memberType?: MemberType;
-	memberAuthType?: MemberAuthType;
+	memberType: MemberType;
+	// only the profile that matches memberType
+	doctorProfile?: DoctorProfileInput;
+	clinicProfile?: ClinicInput;
 }
 
 export interface LoginInput {
 	memberNick: string;
 	memberPassword: string;
-}
-
-interface AISearch {
-	text?: string;
-}
-
-export interface AgentsInquiry {
-	page: number;
-	limit: number;
-	sort?: string;
-	direction?: Direction;
-	search: AISearch;
 }
 
 interface MISearch {

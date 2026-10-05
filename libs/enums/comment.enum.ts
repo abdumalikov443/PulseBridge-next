@@ -1,11 +1,11 @@
 export enum CommentStatus {
 	ACTIVE = 'ACTIVE',
+	BLOCK = 'BLOCK',
 	DELETE = 'DELETE',
 }
 
 export enum CommentGroup {
-	MEMBER = 'MEMBER',
+	DOCTOR = 'DOCTOR',
+	CLINIC = 'CLINIC',
 	ARTICLE = 'ARTICLE',
-	PROPERTY = 'PROPERTY',
-	COMMENT = 'COMMENT',
 }

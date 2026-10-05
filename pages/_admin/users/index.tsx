@@ -14,8 +14,9 @@ import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import { MembersInquiry } from '../../../libs/types/member/member.input';
 import { Member } from '../../../libs/types/member/member';
 import { MemberStatus, MemberType } from '../../../libs/enums/member.enum';
+import { formatEnum } from '../../../libs/utils';
 import { sweetErrorHandling } from '../../../libs/sweetAlert';
-import { MemberUpdate } from '../../../libs/types/member/member.update';
+import { AdminMemberUpdate } from '../../../libs/types/member/member.update';
 import { useMutation, useQuery } from '@apollo/client';
 import { UPDATE_MEMBER_BY_ADMIN } from '../../../apollo/admin/mutation';
 import { GET_ALL_MEMBERS_BY_ADMIN } from '../../../apollo/admin/query';
@@ -102,7 +103,7 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 		}
 	};
 
-	const updateMemberHandler = async (updateData: MemberUpdate) => {
+	const updateMemberHandler = async (updateData: AdminMemberUpdate) => {
 		try {
 			await updateMemberByAdmin({
 				variables: {input: updateData}
@@ -238,12 +239,11 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 									<MenuItem value={'ALL'} onClick={() => searchTypeHandler('ALL')}>
 										All
 									</MenuItem>
-									<MenuItem value={'USER'} onClick={() => searchTypeHandler('USER')}>
-										User
-									</MenuItem>
-									<MenuItem value={'AGENT'} onClick={() => searchTypeHandler('AGENT')}>
-										Agent
-									</MenuItem>
+									{[MemberType.PATIENT, MemberType.DOCTOR, MemberType.CLINIC].map((type: MemberType) => (
+										<MenuItem value={type} key={type} onClick={() => searchTypeHandler(type)}>
+											{formatEnum(type)}
+										</MenuItem>
+									))}
 									<MenuItem value={'ADMIN'} onClick={() => searchTypeHandler('ADMIN')}>
 										Admin
 									</MenuItem>

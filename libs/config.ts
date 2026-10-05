@@ -1,16 +1,13 @@
 export const REACT_APP_API_URL = `${process.env.REACT_APP_API_URL}`;
 
-export const availableOptions = ['propertyBarter', 'propertyRent'];
+// sort keys accepted by the backend (any other value is rejected)
+export const clinicSorts = ['createdAt', 'updatedAt', 'clinicLikes', 'clinicViews', 'clinicRank', 'clinicDoctors'];
+export const doctorSorts = ['createdAt', 'updatedAt', 'doctorLikes', 'doctorViews', 'doctorRank', 'experience'];
 
-const thisYear = new Date().getFullYear();
-
-export const propertyYears: any = [];
-
-for (let i = 1970; i <= thisYear; i++) {
-	propertyYears.push(String(i));
-}
-
-export const propertySquare = [0, 25, 50, 75, 100, 125, 150, 200, 300, 500];
+// backend validation limits
+export const ARTICLE_TITLE_MAX = 50;
+export const ARTICLE_CONTENT_MAX = 250;
+export const COMMENT_CONTENT_MAX = 100;
 
 export const Messages = {
 	error1: 'Something went wrong!',
@@ -20,4 +17,15 @@ export const Messages = {
 	error5: 'Only images with jpeg, jpg, png format allowed!',
 };
 
-export const topPropertyRank = 2;
+export const getImageUrl = (image?: string | null, fallback: string = '/img/profile/defaultUser.svg'): string => {
+	return image ? `${REACT_APP_API_URL}/${image}` : fallback;
+};
+
+export const getMemberName = (member?: { memberFullName?: string; memberNick?: string } | null): string => {
+	return member?.memberFullName || member?.memberNick || '';
+};
+
+export const DEFAULT_CLINIC_IMAGE = '/img/property/bigImage.png';
+
+// rank from which a doctor or clinic gets the "top" badge
+export const TOP_RANK = 2;

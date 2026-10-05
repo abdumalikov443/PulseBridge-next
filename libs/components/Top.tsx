@@ -12,7 +12,7 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import { CaretDown } from 'phosphor-react';
 import useDeviceDetect from '../hooks/useDeviceDetect';
 import Link from 'next/link';
-import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
+import NotificationMenu from './common/NotificationMenu';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../apollo/store';
 import { Logout } from '@mui/icons-material';
@@ -45,7 +45,7 @@ const Top = () => {
 
 	useEffect(() => {
 		switch (router.pathname) {
-			case '/property/detail':
+			case '/clinic/detail':
 				setBgColor(true);
 				break;
 			default:
@@ -145,13 +145,13 @@ const Top = () => {
 				<Link href={'/'}>
 					<div>{t('Home')}</div>
 				</Link>
-				<Link href={'/property'}>
-					<div>{t('Properties')}</div>
+				<Link href={'/clinic'}>
+					<div>{t('Clinics')}</div>
 				</Link>
-				<Link href={'/agent'}>
-					<div> {t('Agents')} </div>
+				<Link href={'/doctor'}>
+					<div> {t('Doctors')} </div>
 				</Link>
-				<Link href={'/community?articleCategory=FREE'}>
+				<Link href={'/community'}>
 					<div> {t('Community')} </div>
 				</Link>
 				<Link href={'/cs'}>
@@ -173,13 +173,13 @@ const Top = () => {
 							<Link href={'/'}>
 								<div>{t('Home')}</div>
 							</Link>
-							<Link href={'/property'}>
-								<div>{t('Properties')}</div>
+							<Link href={'/clinic'}>
+								<div>{t('Clinics')}</div>
 							</Link>
-							<Link href={'/agent'}>
-								<div> {t('Agents')} </div>
+							<Link href={'/doctor'}>
+								<div> {t('Doctors')} </div>
 							</Link>
-							<Link href={'/community?articleCategory=FREE'}>
+							<Link href={'/community'}>
 								<div> {t('Community')} </div>
 							</Link>
 							{user?._id && (
@@ -230,7 +230,7 @@ const Top = () => {
 							)}
 
 							<div className={'lan-box'}>
-								{user?._id && <NotificationsOutlinedIcon className={'notification-icon'} />}
+								{user?._id && <NotificationMenu />}
 								<Button
 									disableRipple
 									className="btn-lang"

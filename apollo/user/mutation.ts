@@ -10,22 +10,17 @@ export const SIGN_UP = gql`
 			_id
 			memberType
 			memberStatus
-			memberAuthType
 			memberPhone
 			memberNick
 			memberFullName
 			memberImage
 			memberAddress
 			memberDesc
-			memberWarnings
-			memberBlocks
-			memberProperties
-			memberRank
 			memberArticles
 			memberPoints
 			memberLikes
 			memberViews
-			deletedAt
+			memberRank
 			createdAt
 			updatedAt
 			accessToken
@@ -39,21 +34,17 @@ export const LOGIN = gql`
 			_id
 			memberType
 			memberStatus
-			memberAuthType
 			memberPhone
 			memberNick
 			memberFullName
 			memberImage
 			memberAddress
 			memberDesc
-			memberWarnings
-			memberBlocks
-			memberProperties
-			memberRank
+			memberArticles
 			memberPoints
 			memberLikes
 			memberViews
-			deletedAt
+			memberRank
 			createdAt
 			updatedAt
 			accessToken
@@ -67,50 +58,17 @@ export const UPDATE_MEMBER = gql`
 			_id
 			memberType
 			memberStatus
-			memberAuthType
 			memberPhone
 			memberNick
 			memberFullName
 			memberImage
 			memberAddress
 			memberDesc
-			memberProperties
-			memberRank
 			memberArticles
 			memberPoints
 			memberLikes
 			memberViews
-			memberWarnings
-			memberBlocks
-			deletedAt
-			createdAt
-			updatedAt
-			accessToken
-		}
-	}
-`;
-
-export const LIKE_TARGET_MEMBER = gql`
-	mutation LikeTargetMember($input: String!) {
-		likeTargetMember(memberId: $input) {
-			_id
-			memberType
-			memberStatus
-			memberAuthType
-			memberPhone
-			memberNick
-			memberFullName
-			memberImage
-			memberAddress
-			memberDesc
-			memberWarnings
-			memberBlocks
-			memberProperties
 			memberRank
-			memberPoints
-			memberLikes
-			memberViews
-			deletedAt
 			createdAt
 			updatedAt
 			accessToken
@@ -119,150 +77,169 @@ export const LIKE_TARGET_MEMBER = gql`
 `;
 
 /**************************
- *        PROPERTY        *
+ *         CLINIC         *
  *************************/
 
-export const CREATE_PROPERTY = gql`
-	mutation CreateProperty($input: PropertyInput!) {
-		createProperty(input: $input) {
+export const UPDATE_CLINIC = gql`
+	mutation UpdateClinic($input: ClinicUpdate!) {
+		updateClinic(input: $input) {
 			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
+			clinicStatus
+			clinicType
+			clinicName
+			clinicAddress
+			clinicDesc
+			clinicImage
+			clinicViews
+			clinicLikes
+			clinicDoctors
 			memberId
-			soldAt
-			deletedAt
-			constructedAt
 			createdAt
 			updatedAt
 		}
 	}
 `;
 
-export const UPDATE_PROPERTY = gql`
-	mutation UpdateProperty($input: PropertyUpdate!) {
-		updateProperty(input: $input) {
+export const LIKE_TARGET_CLINIC = gql`
+	mutation LikeTargetClinic($input: String!) {
+		likeTargetClinic(clinicId: $input) {
 			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
-			memberId
-			soldAt
-			deletedAt
-			constructedAt
-			createdAt
-			updatedAt
-		}
-	}
-`;
-
-export const LIKE_TARGET_PROPERTY = gql`
-	mutation LikeTargetProperty($input: String!) {
-		likeTargetProperty(propertyId: $input) {
-			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
-			memberId
-			soldAt
-			deletedAt
-			constructedAt
-			createdAt
-			updatedAt
+			clinicName
+			clinicLikes
 		}
 	}
 `;
 
 /**************************
- *      BOARD-ARTICLE     *
+ *         DOCTOR         *
  *************************/
 
-export const CREATE_BOARD_ARTICLE = gql`
-	mutation CreateBoardArticle($input: BoardArticleInput!) {
-		createBoardArticle(input: $input) {
+export const UPDATE_DOCTOR = gql`
+	mutation UpdateDoctor($input: DoctorUpdate!) {
+		updateDoctor(input: $input) {
 			_id
-			articleCategory
+			memberId
+			clinicId
+			specialty
+			experience
+		}
+	}
+`;
+
+export const LIKE_TARGET_DOCTOR = gql`
+	mutation LikeTargetDoctor($input: String!) {
+		likeTargetDoctor(doctorId: $input) {
+			_id
+			doctorLikes
+		}
+	}
+`;
+
+export const REQUEST_JOIN_CLINIC = gql`
+	mutation RequestJoinClinic($input: String!) {
+		requestJoinClinic(clinicId: $input) {
+			_id
+			doctorId
+			clinicId
+			requestStatus
+			createdAt
+		}
+	}
+`;
+
+export const CANCEL_JOIN_REQUEST = gql`
+	mutation CancelJoinRequest($input: String!) {
+		cancelJoinRequest(requestId: $input) {
+			_id
+			requestStatus
+		}
+	}
+`;
+
+export const RESPOND_JOIN_REQUEST = gql`
+	mutation RespondJoinRequest($input: JoinRequestUpdate!) {
+		respondJoinRequest(input: $input) {
+			_id
+			doctorId
+			clinicId
+			requestStatus
+		}
+	}
+`;
+
+export const REMOVE_DOCTOR = gql`
+	mutation RemoveDoctor($input: String!) {
+		removeDoctor(doctorId: $input) {
+			_id
+			clinicId
+		}
+	}
+`;
+
+/**************************
+ *       APPOINTMENT      *
+ *************************/
+
+export const CREATE_APPOINTMENT = gql`
+	mutation CreateAppointment($input: AppointmentInput!) {
+		createAppointment(input: $input) {
+			_id
+			appointmentDate
+			appointmentTime
+			appointmentStatus
+			appointmentReason
+			doctorId
+			clinicId
+		}
+	}
+`;
+
+export const UPDATE_APPOINTMENT = gql`
+	mutation UpdateAppointment($input: AppointmentUpdate!) {
+		updateAppointment(input: $input) {
+			_id
+			appointmentStatus
+		}
+	}
+`;
+
+/**************************
+ *         ARTICLE        *
+ *************************/
+
+export const CREATE_ARTICLE = gql`
+	mutation CreateArticle($input: ArticleInput!) {
+		createArticle(input: $input) {
+			_id
 			articleStatus
 			articleTitle
 			articleContent
 			articleImage
-			articleViews
-			articleLikes
 			memberId
 			createdAt
+		}
+	}
+`;
+
+export const UPDATE_ARTICLE = gql`
+	mutation UpdateArticle($input: ArticleUpdate!) {
+		updateArticle(input: $input) {
+			_id
+			articleStatus
+			articleTitle
+			articleContent
+			articleImage
+			memberId
 			updatedAt
 		}
 	}
 `;
 
-export const UPDATE_BOARD_ARTICLE = gql`
-	mutation UpdateBoardArticle($input: BoardArticleUpdate!) {
-		updateBoardArticle(input: $input) {
+export const LIKE_TARGET_ARTICLE = gql`
+	mutation LikeTargetArticle($input: String!) {
+		likeTargetArticle(articleId: $input) {
 			_id
-			articleCategory
-			articleStatus
-			articleTitle
-			articleContent
-			articleImage
-			articleViews
 			articleLikes
-			memberId
-			createdAt
-			updatedAt
-		}
-	}
-`;
-
-export const LIKE_TARGET_BOARD_ARTICLE = gql`
-	mutation LikeTargetBoardArticle($input: String!) {
-		likeTargetBoardArticle(articleId: $input) {
-			_id
-			articleCategory
-			articleStatus
-			articleTitle
-			articleContent
-			articleImage
-			articleViews
-			articleLikes
-			memberId
-			createdAt
-			updatedAt
 		}
 	}
 `;
@@ -326,5 +303,24 @@ export const UNSUBSCRIBE = gql`
 			createdAt
 			updatedAt
 		}
+	}
+`;
+
+/**************************
+ *      NOTIFICATION      *
+ *************************/
+
+export const READ_NOTIFICATION = gql`
+	mutation ReadNotification($input: String!) {
+		readNotification(notificationId: $input) {
+			_id
+			notificationStatus
+		}
+	}
+`;
+
+export const READ_ALL_NOTIFICATIONS = gql`
+	mutation ReadAllNotifications {
+		readAllNotifications
 	}
 `;

@@ -5,11 +5,11 @@ import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { useRouter } from 'next/router';
 import CommunityCard from '../common/CommunityCard';
 import { T } from '../../types/common';
-import { BoardArticle } from '../../types/board-article/board-article';
-import { BoardArticlesInquiry } from '../../types/board-article/board-article.input';
-import { GET_BOARD_ARTICLES } from '../../../apollo/user/query';
+import { Article } from '../../types/article/article';
+import { ArticlesInquiry } from '../../types/article/article.input';
+import { GET_ARTICLES } from '../../../apollo/user/query';
 import { useMutation, useQuery } from '@apollo/client';
-import { LIKE_TARGET_BOARD_ARTICLE } from '../../../apollo/user/mutation';
+import { LIKE_TARGET_ARTICLE } from '../../../apollo/user/mutation';
 import { Messages } from '../../config';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
 
@@ -18,24 +18,24 @@ const MemberArticles: NextPage = ({ initialInput, ...props }: any) => {
 	const router = useRouter();
 	const [total, setTotal] = useState<number>(0);
 	const { memberId } = router.query;
-	const [searchFilter, setSearchFilter] = useState<BoardArticlesInquiry>(initialInput);
-	const [memberBoArticles, setMemberBoArticles] = useState<BoardArticle[]>([]);
+	const [searchFilter, setSearchFilter] = useState<ArticlesInquiry>(initialInput);
+	const [memberBoArticles, setMemberBoArticles] = useState<Article[]>([]);
 
 	/** APOLLO REQUESTS **/
-	const [ likeTargetBoardArticle ] = useMutation(LIKE_TARGET_BOARD_ARTICLE);
+	const [ likeTargetArticle ] = useMutation(LIKE_TARGET_ARTICLE);
 	
 	const {
 		loading: boardArticlesLoading,
 		data: boardArticlesData, 
 		error: boardArticlesError, 
 		refetch: boardArticlesRefetch 
-	} = useQuery(GET_BOARD_ARTICLES, {
+	} = useQuery(GET_ARTICLES, {
 		fetchPolicy: "network-only",
 		variables: { input: searchFilter },
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: any) => {
-			setMemberBoArticles(data?.getBoardArticles?.list);
-			setTotal(data?.getBoardArticles?.metaCounter?.[0]?.total || 0);
+			setMemberBoArticles(data?.getArticles?.list);
+			setTotal(data?.getArticles?.metaCounter?.[0]?.total || 0);
 		},
 	});
 
@@ -55,7 +55,7 @@ const MemberArticles: NextPage = ({ initialInput, ...props }: any) => {
 			if (!id) return;
 			if (!user._id) throw new Error(Messages.error2);
 			
-			await likeTargetBoardArticle({ variables: { input: id } });
+			await likeTargetArticle({ variables: { input: id } });
 			
 			await boardArticlesRefetch({ input: searchFilter });
 
@@ -83,9 +83,9 @@ const MemberArticles: NextPage = ({ initialInput, ...props }: any) => {
 							<p>No Articles found!</p>
 						</div>
 					)}
-					{memberBoArticles?.map((boardArticle: BoardArticle) => {
+					{memberBoArticles?.map((boardArticle: Article) => {
 						return <CommunityCard 
-						boardArticle={boardArticle} 
+						article={boardArticle} 
 						key={boardArticle?._id} 
 						size={'small'} 
 						likeArticleHandler={likeArticleHandler} />;
@@ -103,7 +103,7 @@ const MemberArticles: NextPage = ({ initialInput, ...props }: any) => {
 							/>
 						</Stack>
 						<Stack className="total-result">
-							<Typography>{total} property available</Typography>
+							<Typography>Total {total} article(s) available</Typography>
 						</Stack>
 					</Stack>
 				)}

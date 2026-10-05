@@ -10,29 +10,27 @@ interface EventData {
 }
 const eventsData: EventData[] = [
 	{
-		eventTitle: 'Paradise City Theme Park',
+		eventTitle: 'Free Heart Health Check Day',
 		city: 'Incheon',
-		description:
-			'Experience magic and wonder in Incheon with a visit to the night-themed indoor theme park Wonderbox at Paradise City!',
+		description: 'Cardiologists offer free blood pressure and ECG screening for all visitors.',
 		imageSrc: '/img/events/INCHEON.webp',
 	},
 	{
-		eventTitle: 'Taebaeksan Snow Festival',
+		eventTitle: 'Children Vaccination Week',
 		city: 'Seoul',
-		description: 'If you have the opportunity to travel to South Korea, do not miss the Taebaeksan Snow Festival!',
+		description: 'Pediatric clinics across the city run walk-in vaccination days for children.',
 		imageSrc: '/img/events/SEOUL.webp',
 	},
 	{
-		eventTitle: 'Suseong Lake Event',
+		eventTitle: 'Skin Care Awareness Fair',
 		city: 'Daegu',
-		description: 'The Suseong Lake Festival is a culture and arts festival held alongside Suseongmot Lake!',
+		description: 'Dermatologists share sun protection tips and offer quick skin checks.',
 		imageSrc: '/img/events/DAEGU.webp',
 	},
 	{
-		eventTitle: 'Sand Festival',
+		eventTitle: 'Healthy Smile Festival',
 		city: 'Busan',
-		description:
-			'Haeundae Sand Festival, the nation’s largest eco-friendly exhibition on sand, is held at Haeundae Beach!',
+		description: 'Dental clinics give free check-ups and oral hygiene workshops by the beach.',
 		imageSrc: '/img/events/BUSAN.webp',
 	},
 ];

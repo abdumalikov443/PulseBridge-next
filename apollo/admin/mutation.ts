@@ -10,127 +10,75 @@ export const UPDATE_MEMBER_BY_ADMIN = gql`
 			_id
 			memberType
 			memberStatus
-			memberAuthType
 			memberPhone
 			memberNick
 			memberFullName
 			memberImage
-			memberAddress
-			memberDesc
-			memberProperties
-			memberRank
-			memberArticles
-			memberPoints
-			memberLikes
-			memberViews
-			memberWarnings
-			memberBlocks
-			deletedAt
-			createdAt
-			updatedAt
-			accessToken
-		}
-	}
-`;
-
-/**************************
- *        PROPERTY        *
- *************************/
-
-export const UPDATE_PROPERTY_BY_ADMIN = gql`
-	mutation UpdatePropertyByAdmin($input: PropertyUpdate!) {
-		updatePropertyByAdmin(input: $input) {
-			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
-			memberId
-			soldAt
-			deletedAt
-			constructedAt
-			createdAt
-			updatedAt
-		}
-	}
-`;
-
-export const REMOVE_PROPERTY_BY_ADMIN = gql`
-	mutation RemovePropertyByAdmin($input: String!) {
-		removePropertyByAdmin(propertyId: $input) {
-			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
-			memberId
-			soldAt
-			deletedAt
-			constructedAt
-			createdAt
 			updatedAt
 		}
 	}
 `;
 
 /**************************
- *      BOARD-ARTICLE     *
+ *         CLINIC         *
  *************************/
 
-export const UPDATE_BOARD_ARTICLE_BY_ADMIN = gql`
-	mutation UpdateBoardArticleByAdmin($input: BoardArticleUpdate!) {
-		updateBoardArticleByAdmin(input: $input) {
+export const UPDATE_CLINIC_BY_ADMIN = gql`
+	mutation UpdateClinicByAdmin($input: ClinicUpdate!) {
+		updateClinicByAdmin(input: $input) {
 			_id
-			articleCategory
-			articleStatus
-			articleTitle
-			articleContent
-			articleImage
-			articleViews
-			articleLikes
-			memberId
-			createdAt
+			clinicStatus
+			clinicType
+			clinicName
 			updatedAt
 		}
 	}
 `;
 
-export const REMOVE_BOARD_ARTICLE_BY_ADMIN = gql`
-	mutation RemoveBoardArticleByAdmin($input: String!) {
-		removeBoardArticleByAdmin(articleId: $input) {
+export const REMOVE_CLINIC_BY_ADMIN = gql`
+	mutation RemoveClinicByAdmin($input: String!) {
+		removeClinicByAdmin(clinicId: $input) {
 			_id
-			articleCategory
+			clinicStatus
+			clinicName
+		}
+	}
+`;
+
+/**************************
+ *         DOCTOR         *
+ *************************/
+
+export const REMOVE_DOCTOR_BY_ADMIN = gql`
+	mutation RemoveDoctorByAdmin($input: String!) {
+		removeDoctorByAdmin(doctorId: $input) {
+			_id
+			clinicId
+		}
+	}
+`;
+
+/**************************
+ *         ARTICLE        *
+ *************************/
+
+export const UPDATE_ARTICLE_BY_ADMIN = gql`
+	mutation UpdateArticleByAdmin($input: ArticleUpdate!) {
+		updateArticleByAdmin(input: $input) {
+			_id
 			articleStatus
 			articleTitle
-			articleContent
-			articleImage
-			articleViews
-			articleLikes
-			memberId
-			createdAt
 			updatedAt
+		}
+	}
+`;
+
+export const REMOVE_ARTICLE_BY_ADMIN = gql`
+	mutation RemoveArticleByAdmin($input: String!) {
+		removeArticleByAdmin(articleId: $input) {
+			_id
+			articleStatus
+			articleTitle
 		}
 	}
 `;
@@ -138,6 +86,16 @@ export const REMOVE_BOARD_ARTICLE_BY_ADMIN = gql`
 /**************************
  *         COMMENT        *
  *************************/
+
+export const UPDATE_COMMENT_BY_ADMIN = gql`
+	mutation UpdateCommentByAdmin($input: CommentUpdate!) {
+		updateCommentByAdmin(input: $input) {
+			_id
+			commentStatus
+			commentContent
+		}
+	}
+`;
 
 export const REMOVE_COMMENT_BY_ADMIN = gql`
 	mutation RemoveCommentByAdmin($input: String!) {
