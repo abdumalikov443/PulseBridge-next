@@ -170,7 +170,7 @@ const Chat = () => {
 										<div className={'msg-left'}>{text}</div>
 									</Box>
 								);
-							})};
+							})}
 						</Stack>
 					</ScrollableFeed>
 				</Box>
