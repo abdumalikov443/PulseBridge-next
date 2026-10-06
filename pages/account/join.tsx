@@ -5,7 +5,13 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import Icon from '../../libs/components/ui/Icon';
 import { EcgLine } from '../../libs/components/ui/Loaders';
-import { logIn, signUp } from '../../libs/auth';
+import { useApolloClient } from '@apollo/client';
+import ImagePicker from '../../libs/components/ui/ImagePicker';
+import { getJwtToken, logIn, signUp, updateStorage, updateUserInfo } from '../../libs/auth';
+import { uploadImage } from '../../libs/upload';
+import { userVar } from '../../apollo/store';
+import { UPDATE_CLINIC, UPDATE_MEMBER } from '../../apollo/user/mutation';
+import { GET_MY_CLINIC } from '../../apollo/user/query';
 import { sweetMixinErrorAlert } from '../../libs/sweetAlert';
 import { MemberType } from '../../libs/enums/member.enum';
 import { DoctorSpecialty } from '../../libs/enums/doctor.enum';
@@ -32,6 +38,9 @@ const Join: NextPage = () => {
 	const [loginView, setLoginView] = useState(true);
 	const [busy, setBusy] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
+	// DOCTOR: profile photo, CLINIC: clinic photo; uploaded right after the account exists
+	const [photo, setPhoto] = useState<File | null>(null);
+	const apollo = useApolloClient();
 	const [input, setInput] = useState({ nick: '', password: '', phone: '', type: MemberType.PATIENT as MemberType });
 	// DOCTOR and CLINIC send their profile in the same signup
 	const [doctorProfile, setDoctorProfile] = useState<DoctorProfileInput>({ specialty: DoctorSpecialty.GENERAL, experience: 0 });
@@ -44,6 +53,28 @@ const Join: NextPage = () => {
 		!input.phone ||
 		(input.type === MemberType.CLINIC &&
 			(clinicProfile.clinicName.trim().length < 3 || clinicProfile.clinicAddress.trim().length < 3 || clinicProfile.clinicDesc.trim().length < 5));
+
+	// upload needs a login, so the photo is saved after signup; a failure here keeps the new account
+	const savePhoto = async (file: File, type: MemberType) => {
+		try {
+			if (type === MemberType.DOCTOR) {
+				const memberImage = await uploadImage(file, 'member');
+				const result = await apollo.mutate({ mutation: UPDATE_MEMBER, variables: { input: { _id: userVar()._id, memberImage } } });
+				const jwtToken = result.data?.updateMember?.accessToken;
+				if (jwtToken) {
+					updateStorage({ jwtToken });
+					updateUserInfo(jwtToken);
+				}
+			} else if (type === MemberType.CLINIC) {
+				const clinicImage = await uploadImage(file, 'clinic');
+				const { data } = await apollo.query({ query: GET_MY_CLINIC, fetchPolicy: 'network-only' });
+				const clinicId = data?.getMyClinic?._id;
+				if (clinicId) await apollo.mutate({ mutation: UPDATE_CLINIC, variables: { input: { _id: clinicId, clinicImage } } });
+			}
+		} catch (err: any) {
+			await sweetMixinErrorAlert('Your account is ready, but the photo was not saved. You can add it on My Page.');
+		}
+	};
 
 	const submitHandler = async () => {
 		try {
@@ -60,6 +91,7 @@ const Join: NextPage = () => {
 					...(input.type === MemberType.CLINIC && { clinicProfile }),
 				};
 				await signUp(memberInput);
+				if (photo && getJwtToken()) await savePhoto(photo, input.type);
 			}
 			await router.push(`${router.query.referrer ?? '/'}`);
 		} catch (err: any) {
@@ -103,7 +135,10 @@ const Join: NextPage = () => {
 									key={role.type}
 									type="button"
 									aria-pressed={input.type === role.type}
-									onClick={() => setInput({ ...input, type: role.type })}
+									onClick={() => {
+										if (role.type !== input.type) setPhoto(null);
+										setInput({ ...input, type: role.type });
+									}}
 									className="pb-auth__role"
 									data-active={input.type === role.type}
 								>
@@ -137,6 +172,10 @@ const Join: NextPage = () => {
 					</div>
 
 					{!loginView && input.type === MemberType.DOCTOR && (
+						<ImagePicker file={photo} onChange={setPhoto} label="Profile photo" hint="Patients see it on your profile. JPG or PNG, up to 5 MB" />
+					)}
+
+					{!loginView && input.type === MemberType.DOCTOR && (
 						<div className="pb-form-grid">
 							<label className="pb-field">
 								<span>Specialty</span>
@@ -165,6 +204,7 @@ const Join: NextPage = () => {
 
 					{!loginView && input.type === MemberType.CLINIC && (
 						<>
+							<ImagePicker file={photo} onChange={setPhoto} label="Clinic photo" hint="Shown on your clinic card. JPG or PNG, up to 5 MB" shape="wide" />
 							<div className="pb-form-grid">
 								<label className="pb-field">
 									<span>Clinic name</span>

@@ -10,6 +10,7 @@ import FollowList from '../../libs/components/common/FollowList';
 import PostCard from '../../libs/components/cards/PostCard';
 import Avatar from '../../libs/components/ui/Avatar';
 import Icon from '../../libs/components/ui/Icon';
+import JoinRequestReview from '../../libs/components/common/JoinRequestReview';
 import { formatCount } from '../../libs/components/ui/ActionChips';
 import { EcgLine, SkeletonCards } from '../../libs/components/ui/Loaders';
 import { userVar } from '../../apollo/store';
@@ -126,6 +127,8 @@ const MemberPage: NextPage = () => {
 					</button>
 				)}
 			</section>
+
+			<JoinRequestReview memberId={member._id} />
 
 			<div className="pb-pills" role="tablist" aria-label="Member sections" style={{ padding: '24px 0 16px' }}>
 				{tabs.map((item) => (

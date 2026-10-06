@@ -177,8 +177,17 @@ const JoinRequests = () => {
 						date={request.createdAt}
 						status={formatEnum(request.requestStatus)}
 						tone={tones[request.requestStatus]}
+						// the doctor has no clinic yet, so the review page is the member profile
+						onClick={() => request.doctorData?.memberData && router.push(`/member?memberId=${request.doctorData.memberData._id}`)}
 						actions={
 							<>
+								<button
+									type="button"
+									className="pb-btn pb-btn--outline pb-btn--sm"
+									onClick={() => request.doctorData?.memberData && router.push(`/member?memberId=${request.doctorData.memberData._id}`)}
+								>
+									<Icon name="eye" size={14} /> Profile
+								</button>
 								<button
 									type="button"
 									className="pb-btn pb-btn--primary pb-btn--sm"

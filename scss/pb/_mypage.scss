@@ -187,3 +187,117 @@
 	overflow: hidden;
 	font-family: inherit;
 }
+
+/* image picker with local preview (signup) */
+.pb-picker {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex-wrap: wrap;
+	padding: 14px;
+	border-radius: var(--pb-radius);
+	background: var(--pb-bg);
+	&__frame {
+		position: relative;
+		flex: none;
+		width: 88px;
+		height: 88px;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		overflow: hidden;
+		cursor: pointer;
+		background: var(--pb-soft-1);
+		box-shadow: inset 0 0 0 1.5px #c9dce8;
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+			animation: pbIn 0.3s ease both;
+		}
+	}
+	&--wide &__frame {
+		width: 168px;
+		height: 96px;
+		border-radius: 16px;
+	}
+	&__empty {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--pb-deep);
+	}
+	&__info {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		min-width: 0;
+		flex: 1 1 200px;
+		strong {
+			font-size: 14px;
+		}
+		> span {
+			font-size: 13px;
+			color: var(--pb-muted);
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+	}
+}
+
+/* clinic owner reviews a doctor's join request on the member page */
+.pb-review-request {
+	margin-top: 16px;
+	gap: 16px !important;
+	box-shadow: inset 0 0 0 1.5px #f6d3a8 !important;
+	&__head {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		strong {
+			display: block;
+			font-size: 16px;
+		}
+		small {
+			font-size: 13px;
+			color: var(--pb-muted);
+		}
+	}
+	&__icon {
+		width: 40px;
+		height: 40px;
+		border-radius: 12px;
+		background: var(--pb-warning-soft);
+		color: var(--pb-warning);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex: none;
+	}
+	&__facts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px 32px;
+		margin: 0;
+		dt {
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			color: var(--pb-muted);
+		}
+		dd {
+			margin: 2px 0 0;
+			font-weight: 700;
+		}
+	}
+	&__actions {
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+	}
+}
