@@ -44,16 +44,19 @@ const Home: NextPage = () => {
 		fetchPolicy: 'cache-and-network',
 		variables: { input: { page: 1, limit: 4, sort: 'doctorRank', direction: 'DESC', search: {} } },
 		onCompleted: (data: T) => setDoctors(data?.getDoctors?.list ?? []),
+		onError: () => setDoctors([]),
 	});
 	useQuery(GET_CLINICS, {
 		fetchPolicy: 'cache-and-network',
 		variables: { input: { page: 1, limit: 3, sort: 'clinicRank', direction: 'DESC', search: {} } },
 		onCompleted: (data: T) => setClinics(data?.getClinics?.list ?? []),
+		onError: () => setClinics([]),
 	});
 	useQuery(GET_ARTICLES, {
 		fetchPolicy: 'cache-and-network',
 		variables: { input: { page: 1, limit: 2, sort: 'articleViews', direction: 'DESC', search: {} } },
 		onCompleted: (data: T) => setArticles(data?.getArticles?.list ?? []),
+		onError: () => setArticles([]),
 	});
 
 	const specialties = Object.values(DoctorSpecialty);

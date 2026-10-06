@@ -1,23 +1,21 @@
-import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NextPage } from 'next';
-import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
-import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import { Stack, Box, Button, Pagination } from '@mui/material';
-import { Menu, MenuItem } from '@mui/material';
-import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
-import DoctorCard from '../../libs/components/common/DoctorCard';
 import { useRouter } from 'next/router';
+import { useQuery } from '@apollo/client';
+import { Pagination } from '@mui/material';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { withPbLayout } from '../../libs/components/layout/PbShell';
+import DoctorCard from '../../libs/components/cards/DoctorCard';
+import { SkeletonCards } from '../../libs/components/ui/Loaders';
+import Icon from '../../libs/components/ui/Icon';
+import { GET_DOCTORS } from '../../apollo/user/query';
+import { LIKE_TARGET_DOCTOR } from '../../apollo/user/mutation';
+import { useFollowing, useLikeToggle } from '../../libs/hooks/useEngagement';
 import { Doctor } from '../../libs/types/doctor/doctor';
 import { DoctorsInquiry } from '../../libs/types/doctor/doctor.input';
-import { T } from '../../libs/types/common';
-import { LIKE_TARGET_DOCTOR } from '../../apollo/user/mutation';
-import { useMutation, useQuery } from '@apollo/client';
-import { GET_DOCTORS } from '../../apollo/user/query';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
-import { Messages } from '../../libs/config';
 import { DoctorSpecialty } from '../../libs/enums/doctor.enum';
 import { Direction } from '../../libs/enums/common.enum';
+import { T } from '../../libs/types/common';
 import { formatEnum } from '../../libs/utils';
 
 export const getStaticProps = async ({ locale }: any) => ({
@@ -26,218 +24,156 @@ export const getStaticProps = async ({ locale }: any) => ({
 	},
 });
 
-const sortOptions: { id: string; name: string; sort: string; direction: Direction }[] = [
-	{ id: 'recent', name: 'Recent', sort: 'createdAt', direction: Direction.DESC },
-	{ id: 'rank', name: 'Top Rated', sort: 'doctorRank', direction: Direction.DESC },
-	{ id: 'likes', name: 'Likes', sort: 'doctorLikes', direction: Direction.DESC },
-	{ id: 'views', name: 'Views', sort: 'doctorViews', direction: Direction.DESC },
-	{ id: 'experience', name: 'Experience', sort: 'experience', direction: Direction.DESC },
+const initialInput: DoctorsInquiry = { page: 1, limit: 12, sort: 'doctorRank', direction: Direction.DESC, search: {} };
+
+const sortOptions = [
+	{ value: 'doctorRank', label: 'Top rated' },
+	{ value: 'doctorLikes', label: 'Most liked' },
+	{ value: 'doctorViews', label: 'Most viewed' },
+	{ value: 'experience', label: 'Experience' },
+	{ value: 'createdAt', label: 'Newest' },
 ];
 
-const DoctorList: NextPage = ({ initialInput, ...props }: any) => {
-	const device = useDeviceDetect();
+const DoctorList: NextPage = () => {
 	const router = useRouter();
-	const [filterSortName, setFilterSortName] = useState('Recent');
-	const [sortingOpen, setSortingOpen] = useState(false);
-	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-	const [specialtyAnchorEl, setSpecialtyAnchorEl] = useState<null | HTMLElement>(null);
-	const [searchFilter, setSearchFilter] = useState<DoctorsInquiry>(
-		router?.query?.input ? JSON.parse(router?.query?.input as string) : initialInput,
-	);
-	const [doctors, setDoctors] = useState<Doctor[]>([]);
-	const [total, setTotal] = useState<number>(0);
-	const [currentPage, setCurrentPage] = useState<number>(1);
-	const [searchText, setSearchText] = useState<string>('');
+	const [input, setInput] = useState<DoctorsInquiry>(initialInput);
+	const [text, setText] = useState('');
+	const [doctors, setDoctors] = useState<Doctor[] | null>(null);
+	const [total, setTotal] = useState(0);
+	const { isFollowing, canFollow, toggleFollow } = useFollowing();
+	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_DOCTOR);
 
 	/** APOLLO REQUESTS **/
-	const [likeTargetDoctor] = useMutation(LIKE_TARGET_DOCTOR);
-
-	const { refetch: getDoctorsRefetch } = useQuery(GET_DOCTORS, {
+	const { loading } = useQuery(GET_DOCTORS, {
 		fetchPolicy: 'cache-and-network',
-		variables: { input: searchFilter },
+		variables: { input },
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => {
-			setDoctors(data?.getDoctors?.list);
-			setTotal(data?.getDoctors?.metaCounter[0]?.total ?? 0);
+			setDoctors(data?.getDoctors?.list ?? []);
+			setTotal(data?.getDoctors?.metaCounter?.[0]?.total ?? 0);
 		},
+		onError: () => setDoctors([]),
 	});
 
 	/** LIFECYCLES **/
-
 	useEffect(() => {
-		if (router.query.input) {
-			const input_obj = JSON.parse(router?.query?.input as string);
-			setSearchFilter(input_obj);
-			setSearchText(input_obj?.search?.text ?? '');
-			setCurrentPage(input_obj.page ?? 1);
-		} else
-			router.replace(`/doctor?input=${JSON.stringify(searchFilter)}`, `/doctor?input=${JSON.stringify(searchFilter)}`);
-	}, [router]);
+		if (!router.isReady) return;
+		const raw = router.query.input as string | undefined;
+		const parsed: DoctorsInquiry = raw ? { ...initialInput, ...JSON.parse(raw) } : initialInput;
+		setInput(parsed);
+		setText(parsed.search?.text ?? '');
+	}, [router.isReady, router.query.input]);
 
 	/** HANDLERS **/
-
-	const pushFilter = async (input: DoctorsInquiry) => {
-		await router.push(`/doctor?input=${JSON.stringify(input)}`, `/doctor?input=${JSON.stringify(input)}`, {
-			scroll: false,
-		});
+	const pushInput = (next: DoctorsInquiry) => {
+		const url = `/doctor?input=${JSON.stringify(next)}`;
+		router.push(url, url, { scroll: false });
 	};
 
-	const sortingClickHandler = (e: MouseEvent<HTMLElement>) => {
-		setAnchorEl(e.currentTarget);
-		setSortingOpen(true);
+	const setSearch = (patch: T) => {
+		const search: T = { ...input.search, ...patch };
+		Object.keys(search).forEach((key) => (search[key] === undefined || search[key] === '') && delete search[key]);
+		pushInput({ ...input, page: 1, search });
 	};
 
-	const sortingCloseHandler = () => {
-		setSortingOpen(false);
-		setAnchorEl(null);
-	};
+	const specialty = input.search?.specialtyList?.[0];
 
-	const sortingHandler = (e: React.MouseEvent<HTMLLIElement>) => {
-		const option = sortOptions.find((ele) => ele.id === e.currentTarget.id);
-		if (option) {
-			setSearchFilter({ ...searchFilter, sort: option.sort, direction: option.direction });
-			setFilterSortName(option.name);
-		}
-		setSortingOpen(false);
-		setAnchorEl(null);
-	};
+	return (
+		<div className="pb-container">
+			<header className="pb-page-head">
+				<h1 className="pb-title">Find a doctor</h1>
+				<p>Only doctors working in an active clinic are listed and can be booked.</p>
+			</header>
 
-	const specialtyHandler = async (specialty: DoctorSpecialty | null) => {
-		const search = { ...searchFilter.search };
-		if (specialty) search.specialtyList = [specialty];
-		else delete search.specialtyList;
-		setSpecialtyAnchorEl(null);
-		await pushFilter({ ...searchFilter, page: 1, search });
-	};
+			<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', padding: '16px 0' }}>
+				<form
+					className="pb-search"
+					style={{ flex: '1 1 280px' }}
+					onSubmit={(e) => {
+						e.preventDefault();
+						setSearch({ text: text.trim() || undefined });
+					}}
+				>
+					<Icon name="search" />
+					<label htmlFor="doctor-search" className="pb-sr">
+						Doctor name
+					</label>
+					<input id="doctor-search" value={text} placeholder="Doctor name" onChange={(e) => setText(e.target.value)} />
+				</form>
+				<label className="pb-search" style={{ flex: '0 1 220px' }}>
+					<span className="pb-sr">Sort by</span>
+					<select
+						value={input.sort}
+						onChange={(e) => pushInput({ ...input, page: 1, sort: e.target.value, direction: Direction.DESC })}
+						style={{ border: 0, background: 'transparent', font: 'inherit', fontWeight: 700, width: '100%', color: 'inherit' }}
+					>
+						{sortOptions.map((option) => (
+							<option key={option.value} value={option.value}>
+								{option.label}
+							</option>
+						))}
+					</select>
+				</label>
+			</div>
 
-	const paginationChangeHandler = async (event: ChangeEvent<unknown>, value: number) => {
-		await pushFilter({ ...searchFilter, page: value });
-		setCurrentPage(value);
-	};
+			<div className="pb-pills" role="group" aria-label="Specialty">
+				<button
+					type="button"
+					className={`pb-pill ${!specialty ? 'pb-pill--active' : ''}`}
+					aria-pressed={!specialty}
+					onClick={() => setSearch({ specialtyList: undefined })}
+				>
+					All
+				</button>
+				{Object.values(DoctorSpecialty).map((value) => (
+					<button
+						key={value}
+						type="button"
+						className={`pb-pill ${specialty === value ? 'pb-pill--active' : ''}`}
+						aria-pressed={specialty === value}
+						onClick={() => setSearch({ specialtyList: [value] })}
+					>
+						{formatEnum(value)}
+					</button>
+				))}
+			</div>
 
-	const likeDoctorHandler = async (user: T, id: string) => {
-		try {
-			if (!id) return;
-			if (!user._id) throw new Error(Messages.error2);
-			await likeTargetDoctor({ variables: { input: id } });
-			await getDoctorsRefetch({ input: searchFilter });
+			<p style={{ margin: '20px 0 12px', fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
+				{total} doctor{total === 1 ? '' : 's'} found
+			</p>
 
-			await sweetTopSmallSuccessAlert('success', 800);
-		} catch (err: any) {
-			console.log('ERROR, likeDoctorHandler: ', err.message);
-			sweetMixinErrorAlert(err.message).then();
-		}
-	};
+			<div className="pb-grid">
+				{(doctors === null || (loading && doctors.length === 0)) && <SkeletonCards count={8} />}
+				{doctors?.map((doctor) => {
+					const state = likeState(doctor._id, !!doctor.meLiked?.[0]?.myFavorite, doctor.doctorLikes);
+					return (
+						<DoctorCard
+							key={doctor._id}
+							doctor={doctor}
+							liked={state.liked}
+							likes={state.likes}
+							onLike={() => toggleLike(doctor._id, state)}
+							following={isFollowing(doctor.memberId)}
+							onFollow={canFollow(doctor.memberId) ? () => toggleFollow(doctor.memberId) : undefined}
+						/>
+					);
+				})}
+			</div>
+			{doctors?.length === 0 && !loading && <p className="pb-empty">No doctors match these filters.</p>}
 
-	if (device === 'mobile') {
-		return <h1>DOCTORS PAGE MOBILE</h1>;
-	} else {
-		return (
-			<Stack className={'agent-list-page'}>
-				<Stack className={'container'}>
-					<Stack className={'filter'}>
-						<Box component={'div'} className={'left'}>
-							<input
-								type="text"
-								placeholder={'Search for a doctor'}
-								value={searchText}
-								onChange={(e: any) => setSearchText(e.target.value)}
-								onKeyDown={(event: any) => {
-									if (event.key == 'Enter') {
-										const search: T = { ...searchFilter.search, text: searchText };
-										if (!searchText) delete search.text;
-										pushFilter({ ...searchFilter, page: 1, search }).then();
-									}
-								}}
-							/>
-						</Box>
-						<Box component={'div'} className={'right'}>
-							<span>Specialty</span>
-							<div>
-								<Button
-									onClick={(e: MouseEvent<HTMLElement>) => setSpecialtyAnchorEl(e.currentTarget)}
-									endIcon={<KeyboardArrowDownRoundedIcon />}
-								>
-									{searchFilter?.search?.specialtyList?.[0] ? formatEnum(searchFilter.search.specialtyList[0]) : 'All'}
-								</Button>
-								<Menu
-									anchorEl={specialtyAnchorEl}
-									open={Boolean(specialtyAnchorEl)}
-									onClose={() => setSpecialtyAnchorEl(null)}
-									sx={{ paddingTop: '5px' }}
-								>
-									<MenuItem onClick={() => specialtyHandler(null)} disableRipple>
-										All
-									</MenuItem>
-									{Object.values(DoctorSpecialty).map((specialty: DoctorSpecialty) => (
-										<MenuItem key={specialty} onClick={() => specialtyHandler(specialty)} disableRipple>
-											{formatEnum(specialty)}
-										</MenuItem>
-									))}
-								</Menu>
-							</div>
-							<span>Sort by</span>
-							<div>
-								<Button onClick={sortingClickHandler} endIcon={<KeyboardArrowDownRoundedIcon />}>
-									{filterSortName}
-								</Button>
-								<Menu anchorEl={anchorEl} open={sortingOpen} onClose={sortingCloseHandler} sx={{ paddingTop: '5px' }}>
-									{sortOptions.map((option) => (
-										<MenuItem key={option.id} onClick={sortingHandler} id={option.id} disableRipple>
-											{option.name}
-										</MenuItem>
-									))}
-								</Menu>
-							</div>
-						</Box>
-					</Stack>
-					<Stack className={'card-wrap'}>
-						{doctors?.length === 0 ? (
-							<div className={'no-data'}>
-								<img src="/img/icons/icoAlert.svg" alt="" />
-								<p>No Doctors found!</p>
-							</div>
-						) : (
-							doctors.map((doctor: Doctor) => {
-								return <DoctorCard doctor={doctor} key={doctor._id} likeDoctorHandler={likeDoctorHandler} />;
-							})
-						)}
-					</Stack>
-					<Stack className={'pagination'}>
-						<Stack className="pagination-box">
-							{doctors.length !== 0 && Math.ceil(total / searchFilter.limit) > 1 && (
-								<Stack className="pagination-box">
-									<Pagination
-										page={currentPage}
-										count={Math.ceil(total / searchFilter.limit)}
-										onChange={paginationChangeHandler}
-										shape="circular"
-										color="primary"
-									/>
-								</Stack>
-							)}
-						</Stack>
-
-						{doctors.length !== 0 && (
-							<span>
-								Total {total} doctor{total > 1 ? 's' : ''} available
-							</span>
-						)}
-					</Stack>
-				</Stack>
-			</Stack>
-		);
-	}
+			{total > input.limit && (
+				<div className="pb-pagination">
+					<Pagination
+						page={input.page}
+						count={Math.ceil(total / input.limit)}
+						onChange={(e, page) => pushInput({ ...input, page })}
+						shape="circular"
+						color="primary"
+					/>
+				</div>
+			)}
+		</div>
+	);
 };
 
-DoctorList.defaultProps = {
-	initialInput: {
-		page: 1,
-		limit: 10,
-		sort: 'createdAt',
-		direction: 'DESC',
-		search: {},
-	},
-};
-
-export default withLayoutBasic(DoctorList);
+export default withPbLayout(DoctorList);

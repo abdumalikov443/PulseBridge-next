@@ -66,6 +66,7 @@ export const GET_CLINIC = gql`
 				memberImage
 				memberPhone
 				memberAddress
+				memberFollowers
 			}
 			meLiked {
 				memberId

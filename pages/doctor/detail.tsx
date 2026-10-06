@@ -1,30 +1,26 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { NextPage } from 'next';
-import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
-import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import ReviewCard from '../../libs/components/doctor/ReviewCard';
-import BookAppointment from '../../libs/components/doctor/BookAppointment';
-import { Box, Button, Pagination, Stack, Typography } from '@mui/material';
-import StarIcon from '@mui/icons-material/Star';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
-import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { Doctor } from '../../libs/types/doctor/doctor';
-import { sweetErrorHandling, sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { useRouter } from 'next/router';
+import { useQuery, useReactiveVar } from '@apollo/client';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { withPbLayout } from '../../libs/components/layout/PbShell';
+import Reviews from '../../libs/components/common/Reviews';
+import Avatar from '../../libs/components/ui/Avatar';
+import ActionChips from '../../libs/components/ui/ActionChips';
+import Icon from '../../libs/components/ui/Icon';
+import { EcgLine } from '../../libs/components/ui/Loaders';
 import { userVar } from '../../apollo/store';
-import { CommentInput, CommentsInquiry } from '../../libs/types/comment/comment.input';
-import { Comment } from '../../libs/types/comment/comment';
+import { GET_ARTICLES, GET_DOCTOR } from '../../apollo/user/query';
+import { LIKE_TARGET_DOCTOR } from '../../apollo/user/mutation';
+import { useFollowing, useLikeToggle } from '../../libs/hooks/useEngagement';
+import { Doctor } from '../../libs/types/doctor/doctor';
+import { Article } from '../../libs/types/article/article';
 import { CommentGroup } from '../../libs/enums/comment.enum';
 import { MemberType } from '../../libs/enums/member.enum';
-import { COMMENT_CONTENT_MAX, getImageUrl, getMemberName, Messages } from '../../libs/config';
-import { formatEnum } from '../../libs/utils';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { T } from '../../libs/types/common';
-import { CREATE_COMMENT, LIKE_TARGET_DOCTOR } from '../../apollo/user/mutation';
-import { GET_COMMENTS, GET_DOCTOR } from '../../apollo/user/query';
+import { getMemberName } from '../../libs/config';
+import { formatEnum } from '../../libs/utils';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -32,232 +28,153 @@ export const getStaticProps = async ({ locale }: any) => ({
 	},
 });
 
-const DoctorDetail: NextPage = ({ initialComment, ...props }: any) => {
-	const device = useDeviceDetect();
+const DoctorDetail: NextPage = () => {
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
-	const [doctorId, setDoctorId] = useState<string | null>(null);
+	const doctorId = router.query.id as string | undefined;
 	const [doctor, setDoctor] = useState<Doctor | null>(null);
-	const [openBooking, setOpenBooking] = useState<boolean>(false);
-	const [commentInquiry, setCommentInquiry] = useState<CommentsInquiry>(initialComment);
-	const [doctorComments, setDoctorComments] = useState<Comment[]>([]);
-	const [commentTotal, setCommentTotal] = useState<number>(0);
-	const [insertCommentData, setInsertCommentData] = useState<CommentInput>({
-		commentGroup: CommentGroup.DOCTOR,
-		commentContent: '',
-		commentRefId: '',
-	});
+	const [articles, setArticles] = useState<Article[]>([]);
+	// follow toggles made on this page move the followers count
+	const [followDelta, setFollowDelta] = useState(0);
+	const { isFollowing, canFollow, toggleFollow } = useFollowing();
+	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_DOCTOR);
 
 	/** APOLLO REQUESTS **/
-	const [createComment] = useMutation(CREATE_COMMENT);
-	const [likeTargetDoctor] = useMutation(LIKE_TARGET_DOCTOR);
-
-	const { refetch: getDoctorRefetch } = useQuery(GET_DOCTOR, {
+	const { refetch: refetchDoctor } = useQuery(GET_DOCTOR, {
 		fetchPolicy: 'network-only',
-		variables: { input: doctorId },
 		skip: !doctorId,
-		onCompleted: (data: T) => {
-			setDoctor(data?.getDoctor);
-		},
+		variables: { input: doctorId },
+		onCompleted: (data: T) => setDoctor(data?.getDoctor ?? null),
 	});
 
-	const { refetch: getCommentsRefetch } = useQuery(GET_COMMENTS, {
-		fetchPolicy: 'network-only',
-		variables: { input: commentInquiry },
-		skip: !commentInquiry.search.commentRefId,
-		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => {
-			setDoctorComments(data?.getComments?.list);
-			setCommentTotal(data?.getComments?.metaCounter[0]?.total ?? 0);
-		},
+	useQuery(GET_ARTICLES, {
+		fetchPolicy: 'cache-and-network',
+		skip: !doctor?.memberId,
+		variables: { input: { page: 1, limit: 3, sort: 'createdAt', direction: 'DESC', search: { memberId: doctor?.memberId } } },
+		onCompleted: (data: T) => setArticles(data?.getArticles?.list ?? []),
 	});
 
-	/** LIFECYCLES **/
-
-	useEffect(() => {
-		const id = router.query.id as string;
-		if (id) {
-			setDoctorId(id);
-			setCommentInquiry({ ...commentInquiry, search: { commentRefId: id } });
-			setInsertCommentData({ ...insertCommentData, commentRefId: id });
-		}
-	}, [router]);
-
-	/** HANDLERS **/
-
-	const redirectToMemberPageHandler = async (memberId: string) => {
-		try {
-			if (memberId === user?._id) await router.push(`/mypage?memberId=${memberId}`);
-			else await router.push(`/member?memberId=${memberId}`);
-		} catch (error) {
-			await sweetErrorHandling(error);
-		}
-	};
-
-	const commentPaginationChangeHandler = async (event: ChangeEvent<unknown>, value: number) => {
-		setCommentInquiry({ ...commentInquiry, page: value });
-	};
-
-	const createCommentHandler = async () => {
-		try {
-			if (!user?._id) throw new Error(Messages.error2);
-			if (user._id === doctor?.memberId) throw new Error('Cannot write a review for yourself!');
-			await createComment({
-				variables: { input: insertCommentData },
-			});
-			setInsertCommentData({ ...insertCommentData, commentContent: '' });
-			await getCommentsRefetch({ input: commentInquiry });
-		} catch (err: any) {
-			sweetErrorHandling(err).then();
-		}
-	};
-
-	const likeDoctorHandler = async () => {
-		try {
-			if (!doctorId) return;
-			if (!user._id) throw new Error(Messages.error2);
-			await likeTargetDoctor({ variables: { input: doctorId } });
-			await getDoctorRefetch({ input: doctorId });
-			await sweetTopSmallSuccessAlert('success', 800);
-		} catch (err: any) {
-			console.log('ERROR, likeDoctorHandler: ', err.message);
-			sweetMixinErrorAlert(err.message).then();
-		}
-	};
-
-	const bookingHandler = () => {
-		if (!user?._id) {
-			sweetMixinErrorAlert(Messages.error2).then();
-			return;
-		}
-		setOpenBooking(true);
-	};
-
-	if (device === 'mobile') {
-		return <div>DOCTOR DETAIL PAGE MOBILE</div>;
-	} else {
+	if (!doctor) {
 		return (
-			<Stack className={'agent-detail-page'}>
-				<Stack className={'container'}>
-					<Stack className={'agent-info'}>
-						<img src={getImageUrl(doctor?.memberData?.memberImage)} alt="" />
-						<Box
-							component={'div'}
-							className={'info'}
-							onClick={() => redirectToMemberPageHandler(doctor?.memberId as string)}
-						>
-							<strong>{getMemberName(doctor?.memberData)}</strong>
-							<div>
-								<img src="/img/icons/call.svg" alt="" />
-								<span>{doctor?.memberData?.memberPhone}</span>
-							</div>
-						</Box>
-					</Stack>
-					<Stack className={'agent-home-list'}>
-						<Stack className={'doctor-profile'} gap={'12px'} sx={{ padding: '24px 0' }}>
-							<Typography>
-								<strong>Specialty:</strong> {formatEnum(doctor?.specialty)}
-							</Typography>
-							<Typography>
-								<strong>Experience:</strong> {doctor?.experience} years
-							</Typography>
-							{doctor?.clinicData && (
-								<Typography>
-									<strong>Clinic:</strong>{' '}
-									<Link href={`/clinic/detail?id=${doctor.clinicData._id}`}>{doctor.clinicData.clinicName}</Link>
-									{` · ${doctor.clinicData.clinicAddress}`}
-								</Typography>
-							)}
-							{doctor?.memberData?.memberDesc && <Typography>{doctor.memberData.memberDesc}</Typography>}
-							<Stack direction={'row'} alignItems={'center'} gap={'16px'}>
-								<Stack direction={'row'} alignItems={'center'} gap={'4px'}>
-									<RemoveRedEyeIcon />
-									<Typography>{doctor?.doctorViews}</Typography>
-								</Stack>
-								<Stack direction={'row'} alignItems={'center'} gap={'4px'} sx={{ cursor: 'pointer' }} onClick={likeDoctorHandler}>
-									{doctor?.meLiked && doctor?.meLiked[0]?.myFavorite ? <FavoriteIcon color={'primary'} /> : <FavoriteBorderIcon />}
-									<Typography>{doctor?.doctorLikes}</Typography>
-								</Stack>
-								{(!user?._id || user?.memberType === MemberType.PATIENT) && (
-									<Button variant={'contained'} onClick={bookingHandler}>
-										Book an appointment
-									</Button>
-								)}
-							</Stack>
-						</Stack>
-					</Stack>
-					<Stack className={'review-box'}>
-						<Stack className={'main-intro'}>
-							<span>Reviews</span>
-							<p>what patients say about this doctor</p>
-						</Stack>
-						{commentTotal !== 0 && (
-							<Stack className={'review-wrap'}>
-								<Box component={'div'} className={'title-box'}>
-									<StarIcon />
-									<span>
-										{commentTotal} review{commentTotal > 1 ? 's' : ''}
-									</span>
-								</Box>
-								{doctorComments?.map((comment: Comment) => {
-									return <ReviewCard comment={comment} key={comment?._id} />;
-								})}
-								<Box component={'div'} className={'pagination-box'}>
-									<Pagination
-										page={commentInquiry.page}
-										count={Math.ceil(commentTotal / commentInquiry.limit) || 1}
-										onChange={commentPaginationChangeHandler}
-										shape="circular"
-										color="primary"
-									/>
-								</Box>
-							</Stack>
-						)}
-						<Stack className={'leave-review-config'}>
-							<Typography className={'main-title'}>Leave A Review</Typography>
-							<Typography className={'review-title'}>Review</Typography>
-							<textarea
-								maxLength={COMMENT_CONTENT_MAX}
-								onChange={({ target: { value } }: any) => {
-									setInsertCommentData({ ...insertCommentData, commentContent: value });
-								}}
-								value={insertCommentData.commentContent}
-							></textarea>
-							<Box className={'submit-btn'} component={'div'}>
-								<Button
-									className={'submit-review'}
-									disabled={insertCommentData.commentContent === '' || user?._id === ''}
-									onClick={createCommentHandler}
-								>
-									<Typography className={'title'}>Submit Review</Typography>
-								</Button>
-							</Box>
-						</Stack>
-					</Stack>
-				</Stack>
-				{doctorId && (
-					<BookAppointment
-						open={openBooking}
-						doctorId={doctorId}
-						doctorName={getMemberName(doctor?.memberData)}
-						onClose={() => setOpenBooking(false)}
-					/>
-				)}
-			</Stack>
+			<div className="pb-container" style={{ padding: '80px 0', display: 'flex', justifyContent: 'center' }}>
+				<EcgLine />
+			</div>
 		);
 	}
+
+	const name = getMemberName(doctor.memberData);
+	const like = likeState(doctor._id, !!doctor.meLiked?.[0]?.myFavorite, doctor.doctorLikes);
+	const following = isFollowing(doctor.memberId);
+	const followers = (doctor.memberData?.memberFollowers ?? 0) + followDelta;
+	const canBook = !user?._id || user.memberType === MemberType.PATIENT;
+
+	return (
+		<div className="pb-container">
+			<div style={{ padding: '24px 0 16px' }}>
+				<Link href="/doctor" className="pb-link" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+					<Icon name="arrowLeft" size={16} /> All doctors
+				</Link>
+			</div>
+
+			<section className="pb-card pb-card--flat pb-in" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 28, alignItems: 'center', padding: 28 }}>
+				<Avatar name={name} image={doctor.memberData?.memberImage} size={120} />
+				<div style={{ flex: '999 1 360px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+					<h1 className="pb-title" style={{ fontSize: 34 }}>
+						{name}
+					</h1>
+					<span style={{ fontSize: 16, color: 'var(--pb-muted)' }}>
+						<strong style={{ color: 'var(--pb-deep)' }}>{formatEnum(doctor.specialty)}</strong> · {doctor.experience} years
+						experience
+						{doctor.clinicData && (
+							<>
+								{' · '}
+								<Link href={`/clinic/detail?id=${doctor.clinicData._id}`} className="pb-link">
+									{doctor.clinicData.clinicName}
+								</Link>
+							</>
+						)}
+					</span>
+					{doctor.memberData?.memberPhone && (
+						<span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', fontSize: 14, color: 'var(--pb-muted)' }}>
+							<Icon name="phone" size={16} /> {doctor.memberData.memberPhone}
+						</span>
+					)}
+					<ActionChips
+						likes={like.likes}
+						views={doctor.doctorViews}
+						comments={doctor.doctorComments}
+						followers={followers}
+						liked={like.liked}
+						onLike={() => toggleLike(doctor._id, like)}
+						following={following}
+						onFollow={
+							canFollow(doctor.memberId)
+								? () => {
+										setFollowDelta((delta) => delta + (following ? -1 : 1));
+										toggleFollow(doctor.memberId);
+								  }
+								: undefined
+						}
+					/>
+				</div>
+				{canBook && (
+					<div style={{ flex: '1 1 220px', display: 'flex' }}>
+						<Link href={`/booking?doctorId=${doctor._id}`} className="pb-btn pb-btn--primary pb-btn--lg pb-btn--block">
+							Book an appointment <Icon name="arrow" className="pb-arrow" />
+						</Link>
+					</div>
+				)}
+			</section>
+
+			<div className="pb-split" style={{ paddingTop: 24 }}>
+				<div className="pb-split__main">
+					<section className="pb-card pb-card--flat">
+						<h2 className="pb-title" style={{ fontSize: 22 }}>
+							About
+						</h2>
+						<p style={{ margin: 0, fontSize: 15, lineHeight: 1.65, color: 'var(--pb-muted)' }}>
+							{doctor.memberData?.memberDesc || `${name} is a ${formatEnum(doctor.specialty).toLowerCase()} doctor with ${doctor.experience} years of experience.`}
+						</p>
+					</section>
+					<Reviews
+						refId={doctor._id}
+						group={CommentGroup.DOCTOR}
+						ownerMemberId={doctor.memberId}
+						onPosted={() => refetchDoctor().then((res) => setDoctor(res.data?.getDoctor ?? doctor))}
+					/>
+				</div>
+
+				<aside className="pb-split__side">
+					{doctor.clinicData && (
+						<Link href={`/clinic/detail?id=${doctor.clinicData._id}`} className="pb-card pb-card--flat pb-card--hover">
+							<span style={{ fontSize: 13, fontWeight: 700, color: 'var(--pb-muted)' }}>Works at</span>
+							<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+								<span className="pb-avatar" style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--pb-soft-1)', color: 'var(--pb-deep)' }}>
+									<Icon name="clinic" size={24} />
+								</span>
+								<span style={{ display: 'flex', flexDirection: 'column' }}>
+									<strong>{doctor.clinicData.clinicName}</strong>
+									<span style={{ fontSize: 13, color: 'var(--pb-muted)' }}>
+										{formatEnum(doctor.clinicData.clinicType)} · {doctor.clinicData.clinicAddress}
+									</span>
+								</span>
+							</span>
+						</Link>
+					)}
+					{articles.length > 0 && (
+						<section className="pb-card pb-card--flat">
+							<strong style={{ fontSize: 15 }}>Articles by {name}</strong>
+							{articles.map((article) => (
+								<Link key={article._id} href={`/community/detail?id=${article._id}`} className="pb-link" style={{ color: 'var(--pb-ink)' }}>
+									{article.articleTitle}
+								</Link>
+							))}
+						</section>
+					)}
+				</aside>
+			</div>
+		</div>
+	);
 };
 
-DoctorDetail.defaultProps = {
-	initialComment: {
-		page: 1,
-		limit: 5,
-		sort: 'createdAt',
-		direction: 'DESC',
-		search: {
-			commentRefId: '',
-		},
-	},
-};
-
-export default withLayoutBasic(DoctorDetail);
+export default withPbLayout(DoctorDetail);
