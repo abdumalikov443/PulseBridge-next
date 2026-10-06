@@ -25,7 +25,6 @@
   "Telehealth": "원격 진료",
   "Telehealth is coming soon.": "원격 진료는 곧 제공됩니다.",
   "Emergency": "응급",
-  "24/7 Call Center": "24시간 콜센터",
   "Sign In / Book Consult": "로그인 / 진료 예약",
   "Patient-first clinical network in Seoul": "서울의 환자 중심 의료 네트워크",
   "Healthcare that listens.": "귀 기울이는 의료.",
@@ -67,5 +66,7 @@
   "yrs exp": "년 경력",
   "Book Visit": "진료 예약",
   "Directions": "길찾기",
-  "doctor": "명의 의사"
+  "doctor": "명의 의사",
+  "yrs of exp": "년 경력",
+  "Sign In / Book": "로그인 / 예약"
 }

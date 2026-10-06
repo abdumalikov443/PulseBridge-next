@@ -25,7 +25,6 @@
   "Telehealth": "Телемедицина",
   "Telehealth is coming soon.": "Телемедицина скоро появится.",
   "Emergency": "Экстренно",
-  "24/7 Call Center": "Круглосуточный call-центр",
   "Sign In / Book Consult": "Войти / Записаться",
   "Patient-first clinical network in Seoul": "Медицинская сеть Сеула для пациентов",
   "Healthcare that listens.": "Медицина, которая слышит.",
@@ -67,5 +66,7 @@
   "yrs exp": "лет опыта",
   "Book Visit": "Записаться",
   "Directions": "Маршрут",
-  "doctor": "врач"
+  "doctor": "врач",
+  "yrs of exp": "лет опыта",
+  "Sign In / Book": "Войти / Записаться"
 }

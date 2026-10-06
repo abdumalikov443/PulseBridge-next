@@ -7,10 +7,10 @@ import Icon from '../../libs/components/ui/Icon';
 import { EcgLine } from '../../libs/components/ui/Loaders';
 import { useApolloClient } from '@apollo/client';
 import ImagePicker from '../../libs/components/ui/ImagePicker';
-import { getJwtToken, logIn, signUp, updateStorage, updateUserInfo } from '../../libs/auth';
+import { getJwtToken, logIn, signUp } from '../../libs/auth';
+import { saveMemberImage } from '../../libs/memberPhoto';
 import { uploadImage } from '../../libs/upload';
-import { userVar } from '../../apollo/store';
-import { UPDATE_CLINIC, UPDATE_MEMBER } from '../../apollo/user/mutation';
+import { UPDATE_CLINIC } from '../../apollo/user/mutation';
 import { GET_MY_CLINIC } from '../../apollo/user/query';
 import { sweetMixinErrorAlert } from '../../libs/sweetAlert';
 import { MemberType } from '../../libs/enums/member.enum';
@@ -58,18 +58,14 @@ const Join: NextPage = () => {
 	const savePhoto = async (file: File, type: MemberType) => {
 		try {
 			if (type === MemberType.DOCTOR) {
-				const memberImage = await uploadImage(file, 'member');
-				const result = await apollo.mutate({ mutation: UPDATE_MEMBER, variables: { input: { _id: userVar()._id, memberImage } } });
-				const jwtToken = result.data?.updateMember?.accessToken;
-				if (jwtToken) {
-					updateStorage({ jwtToken });
-					updateUserInfo(jwtToken);
-				}
+				await saveMemberImage(apollo, await uploadImage(file, 'member'));
 			} else if (type === MemberType.CLINIC) {
 				const clinicImage = await uploadImage(file, 'clinic');
 				const { data } = await apollo.query({ query: GET_MY_CLINIC, fetchPolicy: 'network-only' });
 				const clinicId = data?.getMyClinic?._id;
 				if (clinicId) await apollo.mutate({ mutation: UPDATE_CLINIC, variables: { input: { _id: clinicId, clinicImage } } });
+				// the clinic photo is also the account avatar
+				await saveMemberImage(apollo, clinicImage);
 			}
 		} catch (err: any) {
 			await sweetMixinErrorAlert('Your account is ready, but the photo was not saved. You can add it on My Page.');

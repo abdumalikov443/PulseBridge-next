@@ -94,7 +94,7 @@ const CommunityDetail: NextPage = () => {
 						<img src={`${REACT_APP_API_URL}/${article.articleImage}`} alt="" />
 						<span className="pb-badge">
 							<Icon name="calendar" size={14} />
-							<time dateTime={moment(article.createdAt).toISOString()}>{moment(article.createdAt).format('MMM D, YYYY · HH:mm')}</time>
+							<time dateTime={moment(article.createdAt).toISOString()}>{moment(article.createdAt).format('MMM D')}</time>
 						</span>
 					</div>
 				)}

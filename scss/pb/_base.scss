@@ -519,22 +519,6 @@
 	}
 }
 
-/* article image with its date on community cards and detail */
-.pb-post-media {
-	height: 240px;
-	margin-top: 4px;
-	justify-content: flex-start;
-	img {
-		transition: transform 0.4s ease;
-	}
-	&:hover img {
-		transform: scale(1.02);
-	}
-	@media (max-width: $pb-phone) {
-		height: 180px;
-	}
-}
-
 /* profile header actions: main button with follow under it (side by side on phones) */
 .pb-cta {
 	flex: 1 1 240px;
@@ -550,4 +534,237 @@
 			flex: 1 1 140px;
 		}
 	}
+}
+
+/* toast messages (libs/toast.ts) */
+.pb-toasts {
+	position: fixed;
+	top: calc(86px + env(safe-area-inset-top, 0px));
+	right: 20px;
+	z-index: 2000;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 8px;
+	pointer-events: none;
+	font-family: var(--pb-font);
+	@media (max-width: $pb-phone) {
+		left: 16px;
+		right: 16px;
+		align-items: stretch;
+	}
+}
+.pb-toast {
+	pointer-events: auto;
+	position: relative;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	max-width: min(360px, calc(100vw - 32px));
+	padding: 10px 8px 10px 12px;
+	border-radius: 14px;
+	background: var(--pb-surface);
+	color: var(--pb-ink);
+	box-shadow: 0 10px 28px rgba(10, 30, 40, 0.14), inset 0 0 0 1px var(--pb-line);
+	font-size: 14px;
+	line-height: 1.4;
+	animation: pbToastIn 0.25s ease both;
+	&.is-out {
+		animation: pbToastOut 0.2s ease both;
+	}
+	p {
+		margin: 0;
+		flex: 1;
+		min-width: 0;
+		font-weight: 600;
+	}
+	small {
+		display: block;
+		font-weight: 400;
+		font-size: 12px;
+		color: var(--pb-muted);
+	}
+	button {
+		flex: none;
+		width: 26px;
+		height: 26px;
+		border: 0;
+		border-radius: 8px;
+		background: transparent;
+		color: var(--pb-muted);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		&:hover {
+			background: var(--pb-bg);
+		}
+	}
+	&__icon {
+		flex: none;
+		width: 26px;
+		height: 26px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	&::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		bottom: 0;
+		width: 100%;
+		height: 2px;
+		background: currentColor;
+		opacity: 0.18;
+		transform-origin: left;
+		animation: pbToastTime var(--pb-toast-time, 3000ms) linear both;
+	}
+	&:hover::after {
+		animation-play-state: paused;
+	}
+	&--success {
+		.pb-toast__icon {
+			background: var(--pb-success-soft);
+			color: var(--pb-success);
+		}
+		&::after {
+			color: var(--pb-success);
+		}
+	}
+	&--error {
+		.pb-toast__icon {
+			background: var(--pb-danger-soft);
+			color: var(--pb-danger);
+		}
+		&::after {
+			color: var(--pb-danger);
+		}
+	}
+	&--info {
+		.pb-toast__icon {
+			background: var(--pb-soft-1);
+			color: var(--pb-deep);
+		}
+		&::after {
+			color: var(--pb-deep);
+		}
+	}
+}
+@keyframes pbToastIn {
+	from {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
+}
+@keyframes pbToastOut {
+	to {
+		opacity: 0;
+		transform: translateX(12px);
+	}
+}
+@keyframes pbToastTime {
+	to {
+		transform: scaleX(0);
+	}
+}
+
+/* confirmation dialog (sweetalert2) */
+.swal2-popup.pb-dialog {
+	width: min(380px, calc(100vw - 32px));
+	padding: 24px 22px 20px;
+	border-radius: 22px;
+	font-family: var(--pb-font);
+	color: var(--pb-ink);
+	.swal2-html-container {
+		margin: 0;
+		font-size: 16px;
+		font-weight: 600;
+	}
+}
+.pb-dialog__actions {
+	gap: 8px;
+	margin-top: 20px !important;
+	.pb-btn--light {
+		box-shadow: inset 0 0 0 1.5px var(--pb-line);
+	}
+}
+
+/* community post card */
+.pb-post {
+	gap: 12px !important;
+	padding: 20px !important;
+	&__by {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+	&__author {
+		font-weight: 700;
+		font-size: 15px;
+	}
+	&__meta {
+		display: block;
+		margin-top: 2px;
+		font-size: 13px;
+		color: var(--pb-muted);
+	}
+	&__title {
+		font-family: var(--pb-font-display);
+		font-size: 20px;
+		font-weight: 800;
+		line-height: 1.25;
+		letter-spacing: -0.01em;
+		color: var(--pb-ink);
+		&:hover {
+			color: var(--pb-deep);
+		}
+	}
+	&__text {
+		margin: 0;
+		font-size: 15px;
+		line-height: 1.6;
+		color: var(--pb-muted);
+	}
+	&__rule {
+		width: 100%;
+		margin: 2px 0;
+		border: 0;
+		border-top: 1px solid var(--pb-line);
+	}
+	&__foot {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+}
+
+.pb-write-btn {
+	background: var(--pb-chip) !important;
+}
+
+/* doctor specialty as a hashtag chip */
+.pb-spec-tag {
+	align-self: flex-start;
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	padding: 5px 12px;
+	border-radius: 999px;
+	background: var(--pb-surface);
+	color: var(--pb-deep);
+	box-shadow: inset 0 0 0 1.5px var(--pb-deep);
+	font-size: 13px;
+	font-weight: 700;
+	b {
+		opacity: 0.5;
+	}
+}
+
+.pb-cta .pb-btn {
+	white-space: nowrap !important;
 }

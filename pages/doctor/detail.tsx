@@ -10,6 +10,8 @@ import Avatar from '../../libs/components/ui/Avatar';
 import ActionChips from '../../libs/components/ui/ActionChips';
 import Icon from '../../libs/components/ui/Icon';
 import FollowButton from '../../libs/components/ui/FollowButton';
+import FollowModal, { FollowMode } from '../../libs/components/common/FollowModal';
+import { formatCount } from '../../libs/components/ui/ActionChips';
 import { EcgLine } from '../../libs/components/ui/Loaders';
 import { userVar } from '../../apollo/store';
 import { GET_ARTICLES, GET_DOCTOR } from '../../apollo/user/query';
@@ -38,6 +40,7 @@ const DoctorDetail: NextPage = () => {
 	const [commentTotal, setCommentTotal] = useState<number | null>(null);
 	// follow toggles made on this page move the followers count
 	const [followDelta, setFollowDelta] = useState(0);
+	const [followMode, setFollowMode] = useState<FollowMode | null>(null);
 	const { isFollowing, canFollow, toggleFollow } = useFollowing();
 	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_DOCTOR);
 
@@ -84,9 +87,12 @@ const DoctorDetail: NextPage = () => {
 					<h1 className="pb-title" style={{ fontSize: 34 }}>
 						{name}
 					</h1>
+					<span className="pb-spec-tag">
+						<b aria-hidden="true">#</b>
+						{formatEnum(doctor.specialty)}
+					</span>
 					<span style={{ fontSize: 16, color: 'var(--pb-muted)' }}>
-						<strong style={{ color: 'var(--pb-deep)' }}>{formatEnum(doctor.specialty)}</strong> · {doctor.experience} years
-						experience
+						{doctor.experience} years of experience
 						{doctor.clinicData && (
 							<>
 								{' · '}
@@ -105,9 +111,23 @@ const DoctorDetail: NextPage = () => {
 						likes={like.likes}
 						views={doctor.doctorViews}
 						comments={commentTotal ?? doctor.doctorComments}
-						followers={followers}
 						liked={like.liked}
 						onLike={() => toggleLike(doctor._id, like)}
+					/>
+					<div className="pb-follow-counts">
+						<button type="button" onClick={() => setFollowMode('followers')}>
+							<strong>{formatCount(followers)}</strong> {followers === 1 ? 'follower' : 'followers'}
+						</button>
+						<button type="button" onClick={() => setFollowMode('followings')}>
+							<strong>{formatCount((doctor.memberData?.memberFollowings ?? 0))}</strong> following
+						</button>
+					</div>
+					<FollowModal
+						memberId={doctor.memberId}
+						mode={followMode}
+						counts={{ followers: followers, followings: (doctor.memberData?.memberFollowings ?? 0) }}
+						onMode={setFollowMode}
+						onClose={() => setFollowMode(null)}
 					/>
 				</div>
 				{(canBook || canFollow(doctor.memberId)) && (

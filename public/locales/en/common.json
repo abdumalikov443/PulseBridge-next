@@ -25,7 +25,6 @@
   "Telehealth": "Telehealth",
   "Telehealth is coming soon.": "Telehealth is coming soon.",
   "Emergency": "Emergency",
-  "24/7 Call Center": "24/7 Call Center",
   "Sign In / Book Consult": "Sign In / Book Consult",
   "Patient-first clinical network in Seoul": "Patient-first clinical network in Seoul",
   "Healthcare that listens.": "Healthcare that listens.",
@@ -67,5 +66,7 @@
   "yrs exp": "yrs exp",
   "Book Visit": "Book Visit",
   "Directions": "Directions",
-  "doctor": "doctor"
+  "doctor": "doctor",
+  "yrs of exp": "yrs of exp",
+  "Sign In / Book": "Sign In / Book"
 }

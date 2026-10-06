@@ -27,8 +27,9 @@ const PbHeader = () => {
 	const [langAnchor, setLangAnchor] = useState<null | HTMLElement>(null);
 
 	const nav = [
+		{ href: '/', label: t('Home') },
 		{ href: '/doctor', label: t('Find Doctors') },
-		{ href: '/clinic', label: t('Clinics & Networks') },
+		{ href: '/clinic', label: t('Clinics') },
 		{ href: '/community', label: t('Health Stories') },
 	];
 
@@ -94,7 +95,6 @@ const PbHeader = () => {
 						<Icon name="asterisk" size={14} />
 						<span className="pb-emergency__label">{t('Emergency')}:&nbsp;</span>
 						<b>119</b>
-						<span className="pb-emergency__extra">&nbsp;/ {t('24/7 Call Center')}</span>
 					</span>
 					<button
 						type="button"
@@ -114,9 +114,7 @@ const PbHeader = () => {
 
 					{user?._id ? (
 						<>
-							<span className="pb-icon-btn">
-								<NotificationMenu />
-							</span>
+							<NotificationMenu />
 							<button
 								type="button"
 								className="pb-header__user"
@@ -144,7 +142,7 @@ const PbHeader = () => {
 					) : (
 						<Link href="/account/join" className="pb-btn pb-btn--primary pb-btn--sm pb-header__login" aria-label={t('Sign In / Book Consult')}>
 							<Icon name="userPlus" size={16} />
-							<span>{t('Sign In / Book Consult')}</span>
+							<span>{t('Sign In / Book')}</span>
 						</Link>
 					)}
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { updateStorage, updateUserInfo } from '../../auth';
@@ -7,16 +7,17 @@ import { MemberType } from '../../enums/member.enum';
 import { UPDATE_MEMBER } from '../../../apollo/user/mutation';
 import { Messages } from '../../config';
 import { uploadImage } from '../../upload';
-import { sweetErrorHandling, sweetMixinErrorAlert, sweetMixinSuccessAlert } from '../../sweetAlert';
+import { sweetErrorHandling, sweetMixinSuccessAlert } from '../../sweetAlert';
 import MySection from './MySection';
 import DoctorProfileBox from './DoctorProfileBox';
-import Avatar from '../ui/Avatar';
+import ImagePicker from '../ui/ImagePicker';
 import { EcgLine } from '../ui/Loaders';
 
 const MyProfile = () => {
 	const user = useReactiveVar(userVar);
-	const inputRef = useRef<HTMLInputElement>(null);
 	const [form, setForm] = useState<MemberUpdate>({ _id: '' });
+	// new photo waits here until Save
+	const [photo, setPhoto] = useState<File | null>(null);
 	const [uploading, setUploading] = useState(false);
 
 	/** APOLLO REQUESTS **/
@@ -37,24 +38,14 @@ const MyProfile = () => {
 	}, [user]);
 
 	/** HANDLERS **/
-	const uploadHandler = async () => {
-		try {
-			const file = inputRef.current?.files?.[0];
-			if (!file) return;
-			setUploading(true);
-			const memberImage = await uploadImage(file, 'member');
-			setForm((prev) => ({ ...prev, memberImage }));
-		} catch (err: any) {
-			await sweetMixinErrorAlert(err.message);
-		} finally {
-			setUploading(false);
-		}
-	};
-
 	const saveHandler = async () => {
 		try {
 			if (!user?._id) throw new Error(Messages.error2);
 			const input: MemberUpdate = { ...form, _id: user._id };
+			if (photo) {
+				setUploading(true);
+				input.memberImage = await uploadImage(photo, 'member');
+			}
 			(Object.keys(input) as (keyof MemberUpdate)[]).forEach((key) => input[key] === '' && delete input[key]);
 			const result = await updateMember({ variables: { input } });
 			const jwtToken = result.data?.updateMember?.accessToken;
@@ -62,9 +53,12 @@ const MyProfile = () => {
 				updateStorage({ jwtToken });
 				updateUserInfo(jwtToken);
 			}
+			setPhoto(null);
 			await sweetMixinSuccessAlert('Profile updated');
 		} catch (err: any) {
 			sweetErrorHandling(err).then();
+		} finally {
+			setUploading(false);
 		}
 	};
 
@@ -85,16 +79,7 @@ const MyProfile = () => {
 					saveHandler();
 				}}
 			>
-				<div className="pb-photo-pick">
-					<Avatar name={form.memberFullName || form.memberNick} image={form.memberImage || null} size={88} />
-					<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-						<button type="button" className="pb-btn pb-btn--outline pb-btn--sm" onClick={() => inputRef.current?.click()} disabled={uploading}>
-							{uploading ? <EcgLine small width={44} /> : 'Upload photo'}
-						</button>
-						<span style={{ fontSize: 12, color: 'var(--pb-muted)' }}>JPG or PNG</span>
-						<input ref={inputRef} type="file" hidden accept="image/jpg, image/jpeg, image/png" onChange={uploadHandler} />
-					</div>
-				</div>
+				<ImagePicker file={photo} onChange={setPhoto} current={form.memberImage || null} label="Profile photo" />
 				<div className="pb-form-grid">
 					{field('memberNick', 'Nickname', { minLength: 3, maxLength: 12, required: true })}
 					{field('memberFullName', 'Full name', { maxLength: 100 })}
@@ -106,8 +91,8 @@ const MyProfile = () => {
 					<textarea className="pb-textarea" rows={3} value={form.memberDesc ?? ''} onChange={(e) => setForm({ ...form, memberDesc: e.target.value })} />
 				</label>
 				<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-					<button type="submit" className="pb-btn pb-btn--primary" disabled={saving || !form.memberNick || !form.memberPhone}>
-						{saving ? <EcgLine small /> : 'Save profile'}
+					<button type="submit" className="pb-btn pb-btn--primary" disabled={saving || uploading || !form.memberNick || !form.memberPhone}>
+						{saving || uploading ? <EcgLine small /> : 'Save profile'}
 					</button>
 				</div>
 			</form>

@@ -1,19 +1,46 @@
 import React, { useState } from 'react';
-import { Badge, Button, Divider, Menu, MenuItem, Stack, Typography } from '@mui/material';
-import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
+import { useRouter } from 'next/router';
+import { Drawer } from '@mui/material';
 import Moment from 'react-moment';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_NOTIFICATIONS } from '../../../apollo/user/query';
 import { READ_ALL_NOTIFICATIONS, READ_NOTIFICATION } from '../../../apollo/user/mutation';
 import { Notification } from '../../types/notification/notification';
-import { NotificationStatus } from '../../enums/notification.enum';
+import { NotificationGroup, NotificationStatus, NotificationType } from '../../enums/notification.enum';
 import { T } from '../../types/common';
+import Icon, { IconName } from '../ui/Icon';
 
 // the backend has no push for notifications, so the list is polled
 const POLL_INTERVAL = 30000;
+const LIMIT = 20;
+
+const icons: Record<NotificationType, { icon: IconName; tone: string }> = {
+	[NotificationType.LIKE]: { icon: 'heart', tone: 'pink' },
+	[NotificationType.COMMENT]: { icon: 'comment', tone: 'blue' },
+	[NotificationType.FOLLOW]: { icon: 'userPlus', tone: 'green' },
+	[NotificationType.APPOINTMENT]: { icon: 'calendar', tone: 'orange' },
+	[NotificationType.DOCTOR_REQUEST]: { icon: 'clinic', tone: 'violet' },
+};
+
+// where a notification came from; doctor and clinic likes/comments have no ref id, so they open the owner's page
+const sourceOf = (item: Notification): { href: string; label: string } => {
+	if (item.articleId) return { href: `/community/detail?id=${item.articleId}`, label: 'Open article' };
+	switch (item.notificationType) {
+		case NotificationType.APPOINTMENT:
+			return { href: '/mypage?category=myAppointments', label: 'My appointments' };
+		case NotificationType.DOCTOR_REQUEST:
+			return { href: '/mypage?category=joinRequests', label: 'Join requests' };
+		case NotificationType.FOLLOW:
+			return { href: `/member?memberId=${item.authorId}`, label: `${item.authorData?.memberNick ?? 'Member'}'s profile` };
+	}
+	if (item.notificationGroup === NotificationGroup.CLINIC) return { href: '/mypage?category=myClinic', label: 'My clinic' };
+	return { href: `/member?memberId=${item.authorId}`, label: `${item.authorData?.memberNick ?? 'Member'}'s profile` };
+};
 
 const NotificationMenu = () => {
-	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const router = useRouter();
+	const [open, setOpen] = useState(false);
+	const [onlyUnread, setOnlyUnread] = useState(false);
 	const [notifications, setNotifications] = useState<Notification[]>([]);
 	const [unreadCount, setUnreadCount] = useState<number>(0);
 
@@ -23,7 +50,9 @@ const NotificationMenu = () => {
 
 	const { refetch: notificationsRefetch } = useQuery(GET_NOTIFICATIONS, {
 		fetchPolicy: 'network-only',
-		variables: { input: { page: 1, limit: 10, search: {} } },
+		variables: {
+			input: { page: 1, limit: LIMIT, search: onlyUnread ? { notificationStatus: NotificationStatus.WAIT } : {} },
+		},
 		pollInterval: POLL_INTERVAL,
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => setNotifications(data?.getNotifications?.list ?? []),
@@ -34,25 +63,25 @@ const NotificationMenu = () => {
 		variables: { input: { page: 1, limit: 1, search: { notificationStatus: NotificationStatus.WAIT } } },
 		pollInterval: POLL_INTERVAL,
 		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => setUnreadCount(data?.getNotifications?.metaCounter[0]?.total ?? 0),
+		onCompleted: (data: T) => setUnreadCount(data?.getNotifications?.metaCounter?.[0]?.total ?? 0),
 	});
 
 	/** HANDLERS **/
-
 	const refreshAll = async () => {
-		await notificationsRefetch();
-		await unreadRefetch();
+		await Promise.all([notificationsRefetch(), unreadRefetch()]);
 	};
 
-	const readHandler = async (notification: Notification) => {
+	const openHandler = async (item: Notification) => {
 		try {
-			if (notification.notificationStatus === NotificationStatus.WAIT) {
-				await readNotification({ variables: { input: notification._id } });
-				await refreshAll();
+			if (item.notificationStatus === NotificationStatus.WAIT) {
+				await readNotification({ variables: { input: item._id } });
+				refreshAll().then();
 			}
 		} catch (err: any) {
-			console.log('ERROR, readHandler:', err.message);
+			console.log('ERROR, openHandler:', err.message);
 		}
+		setOpen(false);
+		await router.push(sourceOf(item).href);
 	};
 
 	const readAllHandler = async () => {
@@ -66,48 +95,65 @@ const NotificationMenu = () => {
 
 	return (
 		<>
-			<Badge badgeContent={unreadCount} color={'error'} max={99} sx={{ cursor: 'pointer' }}>
-				<NotificationsOutlinedIcon
-					className={'notification-icon'}
-					onClick={(e: any) => {
-						setAnchorEl(e.currentTarget);
-						refreshAll().then();
-					}}
-				/>
-			</Badge>
-			<Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)} sx={{ mt: '8px' }}>
-				<Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} sx={{ px: 2, py: 1, width: 340 }}>
-					<Typography fontWeight={600}>Notifications</Typography>
-					<Button size={'small'} disabled={unreadCount === 0} onClick={readAllHandler}>
-						Read all
-					</Button>
-				</Stack>
-				<Divider />
-				{notifications.length === 0 && (
-					<MenuItem disabled>
-						<Typography variant={'body2'}>No notifications yet</Typography>
-					</MenuItem>
-				)}
-				{notifications.map((notification: Notification) => (
-					<MenuItem
-						key={notification._id}
-						onClick={() => readHandler(notification)}
-						sx={{ whiteSpace: 'normal', opacity: notification.notificationStatus === NotificationStatus.READ ? 0.6 : 1 }}
-					>
-						<div style={{ width: 300 }}>
-							<Typography variant={'body2'} fontWeight={600}>
-								{notification.notificationTitle}
-							</Typography>
-							{notification.notificationDesc && (
-								<Typography variant={'body2'}>{notification.notificationDesc}</Typography>
-							)}
-							<Typography variant={'caption'} color={'text.secondary'}>
-								{notification.authorData?.memberNick} · <Moment fromNow>{notification.createdAt}</Moment>
-							</Typography>
-						</div>
-					</MenuItem>
-				))}
-			</Menu>
+			<button
+				type="button"
+				className="pb-icon-btn pb-bell"
+				aria-label={unreadCount ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+				onClick={() => {
+					setOpen(true);
+					refreshAll().then();
+				}}
+			>
+				<Icon name="bell" size={20} />
+				{unreadCount > 0 && <span className="pb-bell__count">{unreadCount > 99 ? '99+' : unreadCount}</span>}
+			</button>
+
+			<Drawer anchor="right" open={open} onClose={() => setOpen(false)} PaperProps={{ className: 'pb-drawer' }}>
+				<div className="pb-drawer__head">
+					<h2>Notifications</h2>
+					<button type="button" className="pb-btn pb-btn--light pb-btn--sm" disabled={unreadCount === 0} onClick={readAllHandler}>
+						Mark all read
+					</button>
+					<button type="button" className="pb-drawer__close" aria-label="Close" onClick={() => setOpen(false)}>
+						<Icon name="close" size={18} />
+					</button>
+				</div>
+				<div className="pb-drawer__tabs" role="tablist" aria-label="Filter">
+					<button type="button" role="tab" aria-selected={!onlyUnread} className={`pb-pill ${!onlyUnread ? 'pb-pill--active' : ''}`} onClick={() => setOnlyUnread(false)}>
+						All
+					</button>
+					<button type="button" role="tab" aria-selected={onlyUnread} className={`pb-pill ${onlyUnread ? 'pb-pill--active' : ''}`} onClick={() => setOnlyUnread(true)}>
+						Unread · {unreadCount}
+					</button>
+				</div>
+				<div className="pb-drawer__list">
+					{notifications.length === 0 && <p className="pb-drawer__empty">{onlyUnread ? 'You have read everything.' : 'No notifications yet.'}</p>}
+					{notifications.map((item) => {
+						const look = icons[item.notificationType] ?? icons[NotificationType.LIKE];
+						const source = sourceOf(item);
+						const unread = item.notificationStatus === NotificationStatus.WAIT;
+						return (
+							<button key={item._id} type="button" className={`pb-note-item ${unread ? 'is-unread' : ''}`} onClick={() => openHandler(item)}>
+								<span className={`pb-note-item__icon pb-tone--${look.tone}`}>
+									<Icon name={look.icon} size={18} />
+								</span>
+								<span className="pb-note-item__body">
+									<strong>{item.notificationTitle}</strong>
+									{item.notificationDesc && <span className="pb-note-item__desc">{item.notificationDesc}</span>}
+									<span className="pb-note-item__src">
+										<Icon name="arrow" size={12} />
+										{source.label}
+										{item.authorData?.memberNick && item.notificationType !== NotificationType.FOLLOW && <em> · by {item.authorData.memberNick}</em>}
+									</span>
+								</span>
+								<span className="pb-note-item__time">
+									<Moment fromNow>{item.createdAt}</Moment>
+								</span>
+							</button>
+						);
+					})}
+				</div>
+			</Drawer>
 		</>
 	);
 };

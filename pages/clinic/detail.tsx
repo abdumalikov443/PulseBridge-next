@@ -12,6 +12,8 @@ import Avatar from '../../libs/components/ui/Avatar';
 import ActionChips from '../../libs/components/ui/ActionChips';
 import Icon from '../../libs/components/ui/Icon';
 import FollowButton from '../../libs/components/ui/FollowButton';
+import FollowModal, { FollowMode } from '../../libs/components/common/FollowModal';
+import { formatCount } from '../../libs/components/ui/ActionChips';
 import ClinicJoinButton from '../../libs/components/common/ClinicJoinButton';
 import { EcgLine, SkeletonCards } from '../../libs/components/ui/Loaders';
 import { GET_CLINIC, GET_DOCTORS } from '../../apollo/user/query';
@@ -40,6 +42,7 @@ const ClinicDetail: NextPage = () => {
 	const [tab, setTab] = useState<Tab>('overview');
 	const [commentTotal, setCommentTotal] = useState<number | null>(null);
 	const [followDelta, setFollowDelta] = useState(0);
+	const [followMode, setFollowMode] = useState<FollowMode | null>(null);
 	const { isFollowing, canFollow, toggleFollow } = useFollowing();
 	const clinicLike = useLikeToggle(LIKE_TARGET_CLINIC);
 	const doctorLike = useLikeToggle(LIKE_TARGET_DOCTOR);
@@ -113,9 +116,23 @@ const ClinicDetail: NextPage = () => {
 						likes={like.likes}
 						views={clinic.clinicViews}
 						comments={commentTotal ?? clinic.clinicComments}
-						followers={(clinic.memberData?.memberFollowers ?? 0) + followDelta}
 						liked={like.liked}
 						onLike={() => clinicLike.toggleLike(clinic._id, like)}
+					/>
+					<div className="pb-follow-counts">
+						<button type="button" onClick={() => setFollowMode('followers')}>
+							<strong>{formatCount((clinic.memberData?.memberFollowers ?? 0) + followDelta)}</strong> {(clinic.memberData?.memberFollowers ?? 0) + followDelta === 1 ? 'follower' : 'followers'}
+						</button>
+						<button type="button" onClick={() => setFollowMode('followings')}>
+							<strong>{formatCount((clinic.memberData?.memberFollowings ?? 0))}</strong> following
+						</button>
+					</div>
+					<FollowModal
+						memberId={clinic.memberId}
+						mode={followMode}
+						counts={{ followers: (clinic.memberData?.memberFollowers ?? 0) + followDelta, followings: (clinic.memberData?.memberFollowings ?? 0) }}
+						onMode={setFollowMode}
+						onClose={() => setFollowMode(null)}
 					/>
 				</div>
 				<div className="pb-cta">

@@ -43,7 +43,7 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 			</Link>
 			<span className="pb-doc-card__meta">
 				<Icon name="clinic" size={15} />
-				{doctor.clinicData?.clinicName ?? t('No clinic yet')} · {doctor.experience} {t('yrs exp')}
+				{doctor.clinicData?.clinicName ?? t('No clinic yet')} · {doctor.experience} {t('yrs of exp')}
 			</span>
 			<div className="pb-doc-card__next">
 				<span>{t('Next available')}</span>
@@ -52,7 +52,7 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 			<ActionChips likes={likes} views={doctor.doctorViews} liked={liked} onLike={onLike} />
 			<Link href={`/booking?doctorId=${doctor._id}`} className="pb-btn pb-btn--primary pb-btn--block">
 				<Icon name="calendar" size={16} />
-				{t('Book Visit')}
+				{t('Book')}
 			</Link>
 		</article>
 	);

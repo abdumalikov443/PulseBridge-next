@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Messages } from '../../config';
+import { Messages, REACT_APP_API_URL } from '../../config';
 import { sweetMixinErrorAlert } from '../../sweetAlert';
 import Icon from './Icon';
 
@@ -11,12 +11,14 @@ interface ImagePickerProps {
 	onChange: (file: File | null) => void;
 	label: string;
 	hint?: string;
+	// image already saved on the server (path from the API)
+	current?: string | null;
 	// round for a person, wide for a clinic cover
 	shape?: 'round' | 'wide';
 }
 
 // picks an image and shows a local preview; nothing is uploaded until the form is saved
-const ImagePicker = ({ file, onChange, label, hint, shape = 'round' }: ImagePickerProps) => {
+const ImagePicker = ({ file, onChange, label, hint, current, shape = 'round' }: ImagePickerProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [preview, setPreview] = useState<string | null>(null);
 
@@ -26,6 +28,8 @@ const ImagePicker = ({ file, onChange, label, hint, shape = 'round' }: ImagePick
 		setPreview(url);
 		return () => URL.revokeObjectURL(url);
 	}, [file]);
+
+	const shown = preview ?? (current ? `${REACT_APP_API_URL}/${current}` : null);
 
 	const pickHandler = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const picked = e.target.files?.[0];
@@ -38,9 +42,9 @@ const ImagePicker = ({ file, onChange, label, hint, shape = 'round' }: ImagePick
 
 	return (
 		<div className={`pb-picker pb-picker--${shape}`}>
-			<button type="button" className="pb-picker__frame" onClick={() => inputRef.current?.click()} aria-label={preview ? `Change ${label}` : `Choose ${label}`}>
-				{preview ? (
-					<img src={preview} alt="" />
+			<button type="button" className="pb-picker__frame" onClick={() => inputRef.current?.click()} aria-label={shown ? `Change ${label}` : `Choose ${label}`}>
+				{shown ? (
+					<img src={shown} alt="" />
 				) : (
 					<span className="pb-picker__empty">
 						<Icon name="image" size={26} strokeWidth={1.6} />
@@ -49,11 +53,11 @@ const ImagePicker = ({ file, onChange, label, hint, shape = 'round' }: ImagePick
 			</button>
 			<div className="pb-picker__info">
 				<strong>{label}</strong>
-				<span>{file ? file.name : hint ?? 'JPG or PNG, up to 5 MB'}</span>
+				<span>{file ? `${file.name} · not saved yet` : hint ?? 'JPG or PNG, up to 5 MB'}</span>
 				<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
 					<button type="button" className="pb-btn pb-btn--outline pb-btn--sm" onClick={() => inputRef.current?.click()}>
-						<Icon name={file ? 'edit' : 'image'} size={14} />
-						{file ? 'Change' : 'Choose photo'}
+						<Icon name={shown ? 'edit' : 'image'} size={14} />
+						{shown ? 'Change' : 'Choose photo'}
 					</button>
 					{file && (
 						<button type="button" className="pb-btn pb-btn--danger pb-btn--sm" onClick={() => onChange(null)}>

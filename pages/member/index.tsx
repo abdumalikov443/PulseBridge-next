@@ -6,7 +6,7 @@ import { useQuery, useReactiveVar } from '@apollo/client';
 import { Pagination } from '@mui/material';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
-import FollowList from '../../libs/components/common/FollowList';
+import FollowModal, { FollowMode } from '../../libs/components/common/FollowModal';
 import PostCard from '../../libs/components/cards/PostCard';
 import Avatar from '../../libs/components/ui/Avatar';
 import Icon from '../../libs/components/ui/Icon';
@@ -29,14 +29,16 @@ export const getStaticProps = async ({ locale }: any) => ({
 	},
 });
 
-type Tab = 'articles' | 'followers' | 'followings';
+type Tab = 'articles';
 const LIMIT = 6;
 
 const MemberPage: NextPage = () => {
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
 	const memberId = router.query.memberId as string | undefined;
-	const tab = ((router.query.category as Tab) ?? 'articles') as Tab;
+	// followers and following open in a popup; ?category=followers still opens it from old links
+	const tab: Tab = 'articles';
+	const [followMode, setFollowMode] = useState<FollowMode | null>(null);
 	const [member, setMember] = useState<Member | null>(null);
 	const [articles, setArticles] = useState<Article[] | null>(null);
 	const [page, setPage] = useState(1);
@@ -46,6 +48,11 @@ const MemberPage: NextPage = () => {
 	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_ARTICLE);
 
 	/** LIFECYCLES **/
+	useEffect(() => {
+		const category = router.query.category;
+		if (category === 'followers' || category === 'followings') setFollowMode(category);
+	}, [router.query.category]);
+
 	useEffect(() => {
 		if (memberId && memberId === user._id) router.replace('/mypage');
 	}, [memberId, user._id, router]);
@@ -79,14 +86,9 @@ const MemberPage: NextPage = () => {
 
 	const name = getMemberName(member);
 	const following = isFollowing(member._id);
-	const tabs: { id: Tab; label: string }[] = [
-		{ id: 'articles', label: `Articles (${member.memberArticles})` },
-		{ id: 'followers', label: 'Followers' },
-		{ id: 'followings', label: 'Following' },
-	];
+	const tabs: { id: Tab; label: string }[] = [{ id: 'articles', label: `Articles (${member.memberArticles})` }];
+	const followCounts = { followers: (member.memberFollowers ?? 0) + followDelta, followings: member.memberFollowings ?? 0 };
 	const stats = [
-		{ label: 'Followers', value: (member.memberFollowers ?? 0) + followDelta },
-		{ label: 'Following', value: member.memberFollowings ?? 0 },
 		{ label: 'Articles', value: member.memberArticles },
 		{ label: 'Likes', value: member.memberLikes },
 	];
@@ -103,7 +105,15 @@ const MemberPage: NextPage = () => {
 						<span className="pb-badge pb-badge--soft">{formatEnum(member.memberType)}</span>
 					</div>
 					{member.memberDesc && <p style={{ margin: 0, color: 'var(--pb-muted)', lineHeight: 1.6 }}>{member.memberDesc}</p>}
-					<div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginTop: 4 }}>
+					<div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center', marginTop: 4 }}>
+						<div className="pb-follow-counts">
+							<button type="button" onClick={() => setFollowMode('followers')}>
+								<strong>{formatCount(followCounts.followers)}</strong> {followCounts.followers === 1 ? 'follower' : 'followers'}
+							</button>
+							<button type="button" onClick={() => setFollowMode('followings')}>
+								<strong>{formatCount(followCounts.followings)}</strong> following
+							</button>
+						</div>
 						{stats.map((stat) => (
 							<span key={stat.label} style={{ fontSize: 14, color: 'var(--pb-muted)' }}>
 								<strong style={{ color: 'var(--pb-ink)', fontSize: 18 }}>{formatCount(stat.value)}</strong> {stat.label}
@@ -163,8 +173,7 @@ const MemberPage: NextPage = () => {
 					)}
 				</>
 			)}
-			{tab === 'followers' && <FollowList mode="followers" memberId={member._id} />}
-			{tab === 'followings' && <FollowList mode="followings" memberId={member._id} />}
+			<FollowModal memberId={member._id} mode={followMode} counts={followCounts} onMode={setFollowMode} onClose={() => setFollowMode(null)} />
 		</div>
 	);
 };

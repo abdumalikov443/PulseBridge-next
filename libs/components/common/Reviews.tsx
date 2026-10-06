@@ -10,8 +10,9 @@ import { CommentGroup, CommentStatus } from '../../enums/comment.enum';
 import { Comment } from '../../types/comment/comment';
 import { T } from '../../types/common';
 import { COMMENT_CONTENT_MAX, getMemberName, Messages } from '../../config';
-import { sweetConfirmAlert, sweetErrorHandling } from '../../sweetAlert';
+import { sweetConfirmAlert, sweetErrorHandling, sweetTopSmallSuccessAlert } from '../../sweetAlert';
 import Avatar from '../ui/Avatar';
+import Icon from '../ui/Icon';
 import { EcgLine } from '../ui/Loaders';
 
 interface ReviewsProps {
@@ -34,6 +35,9 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 	const [comments, setComments] = useState<Comment[]>([]);
 	const [total, setTotal] = useState(0);
 	const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
+	// the form stays folded until the button is pressed
+	const [writing, setWriting] = useState(false);
+	const isReview = title === 'Reviews';
 
 	/** APOLLO REQUESTS **/
 	const [createComment, { loading: posting }] = useMutation(CREATE_COMMENT);
@@ -62,9 +66,11 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 			if (!text.trim()) return;
 			await createComment({ variables: { input: { commentGroup: group, commentRefId: refId, commentContent: text.trim() } } });
 			setText('');
+			setWriting(false);
 			setPage(1);
 			applyComments((await refetch()).data);
 			onPosted && onPosted();
+			sweetTopSmallSuccessAlert(isReview ? 'Review posted' : 'Comment posted').then();
 		} catch (err: any) {
 			sweetErrorHandling(err).then();
 		}
@@ -99,11 +105,27 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 				<h2 className="pb-title" style={{ fontSize: 22 }}>
 					{title}
 				</h2>
-				<span style={{ fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>{total} total</span>
+				<span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+					<span style={{ fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>{total} total</span>
+					{!isOwner &&
+						!writing &&
+						(user?._id ? (
+							<button type="button" className="pb-btn pb-btn--light pb-btn--sm pb-write-btn" aria-expanded={false} onClick={() => setWriting(true)}>
+								<Icon name="edit" size={14} />
+								{isReview ? 'Write a review' : 'Write a comment'}
+							</button>
+						) : (
+							<Link href="/account/join" className="pb-btn pb-btn--light pb-btn--sm pb-write-btn">
+								<Icon name="edit" size={14} />
+								Log in to write
+							</Link>
+						))}
+				</span>
 			</div>
 
-			{!isOwner && (
+			{!isOwner && user?._id && writing && (
 				<form
+					className="pb-in"
 					onSubmit={(e) => {
 						e.preventDefault();
 						submitHandler();
@@ -111,15 +133,15 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 					style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, borderRadius: 16, background: 'var(--pb-bg)' }}
 				>
 					<label htmlFor={`review-${refId}`} style={{ fontSize: 13, fontWeight: 700 }}>
-						{title === 'Reviews' ? 'Leave a review' : 'Write a comment'}
+						{isReview ? 'Your review' : 'Your comment'}
 					</label>
 					<textarea
 						id={`review-${refId}`}
 						className="pb-textarea"
-						rows={2}
+						rows={3}
+						autoFocus
 						maxLength={COMMENT_CONTENT_MAX}
-						placeholder={user?._id ? 'Share your experience' : 'Log in to leave a review'}
-						disabled={!user?._id}
+						placeholder={isReview ? 'Share your experience' : 'Write your comment'}
 						value={text}
 						onChange={(e) => setText(e.target.value)}
 					/>
@@ -127,15 +149,21 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 						<span style={{ fontSize: 12, color: 'var(--pb-muted)' }}>
 							{text.length} / {COMMENT_CONTENT_MAX}
 						</span>
-						{user?._id ? (
-							<button type="submit" className="pb-btn pb-btn--primary pb-btn--sm" disabled={!text.trim() || posting}>
-								{posting ? <EcgLine small width={44} /> : 'Post review'}
+						<span style={{ display: 'flex', gap: 6 }}>
+							<button
+								type="button"
+								className="pb-btn pb-btn--light pb-btn--sm"
+								onClick={() => {
+									setWriting(false);
+									setText('');
+								}}
+							>
+								Cancel
 							</button>
-						) : (
-							<Link href="/account/join" className="pb-btn pb-btn--outline pb-btn--sm">
-								Log in
-							</Link>
-						)}
+							<button type="submit" className="pb-btn pb-btn--primary pb-btn--sm" disabled={!text.trim() || posting}>
+								{posting ? <EcgLine small width={44} /> : isReview ? 'Post review' : 'Post comment'}
+							</button>
+						</span>
 					</div>
 				</form>
 			)}
