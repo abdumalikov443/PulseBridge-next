@@ -1,0 +1,448 @@
+<title>PulseBridge Home Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: Soft Care home. Split hero (headline + search left, visit card right), then specialties, doctors, clinics, articles */
+:root {
+	--bg: #f6fafd;
+	--surface: #ffffff;
+	--ink: #16384c;
+	--muted: #4f6b7b;
+	--line: #e3eef5;
+	--primary: #3a93c2;
+	--deep: #1f6f99;
+	--accent: #f2a15c;
+	--soft-1: #e3f1f9;
+	--soft-2: #fdeedf;
+	--soft-3: #ece9f8;
+	--soft-4: #e4f4ec;
+	--chip: #eef5fa;
+	--like: #d6246e;
+	--like-soft: #fde7ef;
+	--success: #0b6b61;
+	--success-soft: #e3f5f2;
+	--warning: #8a4b00;
+	--warning-soft: #fff4e0;
+	--night: #10283a;
+	--on-deep: #ffffff;
+	--shadow: 0 16px 36px rgba(10, 30, 40, 0.08);
+	--shadow-lg: 0 30px 60px rgba(10, 30, 40, 0.14);
+	--glow: rgba(58, 147, 194, 0.16);
+	--font: 'DM Sans', system-ui, -apple-system, sans-serif;
+	--display: 'Bricolage Grotesque', 'DM Sans', system-ui, sans-serif;
+	--r-sm: 12px;
+	--r: 20px;
+	--r-lg: 28px;
+	color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.5; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--deep); outline-offset: 2px; }
+input:focus, select:focus { outline: none; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: 24px; }
+@media (max-width: 640px) { .wrap { padding-inline: 16px; } }
+svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; letter-spacing: -0.02em; }
+
+/* demo ribbon */
+.ribbon { background: var(--warning-soft); color: var(--warning); font-size: 13px; text-align: center; padding: 8px 16px; }
+
+/* header */
+.head { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.head .wrap { display: flex; align-items: center; gap: 16px; min-height: 72px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo__mark { width: 40px; height: 40px; border-radius: 12px; background: var(--deep); color: var(--on-deep); display: grid; place-items: center; }
+.logo__name { font-family: var(--display); font-weight: 800; font-size: 19px; line-height: 1; display: flex; align-items: center; gap: 5px; }
+.logo__name i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: beat 1.6s ease-in-out infinite; }
+.logo__sub { display: block; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+.nav { display: flex; gap: 4px; padding: 5px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); margin-inline: auto; }
+.nav a { padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.nav a:hover { color: var(--ink); }
+.nav a.on { background: var(--deep); color: var(--on-deep); }
+.nav a .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+.emg { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; background: var(--warning-soft); color: var(--warning); font-size: 13px; font-weight: 600; white-space: nowrap; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+.emg b { font-weight: 800; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 999px; border: 0; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; transition: transform .25s ease, box-shadow .25s ease; }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(10,30,40,.1); }
+.btn--primary { background: var(--deep); color: var(--on-deep); }
+.btn--outline { background: var(--surface); color: var(--deep); box-shadow: inset 0 0 0 1.5px var(--line); }
+.btn--outline:hover { box-shadow: inset 0 0 0 1.5px var(--deep); }
+.btn--lg { min-height: 54px; padding: 0 26px; font-size: 15px; }
+.burger { display: none; }
+@media (max-width: 1100px) { .emg span { display: none; } }
+@media (max-width: 960px) {
+	.nav, .emg { display: none; }
+	.burger { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); margin-left: auto; }
+	.head .btn { display: none; }
+}
+
+/* hero */
+.hero { position: relative; padding-block: 56px 32px; overflow: hidden; }
+.hero::before { content: ""; position: absolute; width: 640px; height: 640px; right: -120px; top: -160px; background: radial-gradient(circle, var(--glow), transparent 65%); pointer-events: none; }
+.hero .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 48px; align-items: center; }
+@media (max-width: 960px) { .hero .wrap { grid-template-columns: 1fr; } }
+.pill-note { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: var(--success-soft); color: var(--success); font-size: 13px; font-weight: 600; }
+.pill-note i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.hero h1 { font-size: clamp(40px, 6vw, 68px); line-height: 1.02; font-weight: 800; margin-top: 18px; }
+.hero h1 em { font-style: normal; display: block; background: linear-gradient(90deg, var(--deep), var(--primary)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lede { font-size: 17px; color: var(--muted); max-width: 52ch; margin: 18px 0 0; }
+
+.search { margin-top: 28px; padding: 10px; border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow); border: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) auto; gap: 8px; }
+.field { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 14px; background: var(--bg); min-width: 0; }
+.field label { display: block; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.field select, .field input { border: 0; background: transparent; font: inherit; font-weight: 600; color: var(--ink); width: 100%; padding: 2px 0 0; }
+.field svg { color: var(--deep); }
+@media (max-width: 640px) { .search { grid-template-columns: 1fr; } .search .btn { width: 100%; } }
+.popular { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 24px; font-size: 13px; }
+.popular > span { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--chip); color: var(--ink); font-size: 13px; font-weight: 600; border: 0; cursor: pointer; transition: box-shadow .2s ease; }
+.chip:hover { box-shadow: inset 0 0 0 1.5px var(--deep); }
+.hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+
+/* hero side card */
+.care { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); padding: 22px; display: flex; flex-direction: column; gap: 14px; animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
+.care__top { display: flex; align-items: center; gap: 12px; }
+.care__icon { width: 42px; height: 42px; border-radius: 14px; background: var(--soft-1); color: var(--deep); display: grid; place-items: center; }
+.care__top strong { font-family: var(--display); font-size: 17px; display: block; }
+.care__top small { color: var(--muted); font-size: 12px; }
+.tag { margin-left: auto; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; background: var(--success-soft); color: var(--success); white-space: nowrap; }
+.doc-mini { display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 16px; background: var(--bg); }
+.avatar { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; font-weight: 800; font-size: 15px; flex: none; }
+.doc-mini strong { display: block; }
+.doc-mini small { color: var(--muted); font-size: 12px; }
+.visit { border-radius: 18px; padding: 16px; background: var(--night); color: #e8f3f9; display: flex; align-items: center; gap: 14px; }
+.visit__icon { width: 42px; height: 42px; border-radius: 12px; background: rgba(255,255,255,.1); display: grid; place-items: center; color: #8fd6f7; }
+.visit small { display: block; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #8fd6f7; }
+.visit strong { display: block; font-size: 15px; }
+.visit span { font-size: 12px; opacity: .75; }
+.visit .badge { margin-left: auto; padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.12); font-size: 11px; font-weight: 700; opacity: 1; }
+.ecg { height: 34px; width: 100%; color: var(--primary); }
+.ecg path { stroke-dasharray: 420; stroke-dashoffset: 420; animation: draw 2.6s ease-in-out infinite; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding-block: 8px 24px; }
+.stat { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
+.stat__icon { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; }
+.stat strong { display: block; font-family: var(--display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.stat small { color: var(--muted); font-size: 13px; }
+@media (max-width: 640px) { .stats { grid-template-columns: 1fr; } }
+
+/* sections */
+section.block { padding-block: 40px; }
+.sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.sec-head h2 { font-size: clamp(26px, 3.4vw, 34px); font-weight: 800; }
+.sec-head p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.eyebrow { display: inline-block; padding: 3px 10px; border-radius: 6px; background: var(--success-soft); color: var(--success); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; }
+.more { color: var(--deep); font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+.more:hover svg { transform: translateX(3px); }
+.more svg { transition: transform .25s ease; }
+
+/* specialties */
+.spec-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 960px) { .spec-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .spec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.spec { display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); cursor: pointer; text-align: left; transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+.spec:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.spec.on, .spec:hover { border-color: var(--deep); background: var(--soft-1); }
+.spec__icon { transition: background-color .25s ease, color .25s ease, transform .25s ease; }
+.spec:hover .spec__icon, .spec.on .spec__icon { background: var(--deep) !important; color: var(--on-deep) !important; transform: scale(1.05); }
+.spec__icon { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; }
+.spec strong { display: block; font-size: 15px; }
+.spec small { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* cards */
+.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 1080px) { .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 960px) { .grid3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .grid4, .grid3, .grid2 { grid-template-columns: 1fr; } }
+.card { background: var(--surface); border-radius: var(--r-lg); border: 1px solid var(--line); padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; transition: transform .25s ease, box-shadow .25s ease; }
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+.doc__top { display: flex; gap: 12px; align-items: center; }
+.doc__name { font-family: var(--display); font-size: 18px; font-weight: 700; }
+.doc__spec { color: var(--deep); font-weight: 700; font-size: 13px; }
+.doc__meta { color: var(--muted); font-size: 13px; display: flex; gap: 6px; align-items: center; }
+.next { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--bg); font-size: 13px; color: var(--muted); }
+.next b { padding: 4px 10px; border-radius: 8px; font-size: 12px; background: var(--success-soft); color: var(--success); white-space: nowrap; }
+.next b.later { background: var(--warning-soft); color: var(--warning); }
+.acts { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.act { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 999px; background: var(--chip); font-size: 13px; font-weight: 600; color: var(--muted); border: 0; font-variant-numeric: tabular-nums; }
+button.act { cursor: pointer; }
+.act svg { width: 15px; height: 15px; }
+.act svg { transition: color .2s ease; }
+.act.liked svg { color: var(--like); fill: var(--like); animation: pop .3s ease; }
+.doc .btn { width: 100%; }
+
+/* clinic card */
+.cover { position: relative; height: 150px; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; color: #fff; }
+.cover.c1 { background: linear-gradient(135deg, #1f4f6b, #10283a); }
+.cover.c2 { background: linear-gradient(135deg, #a07a5c, #6f5039); }
+.cover.c3 { background: linear-gradient(135deg, #8a88b8, #5d5b8c); }
+.cover__type { align-self: flex-start; display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.92); color: #16384c; font-size: 12px; font-weight: 700; }
+.cover__type i { width: 6px; height: 6px; border-radius: 50%; background: #0b8a6a; }
+.cover__type.pub i { background: #e2861f; }
+.cover small { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+.cover strong { display: flex; align-items: center; gap: 6px; font-size: 15px; }
+.clin__name { font-family: var(--display); font-size: 19px; font-weight: 700; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tags span { padding: 3px 9px; border-radius: 6px; background: var(--chip); font-size: 12px; font-weight: 600; color: var(--muted); }
+.clin__foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.btn--sm { min-height: 36px; padding: 0 14px; font-size: 13px; }
+
+/* article card */
+.art__by { display: flex; gap: 10px; align-items: center; }
+.art__by strong { font-size: 14px; }
+.art__by small { display: block; color: var(--muted); font-size: 12px; }
+.badge-doc { padding: 2px 8px; border-radius: 6px; background: var(--soft-1); color: var(--deep); font-size: 11px; font-weight: 700; margin-left: 6px; }
+.art h3 { font-size: 20px; font-weight: 700; line-height: 1.25; }
+.art p { margin: 0; color: var(--muted); font-size: 14px; }
+.art__foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+
+/* footer */
+.foot { margin-top: 32px; border-top: 1px solid var(--line); background: var(--surface); }
+.foot .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 24px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.foot nav { display: flex; gap: 20px; flex-wrap: wrap; }
+
+/* tray to compare */
+.note { margin-top: 10px; font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+
+@keyframes beat { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .55; } }
+@keyframes pop { 50% { transform: scale(1.25); } }
+@keyframes rise { from { opacity: .4; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes draw { 0% { stroke-dashoffset: 420; } 60%, 100% { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } .ecg path { stroke-dashoffset: 0; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+	<symbol id="heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
+	<symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+	<symbol id="comment" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 20l1.1-4.2A8.4 8.4 0 1 1 21 11.5z"/></symbol>
+	<symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+	<symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+	<symbol id="pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+	<symbol id="clinic" viewBox="0 0 24 24"><path d="M4 21V8l8-5 8 5v13M9 21v-5h6v5M12 8v4M10 10h4"/></symbol>
+	<symbol id="calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></symbol>
+	<symbol id="steth" viewBox="0 0 24 24"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v2a4 4 0 0 0 8 0v-2"/><circle cx="19" cy="12" r="2"/></symbol>
+	<symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></symbol>
+	<symbol id="book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M9 7h6"/></symbol>
+	<symbol id="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></symbol>
+	<symbol id="brain" viewBox="0 0 24 24"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V5a3 3 0 0 0-3-1zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1"/></symbol>
+	<symbol id="tooth" viewBox="0 0 24 24"><path d="M7 3c-2.5 0-4 2-4 4.5 0 3 1.5 4.5 2 7 .5 3 1 6.5 2.5 6.5S9.5 17 12 17s3 4 4.5 4S18.5 17.5 19 14.5c.5-2.5 2-4 2-7C21 5 19.5 3 17 3c-2 0-3 1-5 1S9 3 7 3z"/></symbol>
+	<symbol id="shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M12 9v6M9 12h6"/></symbol>
+	<symbol id="pulse" viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></symbol>
+	<symbol id="alert" viewBox="0 0 24 24"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/></symbol>
+	<symbol id="nav" viewBox="0 0 24 24"><path d="M12 2 4.5 20.3l.7.7L12 18l6.8 3 .7-.7z"/></symbol>
+	<symbol id="menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+	<symbol id="video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="m16 10 5-3v10l-5-3"/></symbol>
+</svg>
+
+<div class="ribbon">Demo with example data. Ratings, prices and "Next available" are not in the API; "Next available" stays static for now.</div>
+
+<header class="head">
+	<div class="wrap">
+		<a href="#top" class="logo" aria-label="PulseBridge home">
+			<span class="logo__mark"><svg class="i" style="width:22px;height:22px"><use href="#pulse"/></svg></span>
+			<span><span class="logo__name">PulseBridge <i aria-hidden="true"></i></span><span class="logo__sub">Clinical discovery</span></span>
+		</a>
+		<nav class="nav" aria-label="Main">
+			<a href="#doctors" class="on">Find Doctors</a>
+			<a href="#clinics">Clinics &amp; Networks</a>
+			<a href="#top">Telehealth <span class="dot" aria-hidden="true"></span></a>
+			<a href="#stories">Health Stories</a>
+		</nav>
+		<div class="emg"><svg class="i" style="width:15px;height:15px"><use href="#alert"/></svg><span>Emergency:&nbsp;</span><b>119</b><span>&nbsp;/ 24/7 Call Center</span></div>
+		<a href="#top" class="btn btn--primary">Sign In / Book Consult</a>
+		<button class="burger" type="button" aria-label="Open menu"><svg class="i"><use href="#menu"/></svg></button>
+	</div>
+</header>
+
+<main id="top">
+	<section class="hero">
+		<div class="wrap">
+			<div>
+				<span class="pill-note"><i aria-hidden="true"></i>Patient-first clinical network in Seoul</span>
+				<h1>Healthcare that listens. <em>Care you can count on.</em></h1>
+				<p class="lede">Pick a specialty, compare doctors and clinics, and book a visit at a time that suits you.</p>
+
+				
+
+				<div class="popular">
+					<span><svg class="i" style="width:14px;height:14px"><use href="#search"/></svg>Popular specialties</span>
+					<button class="chip" type="button" data-spec="Cardiology">Cardiology</button>
+					<button class="chip" type="button" data-spec="Pediatrics">Pediatrics</button>
+					<button class="chip" type="button" data-spec="Dentistry">Dentistry</button>
+					<button class="chip" type="button" data-spec="General">General care</button>
+				</div>
+
+				<div class="hero-ctas">
+					<a href="#doctors" class="btn btn--primary btn--lg"><svg class="i"><use href="#steth"/></svg>Find a Doctor</a>
+					<a href="#clinics" class="btn btn--outline btn--lg"><svg class="i"><use href="#pin"/></svg>Explore Clinics</a>
+				</div>
+			</div>
+
+			<aside class="care" aria-label="Your care">
+				<div class="care__top">
+					<span class="care__icon"><svg class="i"><use href="#calendar"/></svg></span>
+					<div><strong>Your care</strong><small>Visits and doctors you follow</small></div>
+					<span class="tag">Signed in</span>
+				</div>
+				<div class="doc-mini">
+					<span class="avatar" style="background:var(--soft-4);color:var(--success)">SK</span>
+					<div style="min-width:0;flex:1"><strong>Dr. Sarah Kim</strong><small>General · Seoul Central Clinic</small></div>
+					<a href="#doctors" class="btn btn--primary btn--sm">Book</a>
+				</div>
+				<div class="visit">
+					<span class="visit__icon"><svg class="i"><use href="#calendar"/></svg></span>
+					<div style="min-width:0"><small>Upcoming visit</small><strong>Tomorrow, Oct 7 · 10:30</strong><span>Seoul Central Clinic</span></div>
+					<span class="badge">Confirmed</span>
+				</div>
+				<svg class="ecg" viewBox="0 0 300 34" preserveAspectRatio="none" aria-hidden="true"><path d="M0 17h90l10-12 12 24 10-20 8 8h170" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</aside>
+		</div>
+	</section>
+
+	<div class="wrap stats">
+		<div class="stat"><span class="stat__icon" style="background:var(--soft-1);color:var(--deep)"><svg class="i"><use href="#steth"/></svg></span><div><strong>60</strong><small>Doctors on PulseBridge</small></div></div>
+		<div class="stat"><span class="stat__icon" style="background:var(--soft-4);color:var(--success)"><svg class="i"><use href="#clinic"/></svg></span><div><strong>12</strong><small>Clinics and hospitals</small></div></div>
+		<div class="stat"><span class="stat__icon" style="background:var(--soft-2);color:var(--warning)"><svg class="i"><use href="#book"/></svg></span><div><strong>130</strong><small>Health articles</small></div></div>
+	</div>
+
+	<section class="block wrap" aria-labelledby="spec-h">
+		<div class="sec-head">
+			<div><h2 id="spec-h">Explore by specialty</h2><p>Doctors grouped by their medical field</p></div>
+			<a href="#doctors" class="more">All doctors <svg class="i"><use href="#arrow"/></svg></a>
+		</div>
+		<div class="spec-grid" id="spec-grid">
+			<button class="spec" type="button" data-spec="Cardiology"><span class="spec__icon" style="background:var(--like-soft);color:var(--like)"><svg class="i"><use href="#heart"/></svg></span><span><strong>Cardiology</strong><small>8 doctors</small></span></button>
+			<button class="spec on" type="button" data-spec="Dermatology"><span class="spec__icon" style="background:var(--deep);color:var(--on-deep)"><svg class="i"><use href="#shield"/></svg></span><span><strong>Dermatology</strong><small>14 doctors</small></span></button>
+			<button class="spec" type="button" data-spec="Pediatrics"><span class="spec__icon" style="background:var(--soft-2);color:var(--warning)"><svg class="i"><use href="#sun"/></svg></span><span><strong>Pediatrics</strong><small>9 doctors</small></span></button>
+			<button class="spec" type="button" data-spec="Neurology"><span class="spec__icon" style="background:var(--soft-3);color:#6a5fc1"><svg class="i"><use href="#brain"/></svg></span><span><strong>Neurology</strong><small>6 doctors</small></span></button>
+			<button class="spec" type="button" data-spec="Dentistry"><span class="spec__icon" style="background:var(--warning-soft);color:var(--warning)"><svg class="i"><use href="#tooth"/></svg></span><span><strong>Dentistry</strong><small>11 doctors</small></span></button>
+			<button class="spec" type="button" data-spec="General"><span class="spec__icon" style="background:var(--soft-4);color:var(--success)"><svg class="i"><use href="#steth"/></svg></span><span><strong>General</strong><small>12 doctors</small></span></button>
+		</div>
+	</section>
+
+	<section class="block wrap" id="doctors" aria-labelledby="doc-h">
+		<div class="sec-head">
+			<div><span class="eyebrow">Top ranked</span><h2 id="doc-h">Featured doctors</h2></div>
+			<a href="#doctors" class="more">View all doctors <svg class="i"><use href="#arrow"/></svg></a>
+		</div>
+		<div class="grid4" id="doc-grid"></div>
+	</section>
+
+	<section class="block wrap" id="clinics" aria-labelledby="clin-h">
+		<div class="sec-head">
+			<div><h2 id="clin-h">Clinics &amp; hospital networks</h2><p>Tags show the specialties of each clinic's doctors</p></div>
+			<a href="#clinics" class="more">View all clinics <svg class="i"><use href="#arrow"/></svg></a>
+		</div>
+		<div class="grid3" id="clin-grid"></div>
+	</section>
+
+	<section class="block wrap" id="stories" aria-labelledby="art-h">
+		<div class="sec-head">
+			<div><span class="eyebrow">Community</span><h2 id="art-h">Health stories</h2></div>
+			<a href="#stories" class="more">Browse community <svg class="i"><use href="#arrow"/></svg></a>
+		</div>
+		<div class="grid2" id="art-grid"></div>
+	</section>
+</main>
+
+<footer class="foot">
+	<div class="wrap">
+		<span style="display:flex;gap:10px;align-items:center"><span class="logo__mark" style="width:30px;height:30px;border-radius:9px"><svg class="i" style="width:16px;height:16px"><use href="#pulse"/></svg></span><b style="color:var(--ink)">PulseBridge</b> · © 2026</span>
+		<nav aria-label="Footer"><a href="#top">About</a><a href="#top">Help center</a><a href="#stories">Community</a><a href="#top">Join as a doctor</a></nav>
+	</div>
+</footer>
+
+<script>
+const doctors = [
+	{ i: 'SK', tint: ['--soft-4', '--success'], name: 'Dr. Sarah Kim', spec: 'General', clinic: 'Seoul Central Clinic', exp: 12, next: 'Today, 14:30', soon: true, likes: 128, views: 2410 },
+	{ i: 'JL', tint: ['--soft-1', '--deep'], name: 'Dr. James Lee', spec: 'Cardiology', clinic: 'Green Life Hospital', exp: 18, next: 'Tomorrow, 10:00', soon: true, likes: 96, views: 1830 },
+	{ i: 'MP', tint: ['--like-soft', '--like'], name: 'Dr. Mira Park', spec: 'Dermatology', clinic: 'Hangang Skin Clinic', exp: 9, next: 'Today, 17:15', soon: true, likes: 211, views: 3920 },
+	{ i: 'DC', tint: ['--soft-2', '--warning'], name: 'Dr. Daniel Choi', spec: 'Pediatrics', clinic: 'Seoul Central Clinic', exp: 14, next: 'Wed, 09:00', soon: false, likes: 74, views: 1204 },
+];
+const clinics = [
+	{ c: 'c1', type: 'Private', name: 'Seoul Central Clinic', addr: '123 Teheran-ro, Gangnam', docs: 12, kicker: 'Most followed', line: 'Multi-specialty center', tags: ['General', 'Pediatrics', 'Cardiology'], likes: 512, views: 9400 },
+	{ c: 'c2', type: 'Public', name: 'Green Life Hospital', addr: '45 Jong-ro, Jongno', docs: 24, kicker: 'Public hospital', line: 'Largest team', tags: ['Cardiology', 'Neurology', 'General'], likes: 437, views: 8100 },
+	{ c: 'c3', type: 'Private', name: 'Hangang Skin Clinic', addr: '9 Apgujeong-ro, Gangnam', docs: 5, kicker: 'Specialized', line: 'Skin care', tags: ['Dermatology'], likes: 298, views: 4600 },
+];
+const articles = [
+	{ i: 'SK', tint: ['--soft-4', '--success'], by: 'Dr. Sarah Kim', doc: true, date: 'Oct 2', read: 2, title: 'Five early signs to check your blood pressure', text: 'Morning headaches, tiredness and blurred vision can point to high blood pressure. Here is how to measure it at home.', likes: 96, comments: 14, views: 1200 },
+	{ i: 'MP', tint: ['--soft-1', '--deep'], by: 'Minji Park', doc: false, date: 'Oct 4', read: 1, title: 'The sleep routine that fixed my insomnia', text: 'A fixed 7:00 wake-up, no screens after 22:30 and morning light helped me sleep through the night again.', likes: 51, comments: 9, views: 640 },
+];
+
+const fmt = (n) => (n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'K' : String(n));
+const icon = (id) => `<svg class="i"><use href="#${id}"/></svg>`;
+const like = (n) => `<button type="button" class="act" data-like="${n}" aria-pressed="false" aria-label="Like">${icon('heart')}<span>${fmt(n)}</span></button>`;
+const stat = (id, n, label) => `<span class="act" aria-label="${n} ${label}">${icon(id)}${fmt(n)}</span>`;
+
+document.getElementById('doc-grid').innerHTML = doctors.map((d) => `
+	<article class="card doc">
+		<div class="doc__top">
+			<span class="avatar" style="background:var(${d.tint[0]});color:var(${d.tint[1]})">${d.i}</span>
+			<div style="min-width:0">
+				<div class="doc__name">${d.name}</div>
+				<div class="doc__spec">${d.spec}</div>
+			</div>
+		</div>
+		<div class="doc__meta">${icon('clinic')}${d.clinic} · ${d.exp} yrs exp</div>
+		<div class="next"><span>Next available</span><b class="${d.soon ? '' : 'later'}">${d.next}</b></div>
+		<div class="acts">${like(d.likes)}${stat('eye', d.views, 'views')}</div>
+		<a href="#doctors" class="btn btn--primary">${icon('calendar')}Book Visit</a>
+	</article>`).join('');
+
+document.getElementById('clin-grid').innerHTML = clinics.map((c) => `
+	<article class="card">
+		<div class="cover ${c.c}">
+			<span class="cover__type ${c.type === 'Public' ? 'pub' : ''}"><i></i>${c.type}</span>
+			<div><small>${c.kicker}</small><strong>${icon('clinic')}${c.line}</strong></div>
+		</div>
+		<div>
+			<div class="clin__name">${c.name}</div>
+			<div class="doc__meta">${icon('pin')}${c.addr} · ${c.docs} doctors</div>
+		</div>
+		<div class="tags">${c.tags.map((t) => `<span>${t}</span>`).join('')}</div>
+		<div class="clin__foot">
+			<div class="acts">${like(c.likes)}${stat('eye', c.views, 'views')}</div>
+			<a class="btn btn--outline btn--sm" href="https://www.google.com/maps/search/${encodeURIComponent(c.addr + ', Seoul')}" target="_blank" rel="noreferrer">${icon('nav')}Directions</a>
+		</div>
+	</article>`).join('');
+
+document.getElementById('art-grid').innerHTML = articles.map((a) => `
+	<article class="card art">
+		<div class="art__by">
+			<span class="avatar" style="width:40px;height:40px;border-radius:12px;font-size:13px;background:var(${a.tint[0]});color:var(${a.tint[1]})">${a.i}</span>
+			<div><strong>${a.by}</strong>${a.doc ? '<span class="badge-doc">Doctor</span>' : ''}<small>Published ${a.date} · ${a.read} min read</small></div>
+		</div>
+		<h3>${a.title}</h3>
+		<p>${a.text}</p>
+		<div class="art__foot">
+			<div class="acts">${like(a.likes)}${stat('comment', a.comments, 'comments')}${stat('eye', a.views, 'views')}</div>
+			<a href="#stories" class="more">Read article ${icon('arrow')}</a>
+		</div>
+	</article>`).join('');
+
+// like chips toggle like the real optimistic like
+document.addEventListener('click', (e) => {
+	const btn = e.target.closest('[data-like]');
+	if (btn) {
+		const on = btn.getAttribute('aria-pressed') !== 'true';
+		const n = Number(btn.dataset.like) + (on ? 1 : 0);
+		btn.setAttribute('aria-pressed', on);
+		btn.classList.toggle('liked', on);
+		btn.querySelector('span').textContent = fmt(n);
+		return;
+	}
+	const spec = e.target.closest('[data-spec]');
+	if (spec) pickSpec(spec.dataset.spec);
+});
+
+function pickSpec(value) {
+	document.querySelectorAll('#spec-grid .spec').forEach((el) => el.classList.toggle('on', el.dataset.spec === value));
+}
+</script>
