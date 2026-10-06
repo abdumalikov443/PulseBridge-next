@@ -1,5 +1,4 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Box, Button, Stack, Typography, TextField } from '@mui/material';
 import { Editor } from '@toast-ui/react-editor';
 import { getJwtToken } from '../../auth';
 import { ARTICLE_CONTENT_MAX, ARTICLE_TITLE_MAX, REACT_APP_API_URL } from '../../config';
@@ -114,62 +113,52 @@ const TuiEditor = () => {
 	};
 
 	return (
-		<Stack>
-			<Stack direction="row" style={{ margin: '40px' }} justifyContent="space-evenly">
-				<Box component={'div'} style={{ width: '300px', flexDirection: 'column' }}>
-					<Typography style={{ color: '#7f838d', margin: '10px' }} variant="h3">
-						Title
-					</Typography>
-					<TextField
-						onChange={articleTitleHandler}
-						id="filled-basic"
-						label="Type Title"
-						inputProps={{ maxLength: ARTICLE_TITLE_MAX }}
-						style={{ width: '300px', background: 'white' }}
-					/>
-				</Box>
-			</Stack>
+		<div className="pb-editor" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+			<label className="pb-field">
+				<span>Title</span>
+				<input
+					className="pb-input"
+					placeholder="e.g. 5 habits for a healthy heart"
+					maxLength={ARTICLE_TITLE_MAX}
+					onChange={articleTitleHandler}
+				/>
+			</label>
 
-			<Editor
-				initialValue={''}
-				placeholder={'Type here'}
-				previewStyle={'vertical'}
-				height={'480px'}
-				// @ts-ignore
-				initialEditType={'markdown'}
-				toolbarItems={[
-					['heading', 'bold', 'italic', 'strike'],
-					['image', 'link'],
-					['ul', 'ol'],
-				]}
-				ref={editorRef}
-				onChange={contentChangeHandler}
-				hooks={{
-					addImageBlobHook: async (image: any, callback: any) => {
-						const uploadedImageURL = await uploadImage(image);
-						callback(uploadedImageURL);
-						return false;
-					},
-				}}
-			/>
-			<Typography
-				sx={{ textAlign: 'right', marginTop: '8px' }}
-				color={contentLength > ARTICLE_CONTENT_MAX ? 'error' : 'text.secondary'}
-			>
-				{contentLength}/{ARTICLE_CONTENT_MAX}
-			</Typography>
+			<div className="pb-field">
+				<span>Content</span>
+				<Editor
+					initialValue={''}
+					placeholder={'Type here'}
+					previewStyle={'vertical'}
+					height={'420px'}
+					// @ts-ignore
+					initialEditType={'markdown'}
+					toolbarItems={[
+						['heading', 'bold', 'italic', 'strike'],
+						['image', 'link'],
+						['ul', 'ol'],
+					]}
+					ref={editorRef}
+					onChange={contentChangeHandler}
+					hooks={{
+						addImageBlobHook: async (image: any, callback: any) => {
+							const uploadedImageURL = await uploadImage(image);
+							callback(uploadedImageURL);
+							return false;
+						},
+					}}
+				/>
+			</div>
 
-			<Stack direction="row" justifyContent="center">
-				<Button
-					variant="contained"
-					color="primary"
-					style={{ margin: '30px', width: '250px', height: '45px' }}
-					onClick={handleRegisterButton}
-				>
-					Register
-				</Button>
-			</Stack>
-		</Stack>
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+				<span style={{ fontSize: 13, color: contentLength > ARTICLE_CONTENT_MAX ? 'var(--pb-danger)' : 'var(--pb-muted)' }}>
+					{contentLength} / {ARTICLE_CONTENT_MAX}
+				</span>
+				<button type="button" className="pb-btn pb-btn--primary" onClick={handleRegisterButton}>
+					Publish
+				</button>
+			</div>
+		</div>
 	);
 };
 

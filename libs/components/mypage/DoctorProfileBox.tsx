@@ -71,8 +71,10 @@ const DoctorProfileBox = () => {
 						className="pb-input"
 						type="number"
 						min={0}
-						value={doctor.experience}
-						onChange={(e) => setDoctor({ ...doctor, experience: Math.max(0, parseInt(e.target.value || '0', 10)) })}
+						max={80}
+						placeholder="0"
+						value={doctor.experience || ''}
+						onChange={(e) => setDoctor({ ...doctor, experience: Math.min(80, Math.max(0, parseInt(e.target.value, 10) || 0)) })}
 					/>
 				</label>
 			</div>

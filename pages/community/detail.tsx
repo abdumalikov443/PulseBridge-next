@@ -33,6 +33,7 @@ const CommunityDetail: NextPage = () => {
 	const router = useRouter();
 	const articleId = router.query.id as string | undefined;
 	const [article, setArticle] = useState<Article | null>(null);
+	const [commentTotal, setCommentTotal] = useState<number | null>(null);
 	const { isFollowing, canFollow, toggleFollow } = useFollowing();
 	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_ARTICLE);
 
@@ -91,13 +92,17 @@ const CommunityDetail: NextPage = () => {
 				{article.articleImage && (
 					<div className="pb-media" style={{ height: 320 }}>
 						<img src={`${REACT_APP_API_URL}/${article.articleImage}`} alt="" />
+						<span className="pb-badge">
+							<Icon name="calendar" size={14} />
+							<time dateTime={moment(article.createdAt).toISOString()}>{moment(article.createdAt).format('MMM D, YYYY · HH:mm')}</time>
+						</span>
 					</div>
 				)}
 
 				<ToastViewer markdown={article.articleContent} />
 
 				<div style={{ paddingTop: 14, borderTop: '1px solid var(--pb-line)' }}>
-					<ActionChips likes={like.likes} views={article.articleViews} comments={article.articleComments} liked={like.liked} onLike={() => toggleLike(article._id, like)} />
+					<ActionChips likes={like.likes} views={article.articleViews} comments={commentTotal ?? article.articleComments} liked={like.liked} onLike={() => toggleLike(article._id, like)} />
 				</div>
 			</article>
 
@@ -106,6 +111,7 @@ const CommunityDetail: NextPage = () => {
 					title="Comments"
 					refId={article._id}
 					group={CommentGroup.ARTICLE}
+					onTotal={setCommentTotal}
 					onPosted={() => refetch().then((res) => setArticle(res.data?.getArticle ?? article))}
 				/>
 			</div>

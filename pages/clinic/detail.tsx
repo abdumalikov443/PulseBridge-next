@@ -11,6 +11,8 @@ import DoctorCard from '../../libs/components/cards/DoctorCard';
 import Avatar from '../../libs/components/ui/Avatar';
 import ActionChips from '../../libs/components/ui/ActionChips';
 import Icon from '../../libs/components/ui/Icon';
+import FollowButton from '../../libs/components/ui/FollowButton';
+import ClinicJoinButton from '../../libs/components/common/ClinicJoinButton';
 import { EcgLine, SkeletonCards } from '../../libs/components/ui/Loaders';
 import { GET_CLINIC, GET_DOCTORS } from '../../apollo/user/query';
 import { LIKE_TARGET_CLINIC, LIKE_TARGET_DOCTOR } from '../../apollo/user/mutation';
@@ -36,6 +38,7 @@ const ClinicDetail: NextPage = () => {
 	const [clinic, setClinic] = useState<Clinic | null>(null);
 	const [doctors, setDoctors] = useState<Doctor[] | null>(null);
 	const [tab, setTab] = useState<Tab>('overview');
+	const [commentTotal, setCommentTotal] = useState<number | null>(null);
 	const [followDelta, setFollowDelta] = useState(0);
 	const { isFollowing, canFollow, toggleFollow } = useFollowing();
 	const clinicLike = useLikeToggle(LIKE_TARGET_CLINIC);
@@ -71,7 +74,7 @@ const ClinicDetail: NextPage = () => {
 	const tabs: { id: Tab; label: string }[] = [
 		{ id: 'overview', label: 'Overview' },
 		{ id: 'doctors', label: `Doctors (${clinic.clinicDoctors})` },
-		{ id: 'reviews', label: `Reviews (${clinic.clinicComments})` },
+		{ id: 'reviews', label: `Reviews (${commentTotal ?? clinic.clinicComments})` },
 	];
 
 	return (
@@ -109,24 +112,24 @@ const ClinicDetail: NextPage = () => {
 					<ActionChips
 						likes={like.likes}
 						views={clinic.clinicViews}
-						comments={clinic.clinicComments}
+						comments={commentTotal ?? clinic.clinicComments}
 						followers={(clinic.memberData?.memberFollowers ?? 0) + followDelta}
 						liked={like.liked}
 						onLike={() => clinicLike.toggleLike(clinic._id, like)}
-						following={following}
-						onFollow={
-							canFollow(clinic.memberId)
-								? () => {
-										setFollowDelta((delta) => delta + (following ? -1 : 1));
-										toggleFollow(clinic.memberId);
-								  }
-								: undefined
-						}
 					/>
 				</div>
-				<button type="button" className="pb-btn pb-btn--primary pb-btn--lg" onClick={() => setTab('doctors')}>
-					Choose a doctor <Icon name="arrow" className="pb-arrow" />
-				</button>
+				<div className="pb-cta">
+					<ClinicJoinButton clinicId={clinic._id} clinicName={clinic.clinicName} onShowDoctors={() => setTab('doctors')} />
+					{canFollow(clinic.memberId) && (
+						<FollowButton
+							following={following}
+							onClick={() => {
+								setFollowDelta((delta) => delta + (following ? -1 : 1));
+								toggleFollow(clinic.memberId);
+							}}
+						/>
+					)}
+				</div>
 			</section>
 
 			<div className="pb-pills" role="tablist" aria-label="Clinic sections" style={{ padding: '24px 0 4px' }}>
@@ -192,6 +195,7 @@ const ClinicDetail: NextPage = () => {
 						<Reviews
 							refId={clinic._id}
 							group={CommentGroup.CLINIC}
+							onTotal={setCommentTotal}
 							ownerMemberId={clinic.memberId}
 							onPosted={() => refetchClinic().then((res) => setClinic(res.data?.getClinic ?? clinic))}
 						/>

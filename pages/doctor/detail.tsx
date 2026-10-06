@@ -9,6 +9,7 @@ import Reviews from '../../libs/components/common/Reviews';
 import Avatar from '../../libs/components/ui/Avatar';
 import ActionChips from '../../libs/components/ui/ActionChips';
 import Icon from '../../libs/components/ui/Icon';
+import FollowButton from '../../libs/components/ui/FollowButton';
 import { EcgLine } from '../../libs/components/ui/Loaders';
 import { userVar } from '../../apollo/store';
 import { GET_ARTICLES, GET_DOCTOR } from '../../apollo/user/query';
@@ -34,6 +35,7 @@ const DoctorDetail: NextPage = () => {
 	const doctorId = router.query.id as string | undefined;
 	const [doctor, setDoctor] = useState<Doctor | null>(null);
 	const [articles, setArticles] = useState<Article[]>([]);
+	const [commentTotal, setCommentTotal] = useState<number | null>(null);
 	// follow toggles made on this page move the followers count
 	const [followDelta, setFollowDelta] = useState(0);
 	const { isFollowing, canFollow, toggleFollow } = useFollowing();
@@ -102,26 +104,28 @@ const DoctorDetail: NextPage = () => {
 					<ActionChips
 						likes={like.likes}
 						views={doctor.doctorViews}
-						comments={doctor.doctorComments}
+						comments={commentTotal ?? doctor.doctorComments}
 						followers={followers}
 						liked={like.liked}
 						onLike={() => toggleLike(doctor._id, like)}
-						following={following}
-						onFollow={
-							canFollow(doctor.memberId)
-								? () => {
-										setFollowDelta((delta) => delta + (following ? -1 : 1));
-										toggleFollow(doctor.memberId);
-								  }
-								: undefined
-						}
 					/>
 				</div>
-				{canBook && (
-					<div style={{ flex: '1 1 220px', display: 'flex' }}>
-						<Link href={`/booking?doctorId=${doctor._id}`} className="pb-btn pb-btn--primary pb-btn--lg pb-btn--block">
-							Book an appointment <Icon name="arrow" className="pb-arrow" />
-						</Link>
+				{(canBook || canFollow(doctor.memberId)) && (
+					<div className="pb-cta">
+						{canBook && (
+							<Link href={`/booking?doctorId=${doctor._id}`} className="pb-btn pb-btn--primary pb-btn--lg pb-btn--block">
+								Book an appointment <Icon name="arrow" className="pb-arrow" />
+							</Link>
+						)}
+						{canFollow(doctor.memberId) && (
+							<FollowButton
+								following={following}
+								onClick={() => {
+									setFollowDelta((delta) => delta + (following ? -1 : 1));
+									toggleFollow(doctor.memberId);
+								}}
+							/>
+						)}
 					</div>
 				)}
 			</section>
@@ -139,6 +143,7 @@ const DoctorDetail: NextPage = () => {
 					<Reviews
 						refId={doctor._id}
 						group={CommentGroup.DOCTOR}
+						onTotal={setCommentTotal}
 						ownerMemberId={doctor.memberId}
 						onPosted={() => refetchDoctor().then((res) => setDoctor(res.data?.getDoctor ?? doctor))}
 					/>

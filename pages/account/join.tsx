@@ -31,6 +31,7 @@ const Join: NextPage = () => {
 	const router = useRouter();
 	const [loginView, setLoginView] = useState(true);
 	const [busy, setBusy] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 	const [input, setInput] = useState({ nick: '', password: '', phone: '', type: MemberType.PATIENT as MemberType });
 	// DOCTOR and CLINIC send their profile in the same signup
 	const [doctorProfile, setDoctorProfile] = useState<DoctorProfileInput>({ specialty: DoctorSpecialty.GENERAL, experience: 0 });
@@ -120,7 +121,12 @@ const Join: NextPage = () => {
 						</label>
 						<label className="pb-field">
 							<span>Password</span>
-							<input className="pb-input" type="password" autoComplete={loginView ? 'current-password' : 'new-password'} minLength={5} maxLength={12} value={input.password} onChange={(e) => setInput({ ...input, password: e.target.value })} />
+							<div className="pb-password">
+								<input className="pb-input" type={showPassword ? 'text' : 'password'} autoComplete={loginView ? 'current-password' : 'new-password'} minLength={5} maxLength={12} value={input.password} onChange={(e) => setInput({ ...input, password: e.target.value })} />
+								<button type="button" className="pb-password__toggle" aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)}>
+									<Icon name={showPassword ? 'eyeOff' : 'eye'} size={18} />
+								</button>
+							</div>
 						</label>
 						{!loginView && (
 							<label className="pb-field">
@@ -148,8 +154,10 @@ const Join: NextPage = () => {
 									className="pb-input"
 									type="number"
 									min={0}
-									value={doctorProfile.experience}
-									onChange={(e) => setDoctorProfile({ ...doctorProfile, experience: Math.max(0, parseInt(e.target.value || '0', 10)) })}
+									max={80}
+									placeholder="0"
+									value={doctorProfile.experience || ''}
+									onChange={(e) => setDoctorProfile({ ...doctorProfile, experience: Math.min(80, Math.max(0, parseInt(e.target.value, 10) || 0)) })}
 								/>
 							</label>
 						</div>

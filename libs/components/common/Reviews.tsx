@@ -20,12 +20,14 @@ interface ReviewsProps {
 	// the doctor or clinic owner cannot review themselves
 	ownerMemberId?: string;
 	onPosted?: () => void;
+	// active comment count: the stored counter is not lowered when a comment is deleted
+	onTotal?: (total: number) => void;
 	title?: string;
 }
 
 const LIMIT = 5;
 
-const Reviews = ({ refId, group, ownerMemberId, onPosted, title = 'Reviews' }: ReviewsProps) => {
+const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Reviews' }: ReviewsProps) => {
 	const user = useReactiveVar(userVar);
 	const [page, setPage] = useState(1);
 	const [text, setText] = useState('');
@@ -41,11 +43,15 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, title = 'Reviews' }: R
 		skip: !refId,
 		variables: { input: { page, limit: LIMIT, sort: 'createdAt', direction: 'DESC', search: { commentRefId: refId } } },
 		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => {
-			setComments(data?.getComments?.list ?? []);
-			setTotal(data?.getComments?.metaCounter?.[0]?.total ?? 0);
-		},
+		onCompleted: (data: T) => applyComments(data),
 	});
+
+	function applyComments(data: T) {
+		const count = data?.getComments?.metaCounter?.[0]?.total ?? 0;
+		setComments(data?.getComments?.list ?? []);
+		setTotal(count);
+		onTotal && onTotal(count);
+	}
 
 	/** HANDLERS **/
 	const isOwner = !!ownerMemberId && ownerMemberId === user?._id;
@@ -57,7 +63,7 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, title = 'Reviews' }: R
 			await createComment({ variables: { input: { commentGroup: group, commentRefId: refId, commentContent: text.trim() } } });
 			setText('');
 			setPage(1);
-			await refetch();
+			applyComments((await refetch()).data);
 			onPosted && onPosted();
 		} catch (err: any) {
 			sweetErrorHandling(err).then();
@@ -70,7 +76,7 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, title = 'Reviews' }: R
 			if (!editing || !editing.text.trim()) return;
 			await updateComment({ variables: { input: { _id: editing.id, commentContent: editing.text.trim() } } });
 			setEditing(null);
-			await refetch();
+			applyComments((await refetch()).data);
 		} catch (err: any) {
 			sweetErrorHandling(err).then();
 		}
@@ -80,7 +86,7 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, title = 'Reviews' }: R
 		try {
 			if (!(await sweetConfirmAlert('Delete this comment?'))) return;
 			await updateComment({ variables: { input: { _id: id, commentStatus: CommentStatus.DELETE } } });
-			await refetch();
+			applyComments((await refetch()).data);
 			onPosted && onPosted();
 		} catch (err: any) {
 			sweetErrorHandling(err).then();

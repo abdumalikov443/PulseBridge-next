@@ -2,10 +2,11 @@ import React from 'react';
 import Link from 'next/link';
 import moment from 'moment';
 import { Article } from '../../types/article/article';
-import { getMemberName } from '../../config';
+import { getMemberName, REACT_APP_API_URL } from '../../config';
 import { MemberType } from '../../enums/member.enum';
 import Avatar from '../ui/Avatar';
 import ActionChips from '../ui/ActionChips';
+import Icon from '../ui/Icon';
 
 // article content is short markdown: show it as plain text on cards
 export const plainText = (markdown: string = '') =>
@@ -58,6 +59,15 @@ const PostCard = ({ article, liked, likes, onLike, following, onFollow }: PostCa
 					{article.articleTitle}
 				</Link>
 				<p style={{ margin: 0, fontSize: 15, lineHeight: 1.5, color: 'var(--pb-muted)' }}>{plainText(article.articleContent)}</p>
+				{article.articleImage && (
+					<Link href={detail} className="pb-media pb-post-media" aria-label={article.articleTitle}>
+						<img src={`${REACT_APP_API_URL}/${article.articleImage}`} alt="" loading="lazy" />
+						<span className="pb-badge">
+							<Icon name="calendar" size={14} />
+							<time dateTime={moment(article.createdAt).toISOString()}>{moment(article.createdAt).format('MMM D, YYYY · HH:mm')}</time>
+						</span>
+					</Link>
+				)}
 				<div style={{ paddingTop: 6 }}>
 					<ActionChips
 						likes={likes}

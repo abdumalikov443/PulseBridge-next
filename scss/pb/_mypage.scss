@@ -179,3 +179,11 @@
 		}
 	}
 }
+
+/* article editor (toast ui) */
+.pb-editor .toastui-editor-defaultUI {
+	border-color: #c9dce8;
+	border-radius: var(--pb-radius-sm);
+	overflow: hidden;
+	font-family: inherit;
+}

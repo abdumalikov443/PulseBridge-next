@@ -16,9 +16,20 @@
 	button {
 		font: inherit;
 	}
+	// keyboard ring for buttons and links; text fields stay borderless on focus
 	:focus-visible {
 		outline: 2px solid var(--pb-deep);
 		outline-offset: 2px;
+	}
+	input:focus,
+	input:focus-visible,
+	select:focus,
+	select:focus-visible,
+	textarea:focus,
+	textarea:focus-visible,
+	[contenteditable]:focus,
+	[contenteditable]:focus-visible {
+		outline: none;
 	}
 }
 
@@ -162,6 +173,10 @@
 		&:hover {
 			box-shadow: inset 0 0 0 1.5px var(--pb-deep), 0 6px 16px rgba(10, 30, 40, 0.08);
 		}
+	}
+	&--soft {
+		background: var(--pb-soft-1);
+		color: var(--pb-deep) !important;
 	}
 	&--danger {
 		background: var(--pb-surface);
@@ -380,8 +395,32 @@
 	transition: border-color 0.2s ease, box-shadow 0.2s ease;
 	&:focus {
 		outline: none;
-		border-color: var(--pb-deep);
-		box-shadow: 0 0 0 3px var(--pb-soft-1);
+	}
+}
+.pb-password {
+	position: relative;
+	.pb-input {
+		padding-right: 48px;
+	}
+	&__toggle {
+		position: absolute;
+		top: 50%;
+		right: 6px;
+		transform: translateY(-50%);
+		width: 38px;
+		height: 38px;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: var(--pb-muted);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		&:hover {
+			color: var(--pb-ink);
+			background: var(--pb-bg);
+		}
 	}
 }
 .pb-textarea {
@@ -479,5 +518,38 @@
 		margin: 0 0 18px;
 		color: var(--pb-muted);
 		line-height: 1.6;
+	}
+}
+
+/* article image with its date on community cards and detail */
+.pb-post-media {
+	height: 240px;
+	margin-top: 4px;
+	justify-content: flex-start;
+	img {
+		transition: transform 0.4s ease;
+	}
+	&:hover img {
+		transform: scale(1.02);
+	}
+	@media (max-width: $pb-phone) {
+		height: 180px;
+	}
+}
+
+/* profile header actions: main button with follow under it (side by side on phones) */
+.pb-cta {
+	flex: 1 1 240px;
+	max-width: 320px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	@media (max-width: $pb-phone) {
+		max-width: none;
+		flex-direction: row;
+		flex-wrap: wrap;
+		> * {
+			flex: 1 1 140px;
+		}
 	}
 }
