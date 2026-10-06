@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { useQuery } from '@apollo/client';
+import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../libs/components/layout/PbShell';
 import HomeHero from '../libs/components/homepage/HomeHero';
+import HomeStats from '../libs/components/homepage/HomeStats';
+import HomeSpecialties from '../libs/components/homepage/HomeSpecialties';
 import DoctorCard from '../libs/components/cards/DoctorCard';
 import ClinicCard from '../libs/components/cards/ClinicCard';
 import PostCard from '../libs/components/cards/PostCard';
@@ -12,13 +15,11 @@ import { SkeletonCards } from '../libs/components/ui/Loaders';
 import Icon from '../libs/components/ui/Icon';
 import { GET_ARTICLES, GET_CLINICS, GET_DOCTORS } from '../apollo/user/query';
 import { LIKE_TARGET_ARTICLE, LIKE_TARGET_CLINIC, LIKE_TARGET_DOCTOR } from '../apollo/user/mutation';
-import { useFollowing, useLikeToggle } from '../libs/hooks/useEngagement';
-import { DoctorSpecialty } from '../libs/enums/doctor.enum';
+import { useLikeToggle } from '../libs/hooks/useEngagement';
 import { Doctor } from '../libs/types/doctor/doctor';
 import { Clinic } from '../libs/types/clinic/clinic';
 import { Article } from '../libs/types/article/article';
 import { T } from '../libs/types/common';
-import { formatEnum } from '../libs/utils';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -27,14 +28,36 @@ export const getStaticProps = async ({ locale }: any) => ({
 });
 
 const isLiked = (item: { meLiked?: { myFavorite: boolean }[] }) => !!item.meLiked?.[0]?.myFavorite;
-const specialtyHref = (specialty: DoctorSpecialty) =>
-	`/doctor?input=${JSON.stringify({ page: 1, limit: 10, sort: 'createdAt', direction: 'DESC', search: { specialtyList: [specialty] } })}`;
+
+interface SectionHeadProps {
+	id: string;
+	eyebrow?: string;
+	title: string;
+	sub?: string;
+	href: string;
+	more: string;
+}
+
+const SectionHead = ({ id, eyebrow, title, sub, href, more }: SectionHeadProps) => (
+	<div className="pb-section-head">
+		<div>
+			{eyebrow && <span className="pb-eyebrow">{eyebrow}</span>}
+			<h2 className="pb-title" id={id}>
+				{title}
+			</h2>
+			{sub && <p className="pb-section-sub">{sub}</p>}
+		</div>
+		<Link href={href} className="pb-more">
+			{more} <Icon name="arrow" size={16} className="pb-arrow" />
+		</Link>
+	</div>
+);
 
 const Home: NextPage = () => {
+	const { t } = useTranslation('common');
 	const [doctors, setDoctors] = useState<Doctor[] | null>(null);
 	const [clinics, setClinics] = useState<Clinic[] | null>(null);
 	const [articles, setArticles] = useState<Article[] | null>(null);
-	const { isFollowing, canFollow, toggleFollow } = useFollowing();
 	const doctorLikes = useLikeToggle(LIKE_TARGET_DOCTOR);
 	const clinicLikes = useLikeToggle(LIKE_TARGET_CLINIC);
 	const articleLikes = useLikeToggle(LIKE_TARGET_ARTICLE);
@@ -54,35 +77,20 @@ const Home: NextPage = () => {
 	});
 	useQuery(GET_ARTICLES, {
 		fetchPolicy: 'cache-and-network',
-		variables: { input: { page: 1, limit: 2, sort: 'articleViews', direction: 'DESC', search: {} } },
+		variables: { input: { page: 1, limit: 2, sort: 'articleLikes', direction: 'DESC', search: {} } },
 		onCompleted: (data: T) => setArticles(data?.getArticles?.list ?? []),
 		onError: () => setArticles([]),
 	});
 
-	const specialties = Object.values(DoctorSpecialty);
-
 	return (
 		<>
 			<HomeHero />
+			<HomeStats />
+			<HomeSpecialties />
 
-			<section aria-label="Specialties" className="pb-marquee">
-				<div className="pb-marquee__track">
-					{specialties.concat(specialties).map((specialty, i) => (
-						<Link key={`${specialty}-${i}`} href={specialtyHref(specialty)} tabIndex={i >= specialties.length ? -1 : 0}>
-							{formatEnum(specialty)}
-						</Link>
-					))}
-				</div>
-			</section>
-
-			<section className="pb-container pb-section" style={{ paddingTop: 24 }}>
-				<div className="pb-section-head">
-					<h2 className="pb-title">Top doctors</h2>
-					<Link href="/doctor" className="pb-btn pb-btn--light pb-btn--sm">
-						All doctors <Icon name="arrow" size={16} className="pb-arrow" />
-					</Link>
-				</div>
-				<div className="pb-grid">
+			<section className="pb-container pb-section" aria-labelledby="home-doctors">
+				<SectionHead id="home-doctors" eyebrow={t('Top ranked')} title={t('Featured doctors')} href="/doctor" more={t('View all doctors')} />
+				<div className="pb-grid pb-grid--four">
 					{doctors === null && <SkeletonCards count={4} />}
 					{doctors?.map((doctor) => {
 						const state = doctorLikes.likeState(doctor._id, isLiked(doctor), doctor.doctorLikes);
@@ -93,22 +101,21 @@ const Home: NextPage = () => {
 								liked={state.liked}
 								likes={state.likes}
 								onLike={() => doctorLikes.toggleLike(doctor._id, state)}
-								following={isFollowing(doctor.memberId)}
-								onFollow={canFollow(doctor.memberId) ? () => toggleFollow(doctor.memberId) : undefined}
 							/>
 						);
 					})}
 				</div>
-				{doctors?.length === 0 && <p className="pb-empty">No doctors yet.</p>}
+				{doctors?.length === 0 && <p className="pb-empty">{t('No doctors yet.')}</p>}
 			</section>
 
-			<section className="pb-container pb-section">
-				<div className="pb-section-head">
-					<h2 className="pb-title">Clinics people love</h2>
-					<Link href="/clinic" className="pb-btn pb-btn--light pb-btn--sm">
-						All clinics <Icon name="arrow" size={16} className="pb-arrow" />
-					</Link>
-				</div>
+			<section className="pb-container pb-section" aria-labelledby="home-clinics">
+				<SectionHead
+					id="home-clinics"
+					title={t('Clinics & hospital networks')}
+					sub={t("Tags show the specialties of each clinic's doctors")}
+					href="/clinic"
+					more={t('View all clinics')}
+				/>
 				<div className="pb-grid pb-grid--wide">
 					{clinics === null && <SkeletonCards count={3} />}
 					{clinics?.map((clinic, index) => {
@@ -121,22 +128,15 @@ const Home: NextPage = () => {
 								liked={state.liked}
 								likes={state.likes}
 								onLike={() => clinicLikes.toggleLike(clinic._id, state)}
-								following={isFollowing(clinic.memberId)}
-								onFollow={canFollow(clinic.memberId) ? () => toggleFollow(clinic.memberId) : undefined}
 							/>
 						);
 					})}
 				</div>
-				{clinics?.length === 0 && <p className="pb-empty">No clinics yet.</p>}
+				{clinics?.length === 0 && <p className="pb-empty">{t('No clinics yet.')}</p>}
 			</section>
 
-			<section className="pb-container pb-section">
-				<div className="pb-section-head">
-					<h2 className="pb-title">From the community</h2>
-					<Link href="/community" className="pb-btn pb-btn--light pb-btn--sm">
-						Open community <Icon name="arrow" size={16} className="pb-arrow" />
-					</Link>
-				</div>
+			<section className="pb-container pb-section" aria-labelledby="home-stories">
+				<SectionHead id="home-stories" eyebrow={t('Community')} title={t('Health stories')} href="/community" more={t('Browse community')} />
 				<div className="pb-grid pb-grid--posts">
 					{articles === null && <SkeletonCards count={2} />}
 					{articles?.map((article) => {
@@ -148,13 +148,11 @@ const Home: NextPage = () => {
 								liked={state.liked}
 								likes={state.likes}
 								onLike={() => articleLikes.toggleLike(article._id, state)}
-								following={isFollowing(article.memberId)}
-								onFollow={canFollow(article.memberId) ? () => toggleFollow(article.memberId) : undefined}
 							/>
 						);
 					})}
 				</div>
-				{articles?.length === 0 && <p className="pb-empty">No posts yet.</p>}
+				{articles?.length === 0 && <p className="pb-empty">{t('No posts yet.')}</p>}
 			</section>
 		</>
 	);

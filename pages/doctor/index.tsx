@@ -10,7 +10,7 @@ import { SkeletonCards } from '../../libs/components/ui/Loaders';
 import Icon from '../../libs/components/ui/Icon';
 import { GET_DOCTORS } from '../../apollo/user/query';
 import { LIKE_TARGET_DOCTOR } from '../../apollo/user/mutation';
-import { useFollowing, useLikeToggle } from '../../libs/hooks/useEngagement';
+import { useLikeToggle } from '../../libs/hooks/useEngagement';
 import { Doctor } from '../../libs/types/doctor/doctor';
 import { DoctorsInquiry } from '../../libs/types/doctor/doctor.input';
 import { DoctorSpecialty } from '../../libs/enums/doctor.enum';
@@ -40,7 +40,6 @@ const DoctorList: NextPage = () => {
 	const [text, setText] = useState('');
 	const [doctors, setDoctors] = useState<Doctor[] | null>(null);
 	const [total, setTotal] = useState(0);
-	const { isFollowing, canFollow, toggleFollow } = useFollowing();
 	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_DOCTOR);
 
 	/** APOLLO REQUESTS **/
@@ -153,8 +152,6 @@ const DoctorList: NextPage = () => {
 							liked={state.liked}
 							likes={state.likes}
 							onLike={() => toggleLike(doctor._id, state)}
-							following={isFollowing(doctor.memberId)}
-							onFollow={canFollow(doctor.memberId) ? () => toggleFollow(doctor.memberId) : undefined}
 						/>
 					);
 				})}

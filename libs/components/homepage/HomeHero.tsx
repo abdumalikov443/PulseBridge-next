@@ -1,11 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import moment from 'moment';
+import { useTranslation } from 'next-i18next';
 import { useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
-import { GET_CLINICS, GET_DOCTORS, GET_MY_APPOINTMENTS } from '../../../apollo/user/query';
+import { GET_DOCTORS, GET_MY_APPOINTMENTS } from '../../../apollo/user/query';
 import { MemberType } from '../../enums/member.enum';
 import { AppointmentStatus } from '../../enums/appointment.enum';
+import { DoctorSpecialty } from '../../enums/doctor.enum';
 import { Doctor } from '../../types/doctor/doctor';
 import { Appointment } from '../../types/appointment/appointment';
 import { T } from '../../types/common';
@@ -14,42 +16,29 @@ import { formatEnum } from '../../utils';
 import Avatar from '../ui/Avatar';
 import Icon from '../ui/Icon';
 
-export const HERO_IMAGE = '/img/home/hero.jpg';
+export const specialtyHref = (specialty: DoctorSpecialty) =>
+	`/doctor?input=${JSON.stringify({ page: 1, limit: 10, sort: 'createdAt', direction: 'DESC', search: { specialtyList: [specialty] } })}`;
+
+const popular = [DoctorSpecialty.CARDIOLOGY, DoctorSpecialty.PEDIATRICS, DoctorSpecialty.DENTISTRY, DoctorSpecialty.GENERAL];
 
 const HomeHero = () => {
+	const { t } = useTranslation('common');
 	const user = useReactiveVar(userVar);
-	const [photoOk, setPhotoOk] = useState(true);
-	const photoRef = useRef<HTMLImageElement>(null);
-	const [counts, setCounts] = useState({ clinics: 0, doctors: 0 });
+	const isPatient = user?.memberType === MemberType.PATIENT;
 	const [topDoctor, setTopDoctor] = useState<Doctor | null>(null);
 	const [nextVisit, setNextVisit] = useState<Appointment | null>(null);
 
-	// the image can fail before hydration, when onError is not attached yet
-	useEffect(() => {
-		const img = photoRef.current;
-		if (img && img.complete && img.naturalWidth === 0) setPhotoOk(false);
-	}, []);
-
 	/** APOLLO REQUESTS **/
-	useQuery(GET_CLINICS, {
-		fetchPolicy: 'cache-and-network',
-		variables: { input: { page: 1, limit: 1, search: {} } },
-		onCompleted: (data: T) => setCounts((prev) => ({ ...prev, clinics: data?.getClinics?.metaCounter?.[0]?.total ?? 0 })),
-	});
-
 	useQuery(GET_DOCTORS, {
 		fetchPolicy: 'cache-and-network',
 		variables: { input: { page: 1, limit: 1, sort: 'doctorRank', direction: 'DESC', search: {} } },
-		onCompleted: (data: T) => {
-			setCounts((prev) => ({ ...prev, doctors: data?.getDoctors?.metaCounter?.[0]?.total ?? 0 }));
-			setTopDoctor(data?.getDoctors?.list?.[0] ?? null);
-		},
+		onCompleted: (data: T) => setTopDoctor(data?.getDoctors?.list?.[0] ?? null),
 	});
 
-	// a patient sees the next confirmed visit in the floating card
+	// a patient sees the next confirmed visit in the care card
 	useQuery(GET_MY_APPOINTMENTS, {
 		fetchPolicy: 'network-only',
-		skip: user?.memberType !== MemberType.PATIENT,
+		skip: !isPatient,
 		variables: {
 			input: { page: 1, limit: 1, sort: 'appointmentDate', direction: 'ASC', search: { appointmentStatus: AppointmentStatus.CONFIRMED } },
 		},
@@ -57,79 +46,106 @@ const HomeHero = () => {
 	});
 
 	return (
-		<section className="pb-container pb-hero">
-			<div className="pb-hero__copy">
-				<span className="pb-badge pb-in" style={{ alignSelf: 'flex-start', padding: '8px 14px', fontSize: 13, color: 'var(--pb-deep)' }}>
-					<span style={{ width: 8, height: 8, borderRadius: 4, background: 'var(--pb-accent)' }} />
-					{counts.clinics} clinics · {counts.doctors} doctors
-				</span>
-				<h1 className="pb-hero__title pb-in" style={{ animationDelay: '.05s' }}>
-					Feeling off?
-					<br />
-					Let&apos;s find
-					<br />
-					<em>your doctor.</em>
-				</h1>
-				<p className="pb-hero__lead pb-in" style={{ animationDelay: '.15s' }}>
-					Pick a specialty, meet the doctor, choose a time. No phone calls, no waiting rooms full of questions.
-				</p>
-				<div className="pb-in" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', animationDelay: '.25s' }}>
-					<Link href="/doctor" className="pb-btn pb-btn--primary pb-btn--lg">
-						Book a visit
-						<Icon name="arrow" className="pb-arrow" />
-					</Link>
-					<Link href="/clinic" className="pb-btn pb-btn--light pb-btn--lg">
-						Browse clinics
-					</Link>
-				</div>
-			</div>
-
-			<div className="pb-hero__visual">
-				<div className="pb-hero__blob pb-hero__blob--a" aria-hidden="true" />
-				<div className="pb-hero__blob pb-hero__blob--b" aria-hidden="true" />
-				<figure className="pb-hero__photo">
-					{photoOk ? (
-						<img ref={photoRef} src={HERO_IMAGE} alt="A doctor talking with a patient in a clinic" onError={() => setPhotoOk(false)} />
-					) : (
-						<span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-							<Icon name="image" size={52} strokeWidth={1.5} />
-						</span>
-					)}
-					<figcaption>Care that fits your day</figcaption>
-				</figure>
-
-				{topDoctor && (
-					<Link href={`/doctor/detail?id=${topDoctor._id}`} className="pb-hero__float pb-hero__float--doctor">
-						<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-							<Avatar name={getMemberName(topDoctor.memberData)} image={topDoctor.memberData?.memberImage} size={44} radius={14} />
-							<span>
-								<strong style={{ display: 'block', fontSize: 15 }}>{getMemberName(topDoctor.memberData)}</strong>
-								<span style={{ fontSize: 13, color: 'var(--pb-muted)' }}>
-									{formatEnum(topDoctor.specialty)} · {topDoctor.experience} yrs
-								</span>
-							</span>
-						</span>
-						<span className="pb-hero__wave" aria-hidden="true">
-							<i />
-							<i />
-							<i />
-							<i />
-							<span style={{ marginLeft: 8, fontSize: 13, fontWeight: 700, color: 'var(--pb-deep)' }}>Top doctor this week</span>
-						</span>
-					</Link>
-				)}
-
-				<div className="pb-hero__float pb-hero__float--visit">
-					<span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', opacity: 0.85 }}>
-						{nextVisit ? 'YOUR NEXT VISIT' : 'BOOK IN 3 STEPS'}
+		<section className="pb-home-hero">
+			<div className="pb-container pb-home-hero__grid">
+				<div className="pb-home-hero__copy">
+					<span className="pb-note pb-in">
+						<i aria-hidden="true" />
+						{t('Patient-first clinical network in Seoul')}
 					</span>
-					<div style={{ fontFamily: 'var(--pb-font-display)', fontSize: 24, fontWeight: 800, marginTop: 4 }}>
-						{nextVisit ? `${moment.utc(nextVisit.appointmentDate).format('ddd')} ${nextVisit.appointmentTime}` : 'Doctor · Time · Done'}
+					<h1 className="pb-home-hero__title pb-in" style={{ animationDelay: '.05s' }}>
+						{t('Healthcare that listens.')} <em>{t('Care you can count on.')}</em>
+					</h1>
+					<p className="pb-home-hero__lead pb-in" style={{ animationDelay: '.15s' }}>
+						{t('Pick a specialty, compare doctors and clinics, and book a visit at a time that suits you.')}
+					</p>
+					<div className="pb-home-hero__popular pb-in" style={{ animationDelay: '.2s' }}>
+						<span>
+							<Icon name="search" size={14} />
+							{t('Popular specialties')}
+						</span>
+						{popular.map((specialty) => (
+							<Link key={specialty} href={specialtyHref(specialty)} className="pb-chip">
+								{formatEnum(specialty)}
+							</Link>
+						))}
 					</div>
-					<span style={{ fontSize: 13, opacity: 0.85 }}>
-						{nextVisit ? nextVisit.clinicData?.clinicName : 'Confirmed right away'}
-					</span>
+					<div className="pb-home-hero__ctas pb-in" style={{ animationDelay: '.25s' }}>
+						<Link href="/doctor" className="pb-btn pb-btn--primary pb-btn--lg">
+							<Icon name="stethoscope" />
+							{t('Find a Doctor')}
+						</Link>
+						<Link href="/clinic" className="pb-btn pb-btn--outline pb-btn--lg">
+							<Icon name="pin" />
+							{t('Explore Clinics')}
+						</Link>
+					</div>
 				</div>
+
+				<aside className="pb-care" aria-label={t('Your care')}>
+					<div className="pb-care__top">
+						<span className="pb-care__icon">
+							<Icon name="calendar" />
+						</span>
+						<div style={{ flex: 1, minWidth: 0 }}>
+							<strong>{t('Your care')}</strong>
+							<small>{t('Visits and top doctors')}</small>
+						</div>
+						<span className={`pb-badge ${user?._id ? 'pb-badge--success' : 'pb-badge--soft'}`}>
+							{user?._id ? t('Signed in') : t('Guest')}
+						</span>
+					</div>
+
+					{topDoctor && (
+						<div className="pb-care__doctor">
+							<Link href={`/doctor/detail?id=${topDoctor._id}`} style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1, minWidth: 0 }}>
+								<Avatar name={getMemberName(topDoctor.memberData)} image={topDoctor.memberData?.memberImage} size={48} radius={16} />
+								<span style={{ minWidth: 0 }}>
+									<strong style={{ display: 'block' }}>{getMemberName(topDoctor.memberData)}</strong>
+									<small>
+										{formatEnum(topDoctor.specialty)}
+										{topDoctor.clinicData?.clinicName ? ` · ${topDoctor.clinicData.clinicName}` : ''}
+									</small>
+								</span>
+							</Link>
+							<Link href={`/booking?doctorId=${topDoctor._id}`} className="pb-btn pb-btn--primary pb-btn--sm">
+								{t('Book')}
+							</Link>
+						</div>
+					)}
+
+					{nextVisit ? (
+						<Link href="/mypage?category=myAppointments" className="pb-care__visit">
+							<span className="pb-care__visit-icon">
+								<Icon name="calendar" />
+							</span>
+							<span style={{ minWidth: 0 }}>
+								<small>{t('Upcoming visit')}</small>
+								<strong>
+									{moment.utc(nextVisit.appointmentDate).format('ddd, MMM D')} · {nextVisit.appointmentTime}
+								</strong>
+								<span>{nextVisit.clinicData?.clinicName}</span>
+							</span>
+							<span className="pb-care__tag">{formatEnum(nextVisit.appointmentStatus)}</span>
+						</Link>
+					) : (
+						<Link href={user?._id ? '/doctor' : '/account/join'} className="pb-care__visit">
+							<span className="pb-care__visit-icon">
+								<Icon name="clock" />
+							</span>
+							<span style={{ minWidth: 0 }}>
+								<small>{t('Book in 3 steps')}</small>
+								<strong>{t('Doctor · Time · Done')}</strong>
+								<span>{user?._id ? t('No upcoming visits yet') : t('Sign in to see your visits')}</span>
+							</span>
+							<Icon name="arrow" className="pb-arrow" />
+						</Link>
+					)}
+
+					<svg className="pb-care__ecg" viewBox="0 0 300 34" preserveAspectRatio="none" aria-hidden="true">
+						<path d="M0 17h90l10-12 12 24 10-20 8 8h170" />
+					</svg>
+				</aside>
 			</div>
 		</section>
 	);

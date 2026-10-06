@@ -322,12 +322,10 @@
 			box-shadow: none;
 		}
 	}
-	&--liked {
-		background: var(--pb-like-soft);
+	// liked: only the heart turns red, the count and chip stay as they are
+	&--liked svg {
 		color: var(--pb-like);
-		svg {
-			animation: pbPop 0.45s ease;
-		}
+		animation: pbPop 0.45s ease;
 	}
 	&--follow {
 		background: var(--pb-surface);

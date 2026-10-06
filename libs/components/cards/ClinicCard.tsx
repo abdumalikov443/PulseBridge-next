@@ -1,57 +1,92 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'next-i18next';
+import { useQuery } from '@apollo/client';
+import { GET_DOCTORS } from '../../../apollo/user/query';
 import { Clinic } from '../../types/clinic/clinic';
+import { Doctor } from '../../types/doctor/doctor';
+import { ClinicType } from '../../enums/clinic.enum';
+import { T } from '../../types/common';
 import { REACT_APP_API_URL } from '../../config';
 import { formatEnum } from '../../utils';
 import ActionChips from '../ui/ActionChips';
 import Icon from '../ui/Icon';
 
-const covers = ['#B6D6E8', '#EBC9AE', '#C3CBEA', '#BFE0CF'];
+const covers = ['linear-gradient(135deg, #1f4f6b, #10283a)', 'linear-gradient(135deg, #a07a5c, #6f5039)', 'linear-gradient(135deg, #8a88b8, #5d5b8c)', 'linear-gradient(135deg, #3f8f7d, #24594d)'];
 
 interface ClinicCardProps {
 	clinic: Clinic;
 	liked: boolean;
 	likes: number;
 	onLike: () => void;
-	following?: boolean;
-	onFollow?: () => void;
 	index?: number;
 	style?: React.CSSProperties;
 }
 
-// list card: like, view and follow (comments are on the clinic page)
-const ClinicCard = ({ clinic, liked, likes, onLike, following, onFollow, index = 0, style }: ClinicCardProps) => {
+// list card: cover, address, specialties of its doctors, like and view, directions
+const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCardProps) => {
+	const { t } = useTranslation('common');
 	const detail = `/clinic/detail?id=${clinic._id}`;
+	const [tags, setTags] = useState<string[]>([]);
+
+	/** APOLLO REQUESTS **/
+	// tags = unique specialties of the doctors who work in this clinic
+	useQuery(GET_DOCTORS, {
+		fetchPolicy: 'cache-first',
+		skip: !clinic.clinicDoctors,
+		variables: { input: { page: 1, limit: 30, search: { clinicId: clinic._id } } },
+		onCompleted: (data: T) => {
+			const list: Doctor[] = data?.getDoctors?.list ?? [];
+			setTags(Array.from(new Set(list.map((doctor) => doctor.specialty))).slice(0, 3));
+		},
+	});
 
 	return (
-		<article className="pb-card pb-card--hover" style={{ padding: 14, ...style }}>
-			<Link href={detail} className="pb-media" style={{ height: 170, background: covers[index % covers.length] }}>
+		<article className="pb-card pb-card--hover pb-clinic-card" style={style}>
+			<Link href={detail} className="pb-clinic-card__cover" style={{ background: covers[index % covers.length] }}>
 				{clinic.clinicImage ? (
 					<img src={`${REACT_APP_API_URL}/${clinic.clinicImage}`} alt="" />
 				) : (
-					<span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(22,56,76,.4)' }}>
-						<Icon name="clinic" size={44} strokeWidth={1.5} />
+					<span className="pb-clinic-card__placeholder" aria-hidden="true">
+						<Icon name="clinic" size={44} strokeWidth={1.4} />
 					</span>
 				)}
-				<span className="pb-badge">{formatEnum(clinic.clinicType)}</span>
+				<span className={`pb-clinic-card__type ${clinic.clinicType === ClinicType.PUBLIC ? 'is-public' : ''}`}>
+					<i aria-hidden="true" />
+					{formatEnum(clinic.clinicType)}
+				</span>
+				<span className="pb-clinic-card__count">
+					<Icon name="users" size={15} />
+					{clinic.clinicDoctors} {clinic.clinicDoctors === 1 ? t('doctor') : t('doctors')}
+				</span>
 			</Link>
-			<div style={{ padding: '0 6px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-				<Link href={detail} style={{ fontFamily: 'var(--pb-font-display)', fontSize: 20, fontWeight: 800 }}>
+			<div className="pb-clinic-card__body">
+				<Link href={detail} className="pb-clinic-card__name">
 					{clinic.clinicName}
 				</Link>
-				<span style={{ fontSize: 14, color: 'var(--pb-muted)' }}>
-					{clinic.clinicAddress} · {clinic.clinicDoctors} doctors
+				<span className="pb-doc-card__meta">
+					<Icon name="pin" size={15} />
+					{clinic.clinicAddress}
 				</span>
 			</div>
-			<div style={{ padding: '0 4px 4px' }}>
-				<ActionChips
-					likes={likes}
-					views={clinic.clinicViews}
-					liked={liked}
-					onLike={onLike}
-					following={following}
-					onFollow={onFollow}
-				/>
+			{tags.length > 0 && (
+				<div className="pb-tags">
+					{tags.map((tag) => (
+						<span key={tag}>{formatEnum(tag)}</span>
+					))}
+				</div>
+			)}
+			<div className="pb-clinic-card__foot">
+				<ActionChips likes={likes} views={clinic.clinicViews} liked={liked} onLike={onLike} />
+				<a
+					href={`https://www.google.com/maps/search/${encodeURIComponent(clinic.clinicAddress)}`}
+					target="_blank"
+					rel="noreferrer"
+					className="pb-btn pb-btn--outline pb-btn--sm"
+				>
+					<Icon name="navigate" size={14} />
+					{t('Directions')}
+				</a>
 			</div>
 		</article>
 	);

@@ -183,8 +183,6 @@ const ClinicDetail: NextPage = () => {
 										liked={state.liked}
 										likes={state.likes}
 										onLike={() => doctorLike.toggleLike(doctor._id, state)}
-										following={isFollowing(doctor.memberId)}
-										onFollow={canFollow(doctor.memberId) ? () => toggleFollow(doctor.memberId) : undefined}
 									/>
 								);
 							})}

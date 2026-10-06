@@ -18,6 +18,9 @@ export const plainText = (markdown: string = '') =>
 		.replace(/\s+/g, ' ')
 		.trim();
 
+// about 200 words a minute, at least one minute
+export const readMinutes = (markdown: string = '') => Math.max(1, Math.round(plainText(markdown).split(' ').filter(Boolean).length / 200));
+
 interface PostCardProps {
 	article: Article;
 	liked: boolean;
@@ -42,7 +45,9 @@ const PostCard = ({ article, liked, likes, onLike, following, onFollow }: PostCa
 							{author}
 						</Link>
 						{article.memberData?.memberType === MemberType.DOCTOR && <span className="pb-badge pb-badge--soft">Doctor</span>}
-						<span style={{ color: 'var(--pb-muted)' }}>· {moment(article.createdAt).format('MMM D')}</span>
+						<span style={{ color: 'var(--pb-muted)' }}>
+							· {moment(article.createdAt).format('MMM D')} · {readMinutes(article.articleContent)} min read
+						</span>
 					</span>
 					{onFollow && (
 						<button
@@ -68,7 +73,7 @@ const PostCard = ({ article, liked, likes, onLike, following, onFollow }: PostCa
 						</span>
 					</Link>
 				)}
-				<div style={{ paddingTop: 6 }}>
+				<div style={{ paddingTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
 					<ActionChips
 						likes={likes}
 						views={article.articleViews}
@@ -76,6 +81,9 @@ const PostCard = ({ article, liked, likes, onLike, following, onFollow }: PostCa
 						liked={liked}
 						onLike={onLike}
 					/>
+					<Link href={detail} className="pb-more">
+						Read article <Icon name="arrow" size={16} className="pb-arrow" />
+					</Link>
 				</div>
 			</div>
 		</article>

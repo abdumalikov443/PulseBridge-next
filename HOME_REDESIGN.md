@@ -46,3 +46,13 @@ Telehealth stays in the header only because the draft has it; it needs a page or
 7. i18n keys for all new text (en / kr / ru).
 8. Check phone width (header burger, search stacks to one column, grids to one column).
 9. `npx tsc --noEmit`, `npm run build`.
+
+## Status (2026-10-07)
+
+Done: items 1-7 and 9. Phone width checked on the home page (no horizontal scroll).
+
+Changes from the plan:
+- "Your care" card shows the top ranked doctor (not the first followed one): a following only gives the member id, and booking needs the doctor id.
+- Follow was removed from doctor and clinic list cards; it stays on the detail pages (Follow button under the main action).
+- Telehealth in the header opens a "coming soon" message.
+- i18n config: `keySeparator` and `nsSeparator` are off, because the keys are English sentences with dots and colons.

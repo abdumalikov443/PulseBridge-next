@@ -10,6 +10,7 @@ import { MemberType } from '../../enums/member.enum';
 import NotificationMenu from '../common/NotificationMenu';
 import Avatar from '../ui/Avatar';
 import Icon from '../ui/Icon';
+import { sweetBasicAlert } from '../../sweetAlert';
 
 const languages = [
 	{ id: 'en', label: 'English' },
@@ -26,11 +27,9 @@ const PbHeader = () => {
 	const [langAnchor, setLangAnchor] = useState<null | HTMLElement>(null);
 
 	const nav = [
-		{ href: '/', label: t('Home') },
-		{ href: '/doctor', label: t('Doctors') },
-		{ href: '/clinic', label: t('Clinics') },
-		{ href: '/community', label: t('Community') },
-		{ href: '/cs', label: t('CS') },
+		{ href: '/doctor', label: t('Find Doctors') },
+		{ href: '/clinic', label: t('Clinics & Networks') },
+		{ href: '/community', label: t('Health Stories') },
 	];
 
 	/** LIFECYCLES **/
@@ -57,12 +56,20 @@ const PbHeader = () => {
 	return (
 		<header className="pb-header">
 			<div className="pb-container pb-header__bar">
-				<Link href="/" className="pb-logo" aria-label="PulseBridge home">
-					<span className="pb-logo__dot" aria-hidden="true">
-						<span />
-						<span />
+				<Link href="/" className="pb-brand" aria-label="PulseBridge home">
+					<span className="pb-brand__mark" aria-hidden="true">
+						<Icon name="pulse" size={22} />
 					</span>
-					pulsebridge
+					<span className="pb-brand__text">
+						<span className="pb-brand__name">
+							PulseBridge
+							<span className="pb-logo__dot" aria-hidden="true">
+								<span />
+								<span />
+							</span>
+						</span>
+						<span className="pb-brand__sub">{t('Clinical discovery')}</span>
+					</span>
 				</Link>
 
 				<nav aria-label="Main" className={`pb-header__nav ${menuOpen ? 'pb-header__nav--open' : ''}`}>
@@ -75,9 +82,20 @@ const PbHeader = () => {
 							{item.label}
 						</Link>
 					))}
+					{/* no telehealth API yet */}
+					<button type="button" className="pb-header__link" onClick={() => sweetBasicAlert(t('Telehealth is coming soon.'))}>
+						{t('Telehealth')}
+						<span className="pb-header__live" aria-hidden="true" />
+					</button>
 				</nav>
 
 				<div className="pb-header__actions">
+					<span className="pb-emergency">
+						<Icon name="asterisk" size={14} />
+						<span className="pb-emergency__label">{t('Emergency')}:&nbsp;</span>
+						<b>119</b>
+						<span className="pb-emergency__extra">&nbsp;/ {t('24/7 Call Center')}</span>
+					</span>
 					<button
 						type="button"
 						className="pb-icon-btn"
@@ -124,11 +142,9 @@ const PbHeader = () => {
 							</Menu>
 						</>
 					) : (
-						<Link href="/account/join" className="pb-btn pb-btn--primary pb-btn--sm pb-header__login" aria-label={t('Login')}>
+						<Link href="/account/join" className="pb-btn pb-btn--primary pb-btn--sm pb-header__login" aria-label={t('Sign In / Book Consult')}>
 							<Icon name="userPlus" size={16} />
-							<span>
-								{t('Login')} / {t('Register')}
-							</span>
+							<span>{t('Sign In / Book Consult')}</span>
 						</Link>
 					)}
 

@@ -5,7 +5,7 @@ import { Clinic } from '../../types/clinic/clinic';
 import { Doctor } from '../../types/doctor/doctor';
 import { OrdinaryInquiry, T } from '../../types/common';
 import { LIKE_TARGET_CLINIC, LIKE_TARGET_DOCTOR } from '../../../apollo/user/mutation';
-import { useFollowing, useLikeToggle } from '../../hooks/useEngagement';
+import { useLikeToggle } from '../../hooks/useEngagement';
 import ClinicCard from '../cards/ClinicCard';
 import DoctorCard from '../cards/DoctorCard';
 import MySection from './MySection';
@@ -29,7 +29,6 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 	const [clinics, setClinics] = useState<Clinic[] | null>(null);
 	const [doctors, setDoctors] = useState<Doctor[] | null>(null);
 	const [total, setTotal] = useState(0);
-	const { isFollowing, canFollow, toggleFollow } = useFollowing();
 	const clinicLike = useLikeToggle(LIKE_TARGET_CLINIC);
 	const doctorLike = useLikeToggle(LIKE_TARGET_DOCTOR);
 
@@ -91,8 +90,6 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 								liked={state.liked}
 								likes={state.likes}
 								onLike={() => doctorLike.toggleLike(doctor._id, state)}
-								following={isFollowing(doctor.memberId)}
-								onFollow={canFollow(doctor.memberId) ? () => toggleFollow(doctor.memberId) : undefined}
 							/>
 						);
 					})}
@@ -107,8 +104,6 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 								liked={state.liked}
 								likes={state.likes}
 								onLike={() => clinicLike.toggleLike(clinic._id, state)}
-								following={isFollowing(clinic.memberId)}
-								onFollow={canFollow(clinic.memberId) ? () => toggleFollow(clinic.memberId) : undefined}
 							/>
 						);
 					})}
