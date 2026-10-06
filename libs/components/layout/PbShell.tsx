@@ -4,14 +4,9 @@ import { useRouter } from 'next/router';
 import PbHeader from './PbHeader';
 import PbFooter from './PbFooter';
 import Chat from '../Chat';
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
 
 interface PbShellProps {
 	children: React.ReactNode;
-	// pages not redesigned yet keep their old #pc-wrap styles
-	legacy?: boolean;
 }
 
 // browser tab titles: "Doctors · PulseBridge"
@@ -31,7 +26,7 @@ const pageTitles: Record<string, string> = {
 	'/account/join': 'Login or sign up',
 };
 
-const PbShell = ({ children, legacy = false }: PbShellProps) => {
+const PbShell = ({ children }: PbShellProps) => {
 	const router = useRouter();
 	const page = pageTitles[router.pathname];
 	const title = page ? `${page} · PulseBridge` : 'PulseBridge';
@@ -45,17 +40,7 @@ const PbShell = ({ children, legacy = false }: PbShellProps) => {
 			</Head>
 			<div className="pb-app">
 				<PbHeader />
-				<main className="pb-main">
-					{legacy ? (
-						<div id="pc-wrap">
-							<div id="main" style={{ paddingTop: 24 }}>
-								{children}
-							</div>
-						</div>
-					) : (
-						children
-					)}
-				</main>
+				<main className="pb-main">{children}</main>
 				<Chat />
 				<PbFooter />
 			</div>

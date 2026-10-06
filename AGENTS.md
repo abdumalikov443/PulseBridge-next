@@ -4,7 +4,8 @@ PulseBridge is a Next.js client being migrated from a real-estate platform (Nest
 
 ## Stack
 
-- Next.js 14 (Pages Router), React 18, TypeScript, MUI v5, SCSS (`scss/pc`, `scss/mobile`)
+- Next.js 14 (Pages Router), React 18, TypeScript, MUI v5
+- Soft Care design system: tokens and styles in `scss/pb`, shared UI in `libs/components/ui` and `libs/components/cards`; pages use `withPbLayout` and are responsive (no separate mobile pages)
 - Apollo Client (`apollo/client.ts`), reactive vars in `apollo/store.ts`, JWT in `localStorage` (`libs/auth`)
 - i18n: `next-i18next` (en / kr / ru) in `public/locales`
 - Backend: NestJS GraphQL in `../pulsebridge` (branch `modification`)

@@ -21,7 +21,7 @@ import { IconButton, Tooltip } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import { Stack } from '@mui/material';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import { NotePencil } from 'phosphor-react';
+import Icon from '../../ui/Icon';
 
 type Order = 'asc' | 'desc';
 
@@ -231,7 +231,7 @@ export const NoticeList = (props: NoticeListType) => {
 										</Tooltip>
 										<Tooltip title="edit">
 											<IconButton onClick={() => router.push(`/_admin/cs/notice_create?id=notice._id`)}>
-												<NotePencil size={24} weight="fill" />
+												<Icon name="edit" size={20} />
 											</IconButton>
 										</Tooltip>
 									</TableCell>

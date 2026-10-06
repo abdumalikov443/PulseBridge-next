@@ -15,7 +15,7 @@ import {
 import Avatar from '@mui/material/Avatar';
 import { Stack } from '@mui/material';
 import { Clinic } from '../../../types/clinic/clinic';
-import { DEFAULT_CLINIC_IMAGE, getImageUrl, getMemberName } from '../../../config';
+import { getMemberName, REACT_APP_API_URL } from '../../../config';
 import { formatEnum } from '../../../utils';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Typography from '@mui/material/Typography';
@@ -74,7 +74,7 @@ export const ClinicPanelList = (props: ClinicPanelListType) => {
 
 						{clinics.length !== 0 &&
 							clinics.map((clinic: Clinic, index: number) => {
-								const clinicImage = getImageUrl(clinic?.clinicImage, DEFAULT_CLINIC_IMAGE);
+								const clinicImage = clinic?.clinicImage ? `${REACT_APP_API_URL}/${clinic.clinicImage}` : undefined;
 
 								return (
 									<TableRow hover key={clinic?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>

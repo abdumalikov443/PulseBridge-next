@@ -1,0 +1,223 @@
+/** Admin panel in the Soft Care look (page markup keeps its MUI tables) **/
+
+.pb-admin {
+	flex-direction: row !important;
+
+	&__side {
+		position: sticky;
+		top: 0;
+		height: 100vh;
+		width: 260px;
+		flex: none;
+		box-sizing: border-box;
+		padding: 24px 18px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		background: var(--pb-surface);
+		border-right: 1px solid var(--pb-line);
+		overflow-y: auto;
+		@media (max-width: $pb-tablet) {
+			position: fixed;
+			z-index: 1200;
+			left: 0;
+			transform: translateX(-100%);
+			transition: transform 0.3s ease;
+			box-shadow: var(--pb-shadow-lg);
+			&--open {
+				transform: none;
+			}
+		}
+	}
+
+	&__nav {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+	}
+
+	&__group {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	&__group-title {
+		padding: 0 12px 4px;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--pb-muted);
+	}
+
+	&__link {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 10px 12px;
+		border-radius: var(--pb-radius-sm);
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--pb-muted) !important;
+		transition: background-color 0.2s ease, color 0.2s ease;
+		&:hover {
+			background: var(--pb-chip);
+			color: var(--pb-ink) !important;
+		}
+		&--active {
+			background: var(--pb-soft-1);
+			color: var(--pb-deep) !important;
+			font-weight: 700;
+		}
+	}
+
+	&__body {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	&__top {
+		position: sticky;
+		top: 0;
+		z-index: 10;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		min-height: 68px;
+		padding: 0 24px;
+		background: rgba(246, 250, 253, 0.92);
+		backdrop-filter: blur(10px);
+		border-bottom: 1px solid var(--pb-line);
+	}
+
+	&__burger {
+		display: none !important;
+		@media (max-width: $pb-tablet) {
+			display: inline-flex !important;
+		}
+	}
+
+	&__content {
+		padding: 28px 24px 48px;
+		min-width: 0;
+	}
+
+	/* shared markup of the admin pages */
+	.content {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		animation: pbIn 0.5s ease both;
+	}
+
+	.tit {
+		margin: 0 !important;
+		font-family: var(--pb-font-display) !important;
+		font-size: 30px !important;
+		font-weight: 800 !important;
+		letter-spacing: -0.02em;
+		color: var(--pb-ink);
+	}
+
+	.table-wrap {
+		background: var(--pb-surface);
+		border-radius: var(--pb-radius-lg);
+		padding: 8px 8px 0;
+		overflow-x: auto;
+	}
+
+	.tab-menu {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		padding: 12px !important;
+		.li {
+			width: auto;
+			min-height: 38px;
+			padding: 0 16px;
+			border-radius: 999px;
+			cursor: pointer;
+			font-size: 14px;
+			font-weight: 700;
+			color: var(--pb-ink);
+			background: var(--pb-bg);
+			transition: background-color 0.2s ease;
+			&:hover {
+				background: var(--pb-chip);
+			}
+			&.on {
+				background: var(--pb-deep);
+				color: #fff;
+			}
+		}
+	}
+
+	.search-area {
+		display: flex;
+		flex-direction: row !important;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin: 12px !important;
+		.MuiOutlinedInput-root {
+			border-radius: var(--pb-radius-sm);
+			background: var(--pb-bg);
+		}
+	}
+
+	.MuiTableHead-root .MuiTableCell-root {
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		color: var(--pb-muted);
+		border-bottom: 1px solid var(--pb-line);
+	}
+
+	.MuiTableBody-root .MuiTableCell-root {
+		font-size: 14px;
+		color: var(--pb-ink);
+		border-bottom: 1px solid var(--pb-line);
+	}
+
+	.MuiTableRow-hover:hover {
+		background: var(--pb-bg) !important;
+	}
+
+	.name a,
+	.name {
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.badge {
+		min-width: 0;
+		padding: 4px 12px;
+		border-radius: 999px;
+		font-size: 12px;
+		font-weight: 700;
+		text-transform: none;
+		&.success {
+			background: var(--pb-success-soft);
+			color: var(--pb-success);
+		}
+		&.warning {
+			background: var(--pb-warning-soft);
+			color: var(--pb-warning);
+		}
+	}
+
+	.no-data {
+		display: block;
+		padding: 24px;
+		color: var(--pb-muted);
+		font-weight: 600;
+	}
+
+	.MuiTablePagination-root {
+		border-top: 1px solid var(--pb-line);
+	}
+}
