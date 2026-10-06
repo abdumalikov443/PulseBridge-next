@@ -9,19 +9,19 @@ export const light = {
 	palette: {
 		type: 'light',
 		background: {
-			default: '#f4f6f8',
+			default: '#f6fafd',
 			paper: common.white,
 		},
 		primary: {
 			contrastText: '#ffffff',
-			main: '#E92C28',
+			main: '#1F6F99',
 		},
 		secondary: {
-			main: '#1646C1',
+			main: '#F2A15C',
 		},
 		text: {
-			primary: '#212121',
-			secondary: '#616161',
+			primary: '#16384C',
+			secondary: '#4F6B7B',
 			dark: common.black,
 		},
 	},
@@ -301,6 +301,12 @@ export const light = {
 			},
 		},
 	},
+	shape: {
+		borderRadius: 12,
+	},
 	shadow,
-	typography,
+	typography: {
+		...typography,
+		fontFamily: "'DM Sans', system-ui, sans-serif",
+	},
 };

@@ -25,5 +25,9 @@ export const initialUser: CustomJwtPayload = {
 
 export const userVar = makeVar<CustomJwtPayload>(initialUser);
 
+// first successful API answer; until then a slow request shows the server loader
+export const serverReadyVar = makeVar<boolean>(false);
+export const pendingRequestsVar = makeVar<number>(0);
+
 // @ts-ignore
 export const socketVar = makeVar<WebSocket>();

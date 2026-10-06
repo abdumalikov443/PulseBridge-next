@@ -1,0 +1,40 @@
+/** PulseBridge "Soft Care" design tokens (ocean palette) **/
+
+:root {
+	--pb-bg: #f6fafd;
+	--pb-surface: #ffffff;
+	--pb-ink: #16384c;
+	--pb-muted: #4f6b7b;
+	--pb-line: #e3eef5;
+	--pb-primary: #3a93c2;
+	--pb-deep: #1f6f99;
+	--pb-deep-hover: #195d80;
+	--pb-accent: #f2a15c;
+	--pb-soft-1: #e3f1f9;
+	--pb-soft-2: #fdeedf;
+	--pb-soft-3: #ece9f8;
+	--pb-soft-4: #e4f4ec;
+	--pb-chip: #eef5fa;
+	--pb-like: #d6246e;
+	--pb-like-soft: #fde7ef;
+	--pb-danger: #b42318;
+	--pb-danger-soft: #fdecea;
+	--pb-success: #0b6b61;
+	--pb-success-soft: #e3f5f2;
+	--pb-warning: #8a4b00;
+	--pb-warning-soft: #fff4e0;
+
+	--pb-font: 'DM Sans', system-ui, -apple-system, sans-serif;
+	--pb-font-display: 'Bricolage Grotesque', 'DM Sans', sans-serif;
+
+	--pb-radius-sm: 12px;
+	--pb-radius: 20px;
+	--pb-radius-lg: 28px;
+	--pb-shadow: 0 16px 36px rgba(10, 30, 40, 0.08);
+	--pb-shadow-lg: 0 30px 60px rgba(10, 30, 40, 0.14);
+	--pb-container: 1200px;
+	--pb-gutter: 24px;
+}
+
+$pb-phone: 640px;
+$pb-tablet: 960px;

@@ -6,6 +6,12 @@ export default function Document() {
 			<Head>
 				<meta name="robots" content="index,follow" />
 				<link rel="icon" type="image/png" href="/img/logo/favicon.svg" />
+				<link rel="preconnect" href="https://fonts.googleapis.com" />
+				<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+				<link
+					rel="stylesheet"
+					href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700&display=swap"
+				/>
 
 				{/* SEO */}
 				<meta name="keyword" content={'pulsebridge, clinic, doctor, appointment, health'} />

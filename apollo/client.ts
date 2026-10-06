@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ApolloClient, ApolloLink, InMemoryCache, split, from, NormalizedCacheObject } from '@apollo/client';
+import { ApolloClient, ApolloLink, InMemoryCache, split, from, NormalizedCacheObject, Observable } from '@apollo/client';
 import createUploadLink from 'apollo-upload-client/public/createUploadLink.js';
 import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
@@ -7,7 +7,7 @@ import { onError } from '@apollo/client/link/error';
 import { getJwtToken } from '../libs/auth';
 import { TokenRefreshLink } from 'apollo-link-token-refresh';
 import { sweetErrorAlert } from '../libs/sweetAlert';
-import { socketVar } from './store';
+import { pendingRequestsVar, serverReadyVar, socketVar } from './store';
 let apolloClient: ApolloClient<NormalizedCacheObject>;
 
 function getHeaders() {
@@ -60,6 +60,38 @@ class LoggingWebSocket {
 
 }
 
+// counts running http requests and marks the server ready on the first answer (server loader)
+const trackingLink = new ApolloLink(
+	(operation, forward) =>
+		new Observable((observer) => {
+			let finished = false;
+			const finish = () => {
+				if (finished) return;
+				finished = true;
+				pendingRequestsVar(Math.max(0, pendingRequestsVar() - 1));
+			};
+			pendingRequestsVar(pendingRequestsVar() + 1);
+			const subscription = forward(operation).subscribe({
+				next: (result) => {
+					serverReadyVar(true);
+					observer.next(result);
+				},
+				error: (err) => {
+					finish();
+					observer.error(err);
+				},
+				complete: () => {
+					finish();
+					observer.complete();
+				},
+			});
+			return () => {
+				finish();
+				subscription.unsubscribe();
+			};
+		}),
+);
+
 function createIsomorphicLink() {
 	if (typeof window !== 'undefined') {
 		const authLink = new ApolloLink((operation, forward) => {
@@ -110,7 +142,7 @@ function createIsomorphicLink() {
 				return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
 			},
 			wsLink,
-			authLink.concat(link),
+			from([trackingLink, authLink, link]),
 		);
 
 		return from([errorLink, tokenRefreshLink, splitLink]);
