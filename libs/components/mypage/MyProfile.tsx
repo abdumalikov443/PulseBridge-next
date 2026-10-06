@@ -1,215 +1,119 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { NextPage } from 'next';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
-import { Button, Stack, Typography } from '@mui/material';
-import axios from 'axios';
-import { Messages, REACT_APP_API_URL } from '../../config';
-import { getJwtToken, updateStorage, updateUserInfo } from '../../auth';
+import React, { useEffect, useRef, useState } from 'react';
 import { useMutation, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
+import { updateStorage, updateUserInfo } from '../../auth';
 import { MemberUpdate } from '../../types/member/member.update';
-import { UPDATE_MEMBER } from '../../../apollo/user/mutation';
-import { sweetErrorHandling, sweetMixinSuccessAlert } from '../../sweetAlert';
 import { MemberType } from '../../enums/member.enum';
+import { UPDATE_MEMBER } from '../../../apollo/user/mutation';
+import { Messages } from '../../config';
+import { uploadImage } from '../../upload';
+import { sweetErrorHandling, sweetMixinErrorAlert, sweetMixinSuccessAlert } from '../../sweetAlert';
+import MySection from './MySection';
 import DoctorProfileBox from './DoctorProfileBox';
+import Avatar from '../ui/Avatar';
+import { EcgLine } from '../ui/Loaders';
 
-const MyProfile: NextPage = ({ initialValues, ...props }: any) => {
-	const device = useDeviceDetect();
-	const token = getJwtToken();
+const MyProfile = () => {
 	const user = useReactiveVar(userVar);
-	const [updateData, setUpdateData] = useState<MemberUpdate>(initialValues);
+	const inputRef = useRef<HTMLInputElement>(null);
+	const [form, setForm] = useState<MemberUpdate>({ _id: '' });
+	const [uploading, setUploading] = useState(false);
 
 	/** APOLLO REQUESTS **/
-	const [ updateMember ] = useMutation(UPDATE_MEMBER);
+	const [updateMember, { loading: saving }] = useMutation(UPDATE_MEMBER);
 
 	/** LIFECYCLES **/
 	useEffect(() => {
-		setUpdateData({
-			...updateData,
+		setForm({
+			_id: user._id,
 			memberNick: user.memberNick,
 			memberPhone: user.memberPhone,
-			memberAddress: user.memberAddress,
-			memberImage: user.memberImage,
+			memberFullName: user.memberFullName ?? '',
+			memberAddress: user.memberAddress ?? '',
+			memberDesc: user.memberDesc ?? '',
+			// the default avatar path is not a stored image
+			memberImage: user.memberImage && !user.memberImage.startsWith('/img') ? user.memberImage : '',
 		});
 	}, [user]);
 
 	/** HANDLERS **/
-	const uploadImage = async (e: any) => {
+	const uploadHandler = async () => {
 		try {
-			const image = e.target.files[0];
-			console.log('+image:', image);
-
-			const formData = new FormData();
-			formData.append(
-				'operations',
-				JSON.stringify({
-					query: `mutation ImageUploader($file: Upload!, $target: String!) {
-						imageUploader(file: $file, target: $target) 
-				  }`,
-					variables: {
-						file: null,
-						target: 'member',
-					},
-				}),
-			);
-			formData.append(
-				'map',
-				JSON.stringify({
-					'0': ['variables.file'],
-				}),
-			);
-			formData.append('0', image);
-
-			const response = await axios.post(`${process.env.REACT_APP_API_GRAPHQL_URL}`, formData, {
-				headers: {
-					'Content-Type': 'multipart/form-data',
-					'apollo-require-preflight': true,
-					Authorization: `Bearer ${token}`,
-				},
-			});
-
-			const responseImage = response.data.data.imageUploader;
-			console.log('+responseImage: ', responseImage);
-			updateData.memberImage = responseImage;
-			setUpdateData({ ...updateData });
-
-			return `${REACT_APP_API_URL}/${responseImage}`;
-		} catch (err) {
-			console.log('Error, uploadImage:', err);
+			const file = inputRef.current?.files?.[0];
+			if (!file) return;
+			setUploading(true);
+			const memberImage = await uploadImage(file, 'member');
+			setForm((prev) => ({ ...prev, memberImage }));
+		} catch (err: any) {
+			await sweetMixinErrorAlert(err.message);
+		} finally {
+			setUploading(false);
 		}
 	};
 
-	const updatePropertyHandler = useCallback(async () => {
+	const saveHandler = async () => {
 		try {
 			if (!user?._id) throw new Error(Messages.error2);
-			updateData._id = user._id;
-			const result = await updateMember({
-				variables: {input: updateData}
-			});
-
-			// @ts-ignore
-			const jwtToken = result.data.updateMember?.accessToken;
-			await updateStorage({jwtToken});
-			updateUserInfo(result.data.updateMember?.accessToken);
-			await sweetMixinSuccessAlert('Information updated successfully!');
+			const input: MemberUpdate = { ...form, _id: user._id };
+			(Object.keys(input) as (keyof MemberUpdate)[]).forEach((key) => input[key] === '' && delete input[key]);
+			const result = await updateMember({ variables: { input } });
+			const jwtToken = result.data?.updateMember?.accessToken;
+			if (jwtToken) {
+				updateStorage({ jwtToken });
+				updateUserInfo(jwtToken);
+			}
+			await sweetMixinSuccessAlert('Profile updated');
 		} catch (err: any) {
 			sweetErrorHandling(err).then();
 		}
-	}, [updateData]);
-
-	const doDisabledCheck = () => {
-		if (
-			updateData.memberNick === '' ||
-			updateData.memberPhone === '' ||
-			updateData.memberAddress === '' ||
-			updateData.memberImage === ''
-		) {
-			return true;
-		}
 	};
 
+	const field = (key: keyof MemberUpdate, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (
+		<label className="pb-field">
+			<span>{label}</span>
+			<input className="pb-input" value={(form[key] as string) ?? ''} onChange={(e) => setForm({ ...form, [key]: e.target.value })} {...props} />
+		</label>
+	);
 
-	if (device === 'mobile') {
-		return <>MY PROFILE PAGE MOBILE</>;
-	} else
-		return (
-			<div id="my-profile-page">
-				<Stack className="main-title-box">
-					<Stack className="right-box">
-						<Typography className="main-title">My Profile</Typography>
-						<Typography className="sub-title">We are glad to see you again!</Typography>
-					</Stack>
-				</Stack>
-				<Stack className="top-box">
-					<Stack className="photo-box">
-						<Typography className="title">Photo</Typography>
-						<Stack className="image-big-box">
-							<Stack className="image-box">
-								<img
-									src={
-										updateData?.memberImage
-											? `${REACT_APP_API_URL}/${updateData?.memberImage}`
-											: `/img/profile/defaultUser.svg`
-									}
-									alt=""
-								/>
-							</Stack>
-							<Stack className="upload-big-box">
-								<input
-									type="file"
-									hidden
-									id="hidden-input"
-									onChange={uploadImage}
-									accept="image/jpg, image/jpeg, image/png"
-								/>
-								<label htmlFor="hidden-input" className="labeler">
-									<Typography>Upload Profile Image</Typography>
-								</label>
-								<Typography className="upload-text">A photo must be in JPG, JPEG or PNG format!</Typography>
-							</Stack>
-						</Stack>
-					</Stack>
-					<Stack className="small-input-box">
-						<Stack className="input-box">
-							<Typography className="title">Username</Typography>
-							<input
-								type="text"
-								placeholder="Your username"
-								value={updateData.memberNick}
-								onChange={({ target: { value } }) => setUpdateData({ ...updateData, memberNick: value })}
-							/>
-						</Stack>
-						<Stack className="input-box">
-							<Typography className="title">Phone</Typography>
-							<input
-								type="text"
-								placeholder="Your Phone"
-								value={updateData.memberPhone}
-								onChange={({ target: { value } }) => setUpdateData({ ...updateData, memberPhone: value })}
-							/>
-						</Stack>
-					</Stack>
-					<Stack className="address-box">
-						<Typography className="title">Address</Typography>
-						<input
-							type="text"
-							placeholder="Your address"
-							value={updateData.memberAddress}
-							onChange={({ target: { value } }) => setUpdateData({ ...updateData, memberAddress: value })}
-						/>
-					</Stack>
-					<Stack className="about-me-box">
-						<Button className="update-button" onClick={updatePropertyHandler} disabled={doDisabledCheck()}>
-							<Typography>Update Profile</Typography>
-							<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13" fill="none">
-								<g clipPath="url(#clip0_7065_6985)">
-									<path
-										d="M12.6389 0H4.69446C4.49486 0 4.33334 0.161518 4.33334 0.361122C4.33334 0.560727 4.49486 0.722245 4.69446 0.722245H11.7672L0.105803 12.3836C-0.0352676 12.5247 -0.0352676 12.7532 0.105803 12.8942C0.176321 12.9647 0.268743 13 0.361131 13C0.453519 13 0.545907 12.9647 0.616459 12.8942L12.2778 1.23287V8.30558C12.2778 8.50518 12.4393 8.6667 12.6389 8.6667C12.8385 8.6667 13 8.50518 13 8.30558V0.361122C13 0.161518 12.8385 0 12.6389 0Z"
-										fill="white"
-									/>
-								</g>
-								<defs>
-									<clipPath id="clip0_7065_6985">
-										<rect width="13" height="13" fill="white" />
-									</clipPath>
-								</defs>
-							</svg>
-						</Button>
-					</Stack>
-					{user.memberType === MemberType.DOCTOR && <DoctorProfileBox />}
-				</Stack>
-			</div>
-		);
-};
-
-MyProfile.defaultProps = {
-	initialValues: {
-		_id: '',
-		memberImage: '',
-		memberNick: '',
-		memberPhone: '',
-		memberAddress: '',
-	},
+	return (
+		<MySection title="Profile" subTitle="How other members see you">
+			<form
+				className="pb-card pb-card--flat"
+				style={{ gap: 18 }}
+				onSubmit={(e) => {
+					e.preventDefault();
+					saveHandler();
+				}}
+			>
+				<div className="pb-photo-pick">
+					<Avatar name={form.memberFullName || form.memberNick} image={form.memberImage || null} size={88} />
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+						<button type="button" className="pb-btn pb-btn--outline pb-btn--sm" onClick={() => inputRef.current?.click()} disabled={uploading}>
+							{uploading ? <EcgLine small width={44} /> : 'Upload photo'}
+						</button>
+						<span style={{ fontSize: 12, color: 'var(--pb-muted)' }}>JPG or PNG</span>
+						<input ref={inputRef} type="file" hidden accept="image/jpg, image/jpeg, image/png" onChange={uploadHandler} />
+					</div>
+				</div>
+				<div className="pb-form-grid">
+					{field('memberNick', 'Nickname', { minLength: 3, maxLength: 12, required: true })}
+					{field('memberFullName', 'Full name', { maxLength: 100 })}
+					{field('memberPhone', 'Phone', { required: true })}
+					{field('memberAddress', 'Address')}
+				</div>
+				<label className="pb-field">
+					<span>About me</span>
+					<textarea className="pb-textarea" rows={3} value={form.memberDesc ?? ''} onChange={(e) => setForm({ ...form, memberDesc: e.target.value })} />
+				</label>
+				<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+					<button type="submit" className="pb-btn pb-btn--primary" disabled={saving || !form.memberNick || !form.memberPhone}>
+						{saving ? <EcgLine small /> : 'Save profile'}
+					</button>
+				</div>
+			</form>
+			{user.memberType === MemberType.DOCTOR && <DoctorProfileBox />}
+		</MySection>
+	);
 };
 
 export default MyProfile;

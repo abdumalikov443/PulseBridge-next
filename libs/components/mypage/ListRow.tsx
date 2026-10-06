@@ -1,10 +1,10 @@
-import { Stack, Typography } from '@mui/material';
 import React, { ReactNode } from 'react';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
 import Moment from 'react-moment';
 
+export type Tone = 'soft' | 'success' | 'warning' | 'danger';
+
 interface ListRowProps {
-	image: string;
+	avatar: ReactNode;
 	title: string;
 	subTitle?: string;
 	extra?: ReactNode;
@@ -12,48 +12,39 @@ interface ListRowProps {
 	// already formatted date (e.g. appointment day stored at UTC midnight)
 	dateText?: string;
 	dateFormat?: string;
-	status: string;
+	status?: string;
+	tone?: Tone;
 	count?: ReactNode;
 	actions?: ReactNode;
 	onClick?: () => void;
 }
 
-// one row of the mypage tables (clinic doctors, appointments, join requests)
+// one row of the My Page lists (appointments, clinic doctors, join requests)
 const ListRow = (props: ListRowProps) => {
-	const { image, title, subTitle, extra, date, dateText, dateFormat = 'DD MMMM, YYYY', status, count, actions, onClick } = props;
-	const device = useDeviceDetect();
+	const { avatar, title, subTitle, extra, date, dateText, dateFormat = 'MMM D, YYYY', status, tone = 'soft', count, actions, onClick } = props;
 
-	if (device === 'mobile') {
-		return <div>MOBILE LIST ROW</div>;
-	} else
-		return (
-			<Stack className="property-card-box">
-				<Stack className="image-box" onClick={onClick}>
-					<img src={image} alt="" />
-				</Stack>
-				<Stack className="information-box" onClick={onClick}>
-					<Typography className="name">{title}</Typography>
-					{subTitle && <Typography className="address">{subTitle}</Typography>}
-					{extra && <Typography className="price">{extra}</Typography>}
-				</Stack>
-				<Stack className="date-box">
-					<Typography className="date">
+	return (
+		<article className="pb-row">
+			<button type="button" className="pb-row__main" onClick={onClick} disabled={!onClick}>
+				{avatar}
+				<span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left' }}>
+					<strong style={{ fontSize: 15 }}>{title}</strong>
+					{subTitle && <span style={{ fontSize: 13, color: 'var(--pb-muted)' }}>{subTitle}</span>}
+					{extra && <span style={{ fontSize: 13, color: 'var(--pb-ink)' }}>{extra}</span>}
+				</span>
+			</button>
+			<div className="pb-row__meta">
+				{(date || dateText) && (
+					<span className="pb-row__cell">
 						{dateText ?? <Moment format={dateFormat}>{date}</Moment>}
-					</Typography>
-				</Stack>
-				<Stack className="status-box">
-					<Stack className="coloured-box" sx={{ background: '#E5F0FD' }}>
-						<Typography className="status" sx={{ color: '#3554d1' }}>
-							{status}
-						</Typography>
-					</Stack>
-				</Stack>
-				<Stack className="views-box">
-					<Typography className="views">{count}</Typography>
-				</Stack>
-				{actions && <Stack className="action-box">{actions}</Stack>}
-			</Stack>
-		);
+						{count !== undefined && <span style={{ color: 'var(--pb-muted)' }}> · {count}</span>}
+					</span>
+				)}
+				{status && <span className={`pb-badge pb-badge--${tone}`}>{status}</span>}
+				{actions && <div className="pb-row__actions">{actions}</div>}
+			</div>
+		</article>
+	);
 };
 
 export default ListRow;

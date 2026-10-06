@@ -5,7 +5,9 @@ export default function Document() {
 		<Html lang="en">
 			<Head>
 				<meta name="robots" content="index,follow" />
-				<link rel="icon" type="image/png" href="/img/logo/favicon.svg" />
+				<link rel="icon" type="image/svg+xml" href="/img/logo/favicon.svg" />
+				<link rel="apple-touch-icon" href="/img/logo/favicon.svg" />
+				<meta name="theme-color" content="#1F6F99" />
 				<link rel="preconnect" href="https://fonts.googleapis.com" />
 				<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
 				<link

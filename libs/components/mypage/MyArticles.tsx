@@ -1,118 +1,63 @@
 import React, { useState } from 'react';
-import { NextPage } from 'next';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
-import { Pagination, Stack, Typography } from '@mui/material';
-import CommunityCard from '../common/CommunityCard';
-import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
+import Link from 'next/link';
+import { Pagination } from '@mui/material';
+import { useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
-import { T } from '../../types/common';
 import { Article } from '../../types/article/article';
-import { LIKE_TARGET_ARTICLE } from '../../../apollo/user/mutation';
+import { ArticlesInquiry } from '../../types/article/article.input';
+import { Direction } from '../../enums/common.enum';
+import { T } from '../../types/common';
 import { GET_ARTICLES } from '../../../apollo/user/query';
-import { Messages } from '../../config';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import { LIKE_TARGET_ARTICLE } from '../../../apollo/user/mutation';
+import { useLikeToggle } from '../../hooks/useEngagement';
+import PostCard from '../cards/PostCard';
+import MySection from './MySection';
+import { SkeletonCards } from '../ui/Loaders';
 
-const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
-	const device = useDeviceDetect();
+const MyArticles = () => {
 	const user = useReactiveVar(userVar);
-	const [searchCommunity, setSearchCommunity] = useState({
-		...initialInput,
-		search: { memberId: user._id },
-	});
-	const [boardArticles, setBoardArticles] = useState<Article[]>([]);
-	const [totalCount, setTotalCount] = useState<number>(0);
+	const [input, setInput] = useState<ArticlesInquiry>({ page: 1, limit: 6, sort: 'createdAt', direction: Direction.DESC, search: { memberId: user._id } });
+	const [articles, setArticles] = useState<Article[] | null>(null);
+	const [total, setTotal] = useState(0);
+	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_ARTICLE);
 
 	/** APOLLO REQUESTS **/
-	const [ likeTargetArticle ] = useMutation(LIKE_TARGET_ARTICLE);
-
-	const {
-		loading: boardArticlesLoading,
-		data: boardArticlesData, 
-		error: boardArticlesError, 
-		refetch: boardArticlesRefetch 
-	} = useQuery(GET_ARTICLES, {
-		fetchPolicy: "network-only",
-		variables: { input: searchCommunity },
-		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: any) => {
-			setBoardArticles(data?.getArticles?.list);
-			setTotalCount(data?.getArticles?.metaCounter[0]?.total);
+	useQuery(GET_ARTICLES, {
+		fetchPolicy: 'network-only',
+		skip: !user._id,
+		variables: { input: { ...input, search: { memberId: user._id } } },
+		onCompleted: (data: T) => {
+			setArticles(data?.getArticles?.list ?? []);
+			setTotal(data?.getArticles?.metaCounter?.[0]?.total ?? 0);
 		},
+		onError: () => setArticles([]),
 	});
 
-	/** HANDLERS **/
-	const paginationHandler = (e: T, value: number) => {
-		setSearchCommunity({ ...searchCommunity, page: value });
-	};
-
-	const likeBoardArticleHandler = async (e:any, user: T, id: string) => {
-		try {
-			e.stopPropagation();
-			if (!id) return;
-			if (!user._id) throw new Error(Messages.error2);
-
-			await likeTargetArticle({ variables: { input: id } });
-			
-			await boardArticlesRefetch({ input: searchCommunity });
-			await sweetTopSmallSuccessAlert('success', 750);
-		} catch (err: any) {
-			console.log("ERROR, likeBoardArticleHandler: ", err.message);
-			sweetMixinErrorAlert(err.message).then();
-		}
-	};
-
-	if (device === 'mobile') {
-		return <>ARTICLE PAGE MOBILE</>;
-	} else
-		return (
-			<div id="my-articles-page">
-				<Stack className="main-title-box">
-					<Stack className="right-box">
-						<Typography className="main-title">Article</Typography>
-						<Typography className="sub-title">We are glad to see you again!</Typography>
-					</Stack>
-				</Stack>
-				<Stack className="article-list-box">
-					{boardArticles?.length > 0 ? (
-						boardArticles?.map((boardArticle: Article) => {
-							return <CommunityCard article={boardArticle} key={boardArticle?._id} size={'small'} likeArticleHandler={likeBoardArticleHandler}/>;
-						})
-					) : (
-						<div className={'no-data'}>
-							<img src="/img/icons/icoAlert.svg" alt="" />
-							<p>No Articles found!</p>
-						</div>
-					)}
-				</Stack>
-
-				{boardArticles?.length > 0 && (
-					<Stack className="pagination-conf">
-						<Stack className="pagination-box">
-							<Pagination
-								count={Math.ceil(totalCount / searchCommunity.limit)}
-								page={searchCommunity.page}
-								shape="circular"
-								color="primary"
-								onChange={paginationHandler}
-							/>
-						</Stack>
-						<Stack className="total">
-							<Typography>Total {totalCount ?? 0} article(s) available</Typography>
-						</Stack>
-					</Stack>
-				)}
+	return (
+		<MySection
+			title="My articles"
+			subTitle={`${total} published`}
+			actions={
+				<Link href="/mypage?category=writeArticle" className="pb-btn pb-btn--primary pb-btn--sm">
+					Write article
+				</Link>
+			}
+		>
+			<div className="pb-grid pb-grid--posts">
+				{articles === null && <SkeletonCards count={2} />}
+				{articles?.map((article) => {
+					const state = likeState(article._id, !!article.meLiked?.[0]?.myFavorite, article.articleLikes);
+					return <PostCard key={article._id} article={article} liked={state.liked} likes={state.likes} onLike={() => toggleLike(article._id, state)} />;
+				})}
 			</div>
-		);
-};
-
-MyArticles.defaultProps = {
-	initialInput: {
-		page: 1,
-		limit: 6,
-		sort: 'createdAt',
-		direction: 'DESC',
-		search: {},
-	},
+			{articles?.length === 0 && <p className="pb-empty">You have not written any article yet.</p>}
+			{total > input.limit && (
+				<div className="pb-pagination">
+					<Pagination page={input.page} count={Math.ceil(total / input.limit)} onChange={(e, page) => setInput({ ...input, page })} shape="circular" color="primary" />
+				</div>
+			)}
+		</MySection>
+	);
 };
 
 export default MyArticles;

@@ -1,27 +1,25 @@
 import React, { useEffect } from 'react';
-import { useRouter } from 'next/router';
 import { NextPage } from 'next';
-import { Stack } from '@mui/material';
-import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
-import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
+import { useRouter } from 'next/router';
+import { useReactiveVar } from '@apollo/client';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { withPbLayout } from '../../libs/components/layout/PbShell';
+import { userVar } from '../../apollo/store';
+import { getJwtToken } from '../../libs/auth';
+import MyMenu from '../../libs/components/mypage/MyMenu';
+import MyOverview from '../../libs/components/mypage/MyOverview';
+import MyAppointments from '../../libs/components/mypage/MyAppointments';
+import MyClinic from '../../libs/components/mypage/MyClinic';
 import ClinicDoctors from '../../libs/components/mypage/ClinicDoctors';
+import JoinRequests from '../../libs/components/mypage/JoinRequests';
 import MyFavorites from '../../libs/components/mypage/MyFavorites';
 import RecentlyVisited from '../../libs/components/mypage/RecentlyVisited';
-import MyClinic from '../../libs/components/mypage/MyClinic';
-import MyAppointments from '../../libs/components/mypage/MyAppointments';
-import JoinRequests from '../../libs/components/mypage/JoinRequests';
-import MyProfile from '../../libs/components/mypage/MyProfile';
 import MyArticles from '../../libs/components/mypage/MyArticles';
-import { useMutation, useReactiveVar } from '@apollo/client';
-import { userVar } from '../../apollo/store';
-import MyMenu from '../../libs/components/mypage/MyMenu';
 import WriteArticle from '../../libs/components/mypage/WriteArticle';
-import MemberFollowers from '../../libs/components/member/MemberFollowers';
-import { sweetErrorHandling, sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
-import MemberFollowings from '../../libs/components/member/MemberFollowings';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { SUBSCRIBE, UNSUBSCRIBE } from '../../apollo/user/mutation';
-import { Messages } from '../../libs/config';
+import MyProfile from '../../libs/components/mypage/MyProfile';
+import MySection from '../../libs/components/mypage/MySection';
+import FollowList from '../../libs/components/common/FollowList';
+import { EcgLine } from '../../libs/components/ui/Loaders';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -30,106 +28,59 @@ export const getStaticProps = async ({ locale }: any) => ({
 });
 
 const MyPage: NextPage = () => {
-	const device = useDeviceDetect();
-	const user = useReactiveVar(userVar);
 	const router = useRouter();
-	const category: any = router.query?.category ?? 'myProfile';
-
-	/** APOLLO REQUESTS **/
-	const [ subscribe ] = useMutation(SUBSCRIBE)
-	const [ unsubscribe ] = useMutation(UNSUBSCRIBE);
+	const user = useReactiveVar(userVar);
+	const category = (router.query.category as string) ?? 'overview';
 
 	/** LIFECYCLES **/
 	useEffect(() => {
-		if (!user._id) router.push('/').then();
-	}, [user]);
+		// guests go to the login page; a stored token restores the user first
+		if (!getJwtToken()) router.replace('/account/join');
+	}, [router]);
 
-	/** HANDLERS **/
-	const subscribeHandler = async (id: string, refetch: any, query: any) => {
-		try {
-			if (!id) throw new Error(Messages.error1);
-			if (!user?._id) throw new Error(Messages.error2);
-
-			await subscribe({
-				variables: {input: id}
-			});
-
-			await sweetTopSmallSuccessAlert('Subscribed!', 800);
-			await refetch({ input: query });
-		} catch (err: any) {
-			sweetErrorHandling(err).then();
-		}
-	};
-
-	const unsubscribeHandler = async (id: string, refetch: any, query: any) => {
-		try {
-			if (!id) throw new Error(Messages.error1);
-			if (!user?._id) throw new Error(Messages.error2);
-
-			await unsubscribe({
-				variables: {input: id}
-			});
-
-			await sweetTopSmallSuccessAlert('Unsubscribed!', 800);
-			await refetch({ input: query });
-		} catch (err: any) {
-			sweetErrorHandling(err).then();
-		}
-	};
-
-	const redirectToMemberPageHandler = async (memberId: string) => {
-		try {
-			if (memberId === user?._id) await router.push(`/mypage?memberId=${memberId}`);
-			else await router.push(`/member?memberId=${memberId}`);
-		} catch (error) {
-			await sweetErrorHandling(error);
-		}
-	};
-
-	if (device === 'mobile') {
-		return <div>MY PAGE</div>;
-	} else {
+	if (!user._id) {
 		return (
-			<div id="my-page" style={{ position: 'relative' }}>
-				<div className="container">
-					<Stack className={'my-page'}>
-						<Stack className={'back-frame'}>
-							<Stack className={'left-config'}>
-								<MyMenu />
-							</Stack>
-							<Stack className="main-config" mb={'76px'}>
-								<Stack className={'list-config'}>
-									{category === 'myClinic' && <MyClinic />}
-									{category === 'clinicDoctors' && <ClinicDoctors />}
-									{category === 'joinRequests' && <JoinRequests />}
-									{category === 'myAppointments' && <MyAppointments />}
-									{category === 'myFavorites' && <MyFavorites />}
-									{category === 'recentlyVisited' && <RecentlyVisited />}
-									{category === 'myArticles' && <MyArticles />}
-									{category === 'writeArticle' && <WriteArticle />}
-									{category === 'myProfile' && <MyProfile />}
-									{category === 'followers' && (
-										<MemberFollowers
-											subscribeHandler={subscribeHandler}
-											unsubscribeHandler={unsubscribeHandler}
-											redirectToMemberPageHandler={redirectToMemberPageHandler}
-										/>
-									)}
-									{category === 'followings' && (
-										<MemberFollowings
-											subscribeHandler={subscribeHandler}
-											unsubscribeHandler={unsubscribeHandler}
-											redirectToMemberPageHandler={redirectToMemberPageHandler}
-										/>
-									)}
-								</Stack>
-							</Stack>
-						</Stack>
-					</Stack>
-				</div>
+			<div className="pb-container" style={{ padding: '80px 0', display: 'flex', justifyContent: 'center' }}>
+				<EcgLine />
 			</div>
 		);
 	}
+
+	const sections: Record<string, React.ReactNode> = {
+		overview: <MyOverview />,
+		myAppointments: <MyAppointments />,
+		myClinic: <MyClinic />,
+		clinicDoctors: <ClinicDoctors />,
+		joinRequests: <JoinRequests />,
+		myFavorites: <MyFavorites />,
+		recentlyVisited: <RecentlyVisited />,
+		myArticles: <MyArticles />,
+		writeArticle: <WriteArticle />,
+		myProfile: <MyProfile />,
+		followers: (
+			<MySection title="Followers">
+				<FollowList mode="followers" memberId={user._id} />
+			</MySection>
+		),
+		followings: (
+			<MySection title="Following">
+				<FollowList mode="followings" memberId={user._id} />
+			</MySection>
+		),
+	};
+
+	return (
+		<div className="pb-container" style={{ paddingTop: 32 }}>
+			<div className="pb-split">
+				<div style={{ flex: '1 1 260px', maxWidth: 320, minWidth: 0 }}>
+					<MyMenu />
+				</div>
+				<div className="pb-split__main" key={category}>
+					{sections[category] ?? sections.overview}
+				</div>
+			</div>
+		</div>
+	);
 };
 
-export default withLayoutBasic(MyPage);
+export default withPbLayout(MyPage);
