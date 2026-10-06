@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { NextPage } from 'next';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { TabContext, TabList } from '@mui/lab';
-import { Stack, Tab, Typography, Button, Pagination } from '@mui/material';
-import CommunityCard from '../../libs/components/common/CommunityCard';
-import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
-import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import { Article } from '../../libs/types/article/article';
-import { T } from '../../libs/types/common';
+import { useQuery, useReactiveVar } from '@apollo/client';
+import { Pagination } from '@mui/material';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { ArticlesInquiry } from '../../libs/types/article/article.input';
-import { LIKE_TARGET_ARTICLE } from '../../apollo/user/mutation';
-import { useMutation, useQuery } from '@apollo/client';
+import { withPbLayout } from '../../libs/components/layout/PbShell';
+import PostCard from '../../libs/components/cards/PostCard';
+import { SkeletonCards } from '../../libs/components/ui/Loaders';
+import Icon from '../../libs/components/ui/Icon';
+import { userVar } from '../../apollo/store';
 import { GET_ARTICLES } from '../../apollo/user/query';
-import { Messages } from '../../libs/config';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { LIKE_TARGET_ARTICLE } from '../../apollo/user/mutation';
+import { useFollowing, useLikeToggle } from '../../libs/hooks/useEngagement';
+import { Article } from '../../libs/types/article/article';
+import { ArticlesInquiry } from '../../libs/types/article/article.input';
+import { Direction } from '../../libs/enums/common.enum';
+import { T } from '../../libs/types/common';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -23,169 +25,117 @@ export const getStaticProps = async ({ locale }: any) => ({
 });
 
 // articles have no categories: tabs switch the sort order
-const tabs: { value: string; label: string; subTitle: string }[] = [
-	{ value: 'createdAt', label: 'Latest', subTitle: 'Fresh posts from our health community' },
-	{ value: 'articleViews', label: 'Popular', subTitle: 'The most read articles' },
-	{ value: 'articleLikes', label: 'Most Liked', subTitle: 'Articles our members liked the most' },
+const tabs = [
+	{ value: 'createdAt', label: 'Latest' },
+	{ value: 'articleViews', label: 'Popular' },
+	{ value: 'articleLikes', label: 'Most liked' },
 ];
 
-const Community: NextPage = ({ initialInput, ...props }: T) => {
-	const device = useDeviceDetect();
+const Community: NextPage = () => {
 	const router = useRouter();
-	const [searchCommunity, setSearchCommunity] = useState<ArticlesInquiry>(initialInput);
-	const [articles, setArticles] = useState<Article[]>([]);
-	const [totalCount, setTotalCount] = useState<number>(0);
-	const activeTab = tabs.find((tab) => tab.value === searchCommunity.sort) ?? tabs[0];
+	const user = useReactiveVar(userVar);
+	const [input, setInput] = useState<ArticlesInquiry>({ page: 1, limit: 8, sort: 'createdAt', direction: Direction.DESC, search: {} });
+	const [text, setText] = useState('');
+	const [articles, setArticles] = useState<Article[] | null>(null);
+	const [total, setTotal] = useState(0);
+	const { isFollowing, canFollow, toggleFollow } = useFollowing();
+	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_ARTICLE);
 
 	/** APOLLO REQUESTS **/
-	const [likeTargetArticle] = useMutation(LIKE_TARGET_ARTICLE);
-
-	const { refetch: articlesRefetch } = useQuery(GET_ARTICLES, {
+	const { loading } = useQuery(GET_ARTICLES, {
 		fetchPolicy: 'cache-and-network',
-		variables: { input: searchCommunity },
+		variables: { input },
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => {
-			setArticles(data?.getArticles?.list);
-			setTotalCount(data?.getArticles?.metaCounter[0]?.total ?? 0);
+			setArticles(data?.getArticles?.list ?? []);
+			setTotal(data?.getArticles?.metaCounter?.[0]?.total ?? 0);
 		},
+		onError: () => setArticles([]),
 	});
 
 	/** LIFECYCLES **/
-
 	useEffect(() => {
-		const sort = router.query?.sort as string;
-		if (sort && tabs.some((tab) => tab.value === sort)) {
-			setSearchCommunity({ ...searchCommunity, page: 1, sort });
-		}
-	}, [router.query?.sort]);
+		const sort = router.query.sort as string;
+		if (sort && tabs.some((tab) => tab.value === sort)) setInput((prev) => ({ ...prev, page: 1, sort }));
+	}, [router.query.sort]);
 
 	/** HANDLERS **/
-
-	const tabChangeHandler = async (e: T, value: string) => {
-		setSearchCommunity({ ...searchCommunity, page: 1, sort: value });
-		await router.push({ pathname: '/community', query: { sort: value } }, undefined, { shallow: true });
+	const changeSort = (sort: string) => {
+		setInput({ ...input, page: 1, sort });
+		router.replace({ pathname: '/community', query: { sort } }, undefined, { shallow: true, scroll: false });
 	};
 
-	const paginationHandler = (e: T, value: number) => {
-		setSearchCommunity({ ...searchCommunity, page: value });
-	};
-
-	const likeArticleHandler = async (e: any, user: T, id: string) => {
-		try {
-			e.stopPropagation();
-			if (!id) return;
-			if (!user._id) throw new Error(Messages.error2);
-			await likeTargetArticle({ variables: { input: id } });
-			await articlesRefetch({ input: searchCommunity });
-			await sweetTopSmallSuccessAlert('success', 800);
-		} catch (err: any) {
-			console.log('ERROR, likeArticleHandler: ', err.message);
-			sweetMixinErrorAlert(err.message).then();
-		}
-	};
-
-	if (device === 'mobile') {
-		return <h1>COMMUNITY PAGE MOBILE</h1>;
-	} else {
-		return (
-			<div id="community-list-page">
-				<div className="container">
-					<TabContext value={activeTab.value}>
-						<Stack className="main-box">
-							<Stack className="left-config">
-								<Stack className={'image-info'}>
-									<img src={'/img/logo/logoText.svg'} />
-									<Stack className={'community-name'}>
-										<Typography className={'name'}>PulseBridge Community</Typography>
-									</Stack>
-								</Stack>
-								<TabList
-									orientation="vertical"
-									aria-label="community sort tabs"
-									TabIndicatorProps={{
-										style: { display: 'none' },
-									}}
-									onChange={tabChangeHandler}
-								>
-									{tabs.map((tab) => (
-										<Tab
-											key={tab.value}
-											value={tab.value}
-											label={tab.label}
-											className={`tab-button ${activeTab.value === tab.value ? 'active' : ''}`}
-										/>
-									))}
-								</TabList>
-							</Stack>
-							<Stack className="right-config">
-								<Stack className="panel-config">
-									<Stack className="title-box">
-										<Stack className="left">
-											<Typography className="title">{activeTab.label} Articles</Typography>
-											<Typography className="sub-title">{activeTab.subTitle}</Typography>
-										</Stack>
-										<Button
-											onClick={() =>
-												router.push({
-													pathname: '/mypage',
-													query: {
-														category: 'writeArticle',
-													},
-												})
-											}
-											className="right"
-										>
-											Write
-										</Button>
-									</Stack>
-									<Stack className="list-box" sx={{ padding: '24px' }}>
-										{totalCount ? (
-											articles?.map((article: Article) => {
-												return <CommunityCard article={article} key={article?._id} likeArticleHandler={likeArticleHandler} />;
-											})
-										) : (
-											<Stack className={'no-data'}>
-												<img src="/img/icons/icoAlert.svg" alt="" />
-												<p>No Article found!</p>
-											</Stack>
-										)}
-									</Stack>
-								</Stack>
-							</Stack>
-						</Stack>
-					</TabContext>
-					{totalCount > 0 && (
-						<Stack className="pagination-config">
-							<Stack className="pagination-box">
-								<Pagination
-									count={Math.ceil(totalCount / searchCommunity.limit)}
-									page={searchCommunity.page}
-									shape="circular"
-									color="primary"
-									onChange={paginationHandler}
-								/>
-							</Stack>
-							<Stack className="total-result">
-								<Typography>
-									Total {totalCount} article{totalCount > 1 ? 's' : ''} available
-								</Typography>
-							</Stack>
-						</Stack>
-					)}
+	return (
+		<div className="pb-container">
+			<header className="pb-page-head" style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16 }}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+					<h1 className="pb-title">Community</h1>
+					<p>Short health notes and questions from patients and doctors.</p>
 				</div>
+				<Link href={user._id ? '/mypage?category=writeArticle' : '/account/join'} className="pb-btn pb-btn--primary">
+					<Icon name="edit" size={16} /> Write a post
+				</Link>
+			</header>
+
+			<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', padding: '16px 0 20px' }}>
+				<div className="pb-pills" role="tablist" aria-label="Sort posts" style={{ flex: '1 1 auto' }}>
+					{tabs.map((tab) => (
+						<button
+							key={tab.value}
+							type="button"
+							role="tab"
+							aria-selected={input.sort === tab.value}
+							className={`pb-pill ${input.sort === tab.value ? 'pb-pill--active' : ''}`}
+							onClick={() => changeSort(tab.value)}
+						>
+							{tab.label}
+						</button>
+					))}
+				</div>
+				<form
+					className="pb-search"
+					style={{ flex: '1 1 260px', maxWidth: 360 }}
+					onSubmit={(e) => {
+						e.preventDefault();
+						const search: T = { ...input.search, text: text.trim() };
+						if (!search.text) delete search.text;
+						setInput({ ...input, page: 1, search });
+					}}
+				>
+					<Icon name="search" />
+					<label htmlFor="post-search" className="pb-sr">
+						Search posts
+					</label>
+					<input id="post-search" value={text} placeholder="Search posts" onChange={(e) => setText(e.target.value)} />
+				</form>
 			</div>
-		);
-	}
+
+			<div className="pb-grid pb-grid--posts">
+				{(articles === null || (loading && articles.length === 0)) && <SkeletonCards count={4} />}
+				{articles?.map((article) => {
+					const state = likeState(article._id, !!article.meLiked?.[0]?.myFavorite, article.articleLikes);
+					return (
+						<PostCard
+							key={article._id}
+							article={article}
+							liked={state.liked}
+							likes={state.likes}
+							onLike={() => toggleLike(article._id, state)}
+							following={isFollowing(article.memberId)}
+							onFollow={canFollow(article.memberId) ? () => toggleFollow(article.memberId) : undefined}
+						/>
+					);
+				})}
+			</div>
+			{articles?.length === 0 && !loading && <p className="pb-empty">No posts yet.</p>}
+
+			{total > input.limit && (
+				<div className="pb-pagination">
+					<Pagination page={input.page} count={Math.ceil(total / input.limit)} onChange={(e, page) => setInput({ ...input, page })} shape="circular" color="primary" />
+				</div>
+			)}
+		</div>
+	);
 };
 
-Community.defaultProps = {
-	initialInput: {
-		page: 1,
-		limit: 6,
-		sort: 'createdAt',
-		direction: 'DESC',
-		search: {},
-	},
-};
-
-export default withLayoutBasic(Community);
+export default withPbLayout(Community);

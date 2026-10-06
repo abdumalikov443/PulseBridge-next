@@ -1,12 +1,12 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { NextPage } from 'next';
-import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
-import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import { Box, Button, Checkbox, FormControlLabel, FormGroup, Stack } from '@mui/material';
 import { useRouter } from 'next/router';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { withPbLayout } from '../../libs/components/layout/PbShell';
+import Icon from '../../libs/components/ui/Icon';
+import { EcgLine } from '../../libs/components/ui/Loaders';
 import { logIn, signUp } from '../../libs/auth';
 import { sweetMixinErrorAlert } from '../../libs/sweetAlert';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { MemberType } from '../../libs/enums/member.enum';
 import { DoctorSpecialty } from '../../libs/enums/doctor.enum';
 import { ClinicType } from '../../libs/enums/clinic.enum';
@@ -21,302 +21,187 @@ export const getStaticProps = async ({ locale }: any) => ({
 	},
 });
 
+const roles = [
+	{ type: MemberType.PATIENT, text: 'Find doctors and book visits' },
+	{ type: MemberType.DOCTOR, text: 'Join a clinic and see patients' },
+	{ type: MemberType.CLINIC, text: 'Manage your clinic and doctors' },
+];
+
 const Join: NextPage = () => {
 	const router = useRouter();
-	const device = useDeviceDetect();
+	const [loginView, setLoginView] = useState(true);
+	const [busy, setBusy] = useState(false);
 	const [input, setInput] = useState({ nick: '', password: '', phone: '', type: MemberType.PATIENT as MemberType });
 	// DOCTOR and CLINIC send their profile in the same signup
-	const [doctorProfile, setDoctorProfile] = useState<DoctorProfileInput>({
-		specialty: DoctorSpecialty.GENERAL,
-		experience: 0,
-	});
-	const [clinicProfile, setClinicProfile] = useState<ClinicInput>({
-		clinicType: ClinicType.PRIVATE,
-		clinicName: '',
-		clinicAddress: '',
-		clinicDesc: '',
-	});
-	const [loginView, setLoginView] = useState<boolean>(true);
+	const [doctorProfile, setDoctorProfile] = useState<DoctorProfileInput>({ specialty: DoctorSpecialty.GENERAL, experience: 0 });
+	const [clinicProfile, setClinicProfile] = useState<ClinicInput>({ clinicType: ClinicType.PRIVATE, clinicName: '', clinicAddress: '', clinicDesc: '' });
 
 	/** HANDLERS **/
-	const viewChangeHandler = (state: boolean) => {
-		setLoginView(state);
-	};
+	const signupInvalid =
+		input.nick.length < 3 ||
+		input.password.length < 5 ||
+		!input.phone ||
+		(input.type === MemberType.CLINIC &&
+			(clinicProfile.clinicName.trim().length < 3 || clinicProfile.clinicAddress.trim().length < 3 || clinicProfile.clinicDesc.trim().length < 5));
 
-	const checkUserTypeHandler = (e: any) => {
-		const checked = e.target.checked;
-		if (checked) {
-			const value = e.target.name;
-			handleInput('type', value);
-		} else {
-			handleInput('type', MemberType.PATIENT);
-		}
-	};
-
-	const isSignupDisabled = () => {
-		if (input.nick == '' || input.password == '' || input.phone == '') return true;
-		if (input.type === MemberType.CLINIC) {
-			return (
-				clinicProfile.clinicName.trim().length < 3 ||
-				clinicProfile.clinicAddress.trim().length < 3 ||
-				clinicProfile.clinicDesc.trim().length < 5
-			);
-		}
-		return false;
-	};
-
-	const handleInput = useCallback((name: any, value: any) => {
-		setInput((prev) => {
-			return { ...prev, [name]: value };
-		});
-	}, []);
-
-	const doLogin = useCallback(async () => {
+	const submitHandler = async () => {
 		try {
-			await logIn(input.nick, input.password);
+			setBusy(true);
+			if (loginView) {
+				await logIn(input.nick, input.password);
+			} else {
+				const memberInput: MemberInput = {
+					memberNick: input.nick,
+					memberPassword: input.password,
+					memberPhone: input.phone,
+					memberType: input.type,
+					...(input.type === MemberType.DOCTOR && { doctorProfile }),
+					...(input.type === MemberType.CLINIC && { clinicProfile }),
+				};
+				await signUp(memberInput);
+			}
 			await router.push(`${router.query.referrer ?? '/'}`);
 		} catch (err: any) {
 			await sweetMixinErrorAlert(err.message);
+		} finally {
+			setBusy(false);
 		}
-	}, [input]);
+	};
 
-	const doSignUp = useCallback(async () => {
-		try {
-			const memberInput: MemberInput = {
-				memberNick: input.nick,
-				memberPassword: input.password,
-				memberPhone: input.phone,
-				memberType: input.type,
-				...(input.type === MemberType.DOCTOR && { doctorProfile }),
-				...(input.type === MemberType.CLINIC && { clinicProfile }),
-			};
-			await signUp(memberInput);
-			await router.push(`${router.query.referrer ?? '/'}`);
-		} catch (err: any) {
-			await sweetMixinErrorAlert(err.message);
-		}
-	}, [input, doctorProfile, clinicProfile]);
+	return (
+		<div className="pb-container" style={{ paddingTop: 40 }}>
+			<div className="pb-auth">
+				<form
+					className="pb-card pb-card--flat pb-in pb-auth__form"
+					onSubmit={(e) => {
+						e.preventDefault();
+						submitHandler();
+					}}
+				>
+					<div className="pb-pills" role="tablist" aria-label="Account">
+						<button type="button" role="tab" aria-selected={loginView} className={`pb-pill ${loginView ? 'pb-pill--active' : ''}`} onClick={() => setLoginView(true)}>
+							Log in
+						</button>
+						<button type="button" role="tab" aria-selected={!loginView} className={`pb-pill ${!loginView ? 'pb-pill--active' : ''}`} onClick={() => setLoginView(false)}>
+							Sign up
+						</button>
+					</div>
 
-	if (device === 'mobile') {
-		return <div>LOGIN MOBILE</div>;
-	} else {
-		return (
-			<Stack className={'join-page'}>
-				<Stack className={'container'}>
-					<Stack className={'main'}>
-						<Stack className={'left'}>
-							{/* @ts-ignore */}
-							<Box className={'logo'}>
-								<img src="/img/logo/logoText.svg" alt="" />
-								<span>PulseBridge</span>
-							</Box>
-							<Box className={'info'}>
-								<span>{loginView ? 'login' : 'signup'}</span>
-								<p>{loginView ? 'Login' : 'Sign'} in with this account across the following sites.</p>
-							</Box>
-							<Box className={'input-wrap'}>
-								<div className={'input-box'}>
-									<span>Nickname</span>
-									<input
-										type="text"
-										placeholder={'Enter Nickname'}
-										onChange={(e) => handleInput('nick', e.target.value)}
-										required={true}
-										onKeyDown={(event) => {
-											if (event.key == 'Enter' && loginView) doLogin();
-											if (event.key == 'Enter' && !loginView) doSignUp();
-										}}
-									/>
-								</div>
-								<div className={'input-box'}>
-									<span>Password</span>
-									<input
-										type="password"
-										placeholder={'Enter Password'}
-										onChange={(e) => handleInput('password', e.target.value)}
-										required={true}
-										onKeyDown={(event) => {
-											if (event.key == 'Enter' && loginView) doLogin();
-											if (event.key == 'Enter' && !loginView) doSignUp();
-										}}
-									/>
-								</div>
-								{!loginView && (
-									<div className={'input-box'}>
-										<span>Phone</span>
-										<input
-											type="text"
-											placeholder={'Enter Phone'}
-											onChange={(e) => handleInput('phone', e.target.value)}
-											required={true}
-											onKeyDown={(event) => {
-												if (event.key == 'Enter') doSignUp();
-											}}
-										/>
-									</div>
-								)}
-							</Box>
-							<Box className={'register'}>
-								{!loginView && (
-									<div className={'type-option'}>
-										<span className={'text'}>I want to be registered as:</span>
-										<div>
-											{[MemberType.PATIENT, MemberType.DOCTOR, MemberType.CLINIC].map((type: MemberType) => (
-												<FormGroup key={type}>
-													<FormControlLabel
-														control={
-															<Checkbox
-																size="small"
-																name={type}
-																onChange={checkUserTypeHandler}
-																checked={input?.type == type}
-															/>
-														}
-														label={formatEnum(type)}
-													/>
-												</FormGroup>
-											))}
-										</div>
-									</div>
-								)}
-								{!loginView && input.type === MemberType.DOCTOR && (
-									<Box className={'input-wrap'}>
-										<div className={'input-box'}>
-											<span>Specialty</span>
-											<select
-												value={doctorProfile.specialty}
-												onChange={(e) =>
-													setDoctorProfile({ ...doctorProfile, specialty: e.target.value as DoctorSpecialty })
-												}
-											>
-												{Object.values(DoctorSpecialty).map((specialty: DoctorSpecialty) => (
-													<option key={specialty} value={specialty}>
-														{formatEnum(specialty)}
-													</option>
-												))}
-											</select>
-										</div>
-										<div className={'input-box'}>
-											<span>Experience (years)</span>
-											<input
-												type="number"
-												min={0}
-												value={doctorProfile.experience}
-												onChange={(e) =>
-													setDoctorProfile({
-														...doctorProfile,
-														experience: Math.max(0, parseInt(e.target.value || '0', 10)),
-													})
-												}
-											/>
-										</div>
-									</Box>
-								)}
-								{!loginView && input.type === MemberType.CLINIC && (
-									<Box className={'input-wrap'}>
-										<div className={'input-box'}>
-											<span>Clinic name</span>
-											<input
-												type="text"
-												maxLength={100}
-												placeholder={'Enter clinic name'}
-												value={clinicProfile.clinicName}
-												onChange={(e) => setClinicProfile({ ...clinicProfile, clinicName: e.target.value })}
-											/>
-										</div>
-										<div className={'input-box'}>
-											<span>Clinic type</span>
-											<select
-												value={clinicProfile.clinicType}
-												onChange={(e) =>
-													setClinicProfile({ ...clinicProfile, clinicType: e.target.value as ClinicType })
-												}
-											>
-												{Object.values(ClinicType).map((type: ClinicType) => (
-													<option key={type} value={type}>
-														{formatEnum(type)}
-													</option>
-												))}
-											</select>
-										</div>
-										<div className={'input-box'}>
-											<span>Address</span>
-											<input
-												type="text"
-												maxLength={100}
-												placeholder={'Enter clinic address'}
-												value={clinicProfile.clinicAddress}
-												onChange={(e) => setClinicProfile({ ...clinicProfile, clinicAddress: e.target.value })}
-											/>
-										</div>
-										<div className={'input-box'}>
-											<span>Description</span>
-											<input
-												type="text"
-												maxLength={500}
-												placeholder={'Describe your clinic (min 5 characters)'}
-												value={clinicProfile.clinicDesc}
-												onChange={(e) => setClinicProfile({ ...clinicProfile, clinicDesc: e.target.value })}
-											/>
-										</div>
-									</Box>
-								)}
+					<div>
+						<h1 className="pb-title" style={{ fontSize: 30 }}>
+							{loginView ? 'Welcome back' : 'Create your account'}
+						</h1>
+						<p style={{ margin: '6px 0 0', color: 'var(--pb-muted)' }}>{loginView ? 'Log in with your nickname and password.' : 'One account per role. You cannot change the role later.'}</p>
+					</div>
 
-								{loginView && (
-									<div className={'remember-info'}>
-										<FormGroup>
-											<FormControlLabel control={<Checkbox defaultChecked size="small" />} label="Remember me" />
-										</FormGroup>
-										<a>Lost your password?</a>
-									</div>
-								)}
+					{!loginView && (
+						<fieldset style={{ border: 0, padding: 0, margin: 0, display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))' }}>
+							<legend className="pb-sr">Role</legend>
+							{roles.map((role) => (
+								<button
+									key={role.type}
+									type="button"
+									aria-pressed={input.type === role.type}
+									onClick={() => setInput({ ...input, type: role.type })}
+									className="pb-auth__role"
+									data-active={input.type === role.type}
+								>
+									<strong>{formatEnum(role.type)}</strong>
+									<span>{role.text}</span>
+								</button>
+							))}
+						</fieldset>
+					)}
 
-								{loginView ? (
-									<Button
-										variant="contained"
-										endIcon={<img src="/img/icons/rightup.svg" alt="" />}
-										disabled={input.nick == '' || input.password == ''}
-										onClick={doLogin}
-									>
-										LOGIN
-									</Button>
-								) : (
-									<Button
-										variant="contained"
-										disabled={isSignupDisabled()}
-										onClick={doSignUp}
-										endIcon={<img src="/img/icons/rightup.svg" alt="" />}
-									>
-										SIGNUP
-									</Button>
-								)}
-							</Box>
-							<Box className={'ask-info'}>
-								{loginView ? (
-									<p>
-										Not registered yet?
-										<b
-											onClick={() => {
-												viewChangeHandler(false);
-											}}
-										>
-											SIGNUP
-										</b>
-									</p>
-								) : (
-									<p>
-										Have account?
-										<b onClick={() => viewChangeHandler(true)}> LOGIN</b>
-									</p>
-								)}
-							</Box>
-						</Stack>
-						<Stack className={'right'}></Stack>
-					</Stack>
-				</Stack>
-			</Stack>
-		);
-	}
+					<div className="pb-form-grid">
+						<label className="pb-field">
+							<span>Nickname</span>
+							<input className="pb-input" autoComplete="username" minLength={3} maxLength={12} value={input.nick} onChange={(e) => setInput({ ...input, nick: e.target.value })} />
+						</label>
+						<label className="pb-field">
+							<span>Password</span>
+							<input className="pb-input" type="password" autoComplete={loginView ? 'current-password' : 'new-password'} minLength={5} maxLength={12} value={input.password} onChange={(e) => setInput({ ...input, password: e.target.value })} />
+						</label>
+						{!loginView && (
+							<label className="pb-field">
+								<span>Phone</span>
+								<input className="pb-input" type="tel" autoComplete="tel" value={input.phone} onChange={(e) => setInput({ ...input, phone: e.target.value })} />
+							</label>
+						)}
+					</div>
+
+					{!loginView && input.type === MemberType.DOCTOR && (
+						<div className="pb-form-grid">
+							<label className="pb-field">
+								<span>Specialty</span>
+								<select className="pb-select" value={doctorProfile.specialty} onChange={(e) => setDoctorProfile({ ...doctorProfile, specialty: e.target.value as DoctorSpecialty })}>
+									{Object.values(DoctorSpecialty).map((specialty) => (
+										<option key={specialty} value={specialty}>
+											{formatEnum(specialty)}
+										</option>
+									))}
+								</select>
+							</label>
+							<label className="pb-field">
+								<span>Experience (years)</span>
+								<input
+									className="pb-input"
+									type="number"
+									min={0}
+									value={doctorProfile.experience}
+									onChange={(e) => setDoctorProfile({ ...doctorProfile, experience: Math.max(0, parseInt(e.target.value || '0', 10)) })}
+								/>
+							</label>
+						</div>
+					)}
+
+					{!loginView && input.type === MemberType.CLINIC && (
+						<>
+							<div className="pb-form-grid">
+								<label className="pb-field">
+									<span>Clinic name</span>
+									<input className="pb-input" maxLength={100} value={clinicProfile.clinicName} onChange={(e) => setClinicProfile({ ...clinicProfile, clinicName: e.target.value })} />
+								</label>
+								<label className="pb-field">
+									<span>Clinic type</span>
+									<select className="pb-select" value={clinicProfile.clinicType} onChange={(e) => setClinicProfile({ ...clinicProfile, clinicType: e.target.value as ClinicType })}>
+										{Object.values(ClinicType).map((type) => (
+											<option key={type} value={type}>
+												{formatEnum(type)}
+											</option>
+										))}
+									</select>
+								</label>
+								<label className="pb-field">
+									<span>Address</span>
+									<input className="pb-input" maxLength={100} value={clinicProfile.clinicAddress} onChange={(e) => setClinicProfile({ ...clinicProfile, clinicAddress: e.target.value })} />
+								</label>
+							</div>
+							<label className="pb-field">
+								<span>Description (min 5 characters)</span>
+								<textarea className="pb-textarea" rows={3} maxLength={500} value={clinicProfile.clinicDesc} onChange={(e) => setClinicProfile({ ...clinicProfile, clinicDesc: e.target.value })} />
+							</label>
+						</>
+					)}
+
+					<button type="submit" className="pb-btn pb-btn--primary pb-btn--lg pb-btn--block" disabled={busy || (loginView ? !input.nick || !input.password : signupInvalid)}>
+						{busy ? <EcgLine small /> : loginView ? 'Log in' : 'Create account'}
+						{!busy && <Icon name="arrow" className="pb-arrow" />}
+					</button>
+				</form>
+
+				<aside className="pb-auth__visual" aria-hidden="true">
+					<div className="pb-hero__blob pb-hero__blob--a" />
+					<div className="pb-hero__blob pb-hero__blob--b" />
+					<div className="pb-card pb-card--flat" style={{ position: 'relative', alignItems: 'center', textAlign: 'center', padding: 32, boxShadow: 'var(--pb-shadow)' }}>
+						<EcgLine />
+						<strong style={{ fontFamily: 'var(--pb-font-display)', fontSize: 24 }}>Care, one bridge away</strong>
+						<span style={{ color: 'var(--pb-muted)' }}>Clinics, doctors and your visits in one place.</span>
+					</div>
+				</aside>
+			</div>
+		</div>
+	);
 };
 
-export default withLayoutBasic(Join);
+export default withPbLayout(Join);

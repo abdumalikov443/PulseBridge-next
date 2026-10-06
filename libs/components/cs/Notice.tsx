@@ -1,53 +1,26 @@
 import React from 'react';
-import { Stack, Box } from '@mui/material';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
 
-const Notice = () => {
-	const device = useDeviceDetect();
+// platform notices (static until the backend has a notice module)
+const notices = [
+	{ title: 'Online booking is open for all clinics', date: '2026-10-01', tag: 'New' },
+	{ title: 'Doctors can now join clinics through join requests', date: '2026-09-20', tag: 'Update' },
+	{ title: 'Community posts are limited to 250 characters', date: '2026-09-12', tag: 'Info' },
+];
 
-	/** APOLLO REQUESTS **/
-	/** LIFECYCLES **/
-	/** HANDLERS **/
-
-	const data = [
-		{
-			no: 1,
-			event: true,
-			title: 'Register to use and get discounts',
-			date: '01.03.2024',
-		},
-		{
-			no: 2,
-			title: "It's absolutely free to upload and trade properties",
-			date: '31.03.2024',
-		},
-	];
-
-	if (device === 'mobile') {
-		return <div>NOTICE MOBILE</div>;
-	} else {
-		return (
-			<Stack className={'notice-content'}>
-				<span className={'title'}>Notice</span>
-				<Stack className={'main'}>
-					<Box component={'div'} className={'top'}>
-						<span>number</span>
-						<span>title</span>
-						<span>date</span>
-					</Box>
-					<Stack className={'bottom'}>
-						{data.map((ele: any) => (
-							<div className={`notice-card ${ele?.event && 'event'}`} key={ele.title}>
-								{ele?.event ? <div>event</div> : <span className={'notice-number'}>{ele.no}</span>}
-								<span className={'notice-title'}>{ele.title}</span>
-								<span className={'notice-date'}>{ele.date}</span>
-							</div>
-						))}
-					</Stack>
-				</Stack>
-			</Stack>
-		);
-	}
-};
+const Notice = () => (
+	<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+		{notices.map((notice, index) => (
+			<article key={notice.title} className="pb-row" style={{ animationDelay: `${index * 0.06}s` }}>
+				<span className="pb-row__main" style={{ cursor: 'default' }}>
+					<span className="pb-badge pb-badge--soft">{notice.tag}</span>
+					<strong style={{ fontSize: 15 }}>{notice.title}</strong>
+				</span>
+				<span className="pb-row__cell" style={{ color: 'var(--pb-muted)' }}>
+					{notice.date}
+				</span>
+			</article>
+		))}
+	</div>
+);
 
 export default Notice;

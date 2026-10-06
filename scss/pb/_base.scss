@@ -153,7 +153,7 @@
 	}
 	&--light {
 		background: var(--pb-surface);
-		color: var(--pb-ink);
+		color: var(--pb-ink) !important;
 	}
 	&--outline {
 		background: var(--pb-surface);
@@ -430,4 +430,54 @@
 	display: flex;
 	justify-content: center;
 	padding: 24px 0 8px;
+}
+
+/* toast ui viewer inside the Soft Care look */
+.pb-viewer {
+	.toastui-editor-contents {
+		font-family: var(--pb-font);
+		font-size: 16px;
+		line-height: 1.7;
+		color: var(--pb-ink);
+		p {
+			color: var(--pb-ink);
+		}
+		img {
+			border-radius: var(--pb-radius);
+			max-width: 100%;
+		}
+	}
+}
+
+/* FAQ accordion */
+.pb-faq {
+	background: var(--pb-surface);
+	border-radius: var(--pb-radius);
+	padding: 0 18px;
+	summary {
+		list-style: none;
+		cursor: pointer;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 12px;
+		min-height: 56px;
+		font-weight: 700;
+		&::-webkit-details-marker {
+			display: none;
+		}
+		svg {
+			flex: none;
+			color: var(--pb-deep);
+			transition: transform 0.25s ease;
+		}
+	}
+	&[open] summary svg {
+		transform: rotate(90deg);
+	}
+	p {
+		margin: 0 0 18px;
+		color: var(--pb-muted);
+		line-height: 1.6;
+	}
 }

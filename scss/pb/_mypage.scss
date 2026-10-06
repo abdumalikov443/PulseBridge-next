@@ -129,3 +129,53 @@
 	align-items: center;
 	flex-wrap: wrap;
 }
+
+/* login / signup */
+.pb-auth {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 32px;
+	align-items: center;
+
+	&__form {
+		flex: 999 1 460px;
+		min-width: 0;
+		gap: 18px !important;
+		padding: 28px !important;
+	}
+
+	&__visual {
+		flex: 1 1 320px;
+		position: relative;
+		min-height: 420px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		@media (max-width: $pb-tablet) {
+			display: none;
+		}
+	}
+
+	&__role {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		text-align: left;
+		padding: 14px;
+		border-radius: var(--pb-radius-sm);
+		border: 0;
+		background: var(--pb-bg);
+		color: var(--pb-ink);
+		cursor: pointer;
+		box-shadow: inset 0 0 0 1px #c9dce8;
+		transition: box-shadow 0.2s ease, background-color 0.2s ease;
+		span {
+			font-size: 13px;
+			color: var(--pb-muted);
+		}
+		&[data-active='true'] {
+			background: var(--pb-soft-1);
+			box-shadow: inset 0 0 0 2px var(--pb-deep);
+		}
+	}
+}
