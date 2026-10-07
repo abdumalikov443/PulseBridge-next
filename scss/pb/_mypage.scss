@@ -515,3 +515,17 @@
 	font-size: 13px;
 	color: var(--pb-warning);
 }
+
+/* save button with the reason it is disabled */
+.pb-form-actions {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 8px;
+}
+.pb-form-hint {
+	margin: 0;
+	font-size: 13px;
+	color: var(--pb-warning);
+	text-align: right;
+}

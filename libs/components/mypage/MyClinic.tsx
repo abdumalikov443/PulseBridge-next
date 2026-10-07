@@ -47,12 +47,14 @@ const MyClinic = () => {
 	});
 
 	/** HANDLERS **/
-	const invalid =
-		!clinic ||
-		(clinic.clinicName ?? '').trim().length < 3 ||
-		(clinic.clinicAddress ?? '').trim().length < 3 ||
-		(clinic.clinicDesc ?? '').trim().length < 5 ||
-		!!scheduleError(withScheduleDefaults(clinic));
+	const problems: string[] = [];
+	if (clinic) {
+		if ((clinic.clinicName ?? '').trim().length < 3) problems.push('clinic name must be at least 3 characters');
+		if ((clinic.clinicAddress ?? '').trim().length < 3) problems.push('address must be at least 3 characters');
+		if ((clinic.clinicDesc ?? '').trim().length < 5) problems.push(`description must be at least 5 characters (now ${(clinic.clinicDesc ?? '').trim().length})`);
+		if (scheduleError(withScheduleDefaults(clinic))) problems.push('check the working hours');
+	}
+	const invalid = !clinic || problems.length > 0;
 
 	const saveHandler = async () => {
 		try {
@@ -133,10 +135,11 @@ const MyClinic = () => {
 						<textarea className="pb-textarea" rows={5} maxLength={500} value={clinic.clinicDesc} onChange={(e) => setClinic({ ...clinic, clinicDesc: e.target.value })} />
 					</label>
 					<ScheduleFields value={withScheduleDefaults(clinic)} onChange={(schedule) => setClinic({ ...clinic, ...schedule })} />
-					<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+					<div className="pb-form-actions">
 						<button type="submit" className="pb-btn pb-btn--primary" disabled={invalid || saving || uploading}>
 							{saving || uploading ? <EcgLine small /> : 'Save changes'}
 						</button>
+						{problems.length > 0 && <p className="pb-form-hint">To save: {problems.join('; ')}.</p>}
 					</div>
 				</form>
 			)}

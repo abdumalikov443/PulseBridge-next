@@ -62,6 +62,14 @@ const MyProfile = () => {
 		}
 	};
 
+	// same limits as the backend MemberUpdate, so the save does not end in "Bad Request"
+	const problems: string[] = [];
+	const nick = (form.memberNick ?? '').trim();
+	const fullName = (form.memberFullName ?? '').trim();
+	if (nick.length < 3 || nick.length > 12) problems.push('nickname must be 3–12 characters');
+	if (!(form.memberPhone ?? '').trim()) problems.push('phone is required');
+	if (fullName && fullName.length < 3) problems.push('full name must be at least 3 characters (or leave it empty)');
+
 	const field = (key: keyof MemberUpdate, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (
 		<label className="pb-field">
 			<span>{label}</span>
@@ -90,10 +98,11 @@ const MyProfile = () => {
 					<span>About me</span>
 					<textarea className="pb-textarea" rows={3} value={form.memberDesc ?? ''} onChange={(e) => setForm({ ...form, memberDesc: e.target.value })} />
 				</label>
-				<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-					<button type="submit" className="pb-btn pb-btn--primary" disabled={saving || uploading || !form.memberNick || !form.memberPhone}>
+				<div className="pb-form-actions">
+					<button type="submit" className="pb-btn pb-btn--primary" disabled={saving || uploading || problems.length > 0}>
 						{saving || uploading ? <EcgLine small /> : 'Save profile'}
 					</button>
+					{problems.length > 0 && <p className="pb-form-hint">To save: {problems.join('; ')}.</p>}
 				</div>
 			</form>
 			{user.memberType === MemberType.DOCTOR && <DoctorProfileBox />}
