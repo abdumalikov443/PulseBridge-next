@@ -1,42 +1,31 @@
-import { MeLiked, TotalCounter } from '../common';
+import { TotalCounter } from '../common';
 import { Member } from '../member/member';
+import { Doctor } from '../doctor/doctor';
+import { Clinic } from '../clinic/clinic';
+import { FollowGroup } from '../../enums/follow.enum';
 
 export interface MeFollowed {
-	followingId: string;
 	followerId: string;
+	followRefId: string;
 	myFollowing: boolean;
 }
 
-export interface Follower {
+// a member follows a doctor profile or a clinic
+export interface Follow {
 	_id: string;
-	followingId: string;
 	followerId: string;
+	followGroup: FollowGroup;
+	followRefId: string;
 	createdAt: Date;
 	updatedAt: Date;
 	/** from aggregation **/
-	meLiked?: MeLiked[];
 	meFollowed?: MeFollowed[];
 	followerData?: Member;
+	doctorData?: Doctor;
+	clinicData?: Clinic;
 }
 
-export interface Followers {
-	list: Follower[];
-	metaCounter: TotalCounter[];
-}
-
-export interface Following {
-	_id: string;
-	followingId: string;
-	followerId: string;
-	createdAt: Date;
-	updatedAt: Date;
-	/** from aggregation **/
-	meLiked?: MeLiked[];
-	meFollowed?: MeFollowed[];
-	followingData?: Member;
-}
-
-export interface Followings {
-	list: Following[];
+export interface Follows {
+	list: Follow[];
 	metaCounter: TotalCounter[];
 }

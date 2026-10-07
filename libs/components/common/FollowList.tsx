@@ -3,12 +3,13 @@ import Link from 'next/link';
 import { Pagination } from '@mui/material';
 import { useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
-import { GET_CLINICS, GET_DOCTORS, GET_MEMBER_FOLLOWERS, GET_MEMBER_FOLLOWINGS } from '../../../apollo/user/query';
+import { GET_CLINICS, GET_DOCTORS, GET_FOLLOWERS, GET_MEMBER_FOLLOWINGS } from '../../../apollo/user/query';
 import { LIKE_TARGET_CLINIC, LIKE_TARGET_DOCTOR } from '../../../apollo/user/mutation';
 import { useFollowing, useLikeToggle } from '../../hooks/useEngagement';
-import { Member } from '../../types/member/member';
+import { Follow } from '../../types/follow/follow';
 import { Doctor } from '../../types/doctor/doctor';
 import { Clinic } from '../../types/clinic/clinic';
+import { FollowGroup } from '../../enums/follow.enum';
 import { MemberType } from '../../enums/member.enum';
 import { T } from '../../types/common';
 import { getMemberName } from '../../config';
@@ -17,133 +18,169 @@ import Avatar from '../ui/Avatar';
 import Icon from '../ui/Icon';
 import { SkeletonCards } from '../ui/Loaders';
 
+export interface FollowTarget {
+	followGroup: FollowGroup;
+	refId: string;
+}
+
 interface FollowListProps {
+	// followers of a doctor / clinic, or what a member follows
 	mode: 'followers' | 'followings';
-	memberId: string;
+	target?: FollowTarget;
+	memberId?: string;
+}
+
+interface Row {
+	key: string;
+	name: string;
+	image?: string | null;
+	role: string;
+	href: string | null;
+	// set for doctors and clinics: like and follow work on their own id
+	target?: { group: FollowGroup; id: string; ownerId: string };
 }
 
 const LIMIT = 10;
-// follow lists give member ids only; doctor and clinic ids (for like and their page) come from these lists
+// list items carry no like state; the public doctor / clinic lists do (meLiked)
 const TARGET_LIMIT = 100;
 
-const usePageTargets = () => {
-	const [doctors, setDoctors] = useState<Record<string, Doctor>>({});
-	const [clinics, setClinics] = useState<Record<string, Clinic>>({});
-	const byMember = <V extends { memberId: string }>(list: V[] = []) =>
-		list.reduce<Record<string, V>>((acc, item) => ({ ...acc, [item.memberId]: item }), {});
-
+const usePublicTargets = () => {
+	const [doctors, setDoctors] = useState<Doctor[]>([]);
+	const [clinics, setClinics] = useState<Clinic[]>([]);
 	useQuery(GET_DOCTORS, {
 		fetchPolicy: 'network-only',
 		variables: { input: { page: 1, limit: TARGET_LIMIT, search: {} } },
-		onCompleted: (data: T) => setDoctors(byMember(data?.getDoctors?.list)),
+		onCompleted: (data: T) => setDoctors(data?.getDoctors?.list ?? []),
 	});
 	useQuery(GET_CLINICS, {
 		fetchPolicy: 'network-only',
 		variables: { input: { page: 1, limit: TARGET_LIMIT, search: {} } },
-		onCompleted: (data: T) => setClinics(byMember(data?.getClinics?.list)),
+		onCompleted: (data: T) => setClinics(data?.getClinics?.list ?? []),
 	});
-
 	return { doctors, clinics };
 };
 
-// followers or followings of a member: doctors and clinics link to their page with like and follow; patients are plain rows
-const FollowList = ({ mode, memberId }: FollowListProps) => {
+const FollowList = ({ mode, target, memberId }: FollowListProps) => {
 	const user = useReactiveVar(userVar);
 	const [page, setPage] = useState(1);
-	const [members, setMembers] = useState<Member[] | null>(null);
+	const [items, setItems] = useState<Follow[] | null>(null);
 	const [total, setTotal] = useState(0);
 	const { isFollowing, canFollow, toggleFollow } = useFollowing();
 	const doctorLike = useLikeToggle(LIKE_TARGET_DOCTOR);
 	const clinicLike = useLikeToggle(LIKE_TARGET_CLINIC);
-	const { doctors, clinics } = usePageTargets();
+	const { doctors, clinics } = usePublicTargets();
 	const isFollowers = mode === 'followers';
-	const key = isFollowers ? 'getMemberFollowers' : 'getMemberFollowings';
+	const key = isFollowers ? 'getFollowers' : 'getMemberFollowings';
 
 	/** APOLLO REQUESTS **/
-	useQuery(isFollowers ? GET_MEMBER_FOLLOWERS : GET_MEMBER_FOLLOWINGS, {
+	useQuery(isFollowers ? GET_FOLLOWERS : GET_MEMBER_FOLLOWINGS, {
 		fetchPolicy: 'network-only',
-		skip: !memberId,
-		variables: { input: { page, limit: LIMIT, search: isFollowers ? { followingId: memberId } : { followerId: memberId } } },
+		skip: isFollowers ? !target?.refId : !memberId,
+		variables: {
+			input: { page, limit: LIMIT, search: isFollowers ? { followGroup: target?.followGroup, refId: target?.refId } : { followerId: memberId } },
+		},
 		onCompleted: (data: T) => {
-			const list = data?.[key]?.list ?? [];
-			setMembers(list.map((ele: T) => (isFollowers ? ele.followerData : ele.followingData)).filter(Boolean));
+			setItems(data?.[key]?.list ?? []);
 			setTotal(data?.[key]?.metaCounter?.[0]?.total ?? 0);
 		},
-		onError: () => setMembers([]),
+		onError: () => setItems([]),
 	});
 
-	const rows = useMemo(
-		() =>
-			(members ?? []).map((member) => {
-				const doctor = member.memberType === MemberType.DOCTOR ? doctors[member._id] : undefined;
-				const clinic = member.memberType === MemberType.CLINIC ? clinics[member._id] : undefined;
-				const isPro = member.memberType === MemberType.DOCTOR || member.memberType === MemberType.CLINIC;
-				let href: string | null = null;
-				if (member._id === user._id) href = '/mypage';
-				else if (doctor) href = `/doctor/detail?id=${doctor._id}`;
-				else if (clinic) href = `/clinic/detail?id=${clinic._id}`;
-				else if (isPro) href = `/member?memberId=${member._id}`;
-				return { member, doctor, clinic, isPro, href };
-			}),
-		[members, doctors, clinics, user._id],
-	);
+	const rows: Row[] = useMemo(() => {
+		const doctorById = new Map(doctors.map((ele) => [ele._id, ele]));
+		const doctorByMember = new Map(doctors.map((ele) => [ele.memberId, ele]));
+		const clinicByMember = new Map(clinics.map((ele) => [ele.memberId, ele]));
+		const doctorRow = (doctor: Doctor): Row => ({
+			key: doctor._id,
+			name: getMemberName(doctor.memberData),
+			image: doctor.memberData?.memberImage,
+			role: `Doctor · ${formatEnum(doctor.specialty)}`,
+			href: `/doctor/detail?id=${doctor._id}`,
+			target: { group: FollowGroup.DOCTOR, id: doctor._id, ownerId: doctor.memberId },
+		});
+		const clinicRow = (clinic: Clinic): Row => ({
+			key: clinic._id,
+			name: clinic.clinicName,
+			image: clinic.clinicImage,
+			role: `Clinic · ${formatEnum(clinic.clinicType)}`,
+			href: `/clinic/detail?id=${clinic._id}`,
+			target: { group: FollowGroup.CLINIC, id: clinic._id, ownerId: clinic.memberId },
+		});
+
+		return (items ?? []).flatMap((item): Row[] => {
+			if (!isFollowers) {
+				if (item.doctorData) return [doctorRow(doctorById.get(item.doctorData._id) ?? item.doctorData)];
+				if (item.clinicData) return [clinicRow(item.clinicData)];
+				return [];
+			}
+			const member = item.followerData;
+			if (!member) return [];
+			// a follower who owns a public doctor profile or clinic shows it; patients are plain rows
+			const doctor = member.memberType === MemberType.DOCTOR ? doctorByMember.get(member._id) : undefined;
+			const clinic = member.memberType === MemberType.CLINIC ? clinicByMember.get(member._id) : undefined;
+			if (doctor) return [doctorRow(doctor)];
+			if (clinic) return [clinicRow(clinic)];
+			return [{ key: member._id, name: getMemberName(member), image: member.memberImage, role: formatEnum(member.memberType), href: null }];
+		});
+	}, [items, doctors, clinics, isFollowers]);
+
+	const likeOf = (row: Row) => {
+		if (!row.target) return null;
+		if (row.target.group === FollowGroup.DOCTOR) {
+			const doctor = doctors.find((ele) => ele._id === row.target?.id);
+			return { hook: doctorLike, state: doctorLike.likeState(row.target.id, !!doctor?.meLiked?.[0]?.myFavorite, doctor?.doctorLikes ?? 0) };
+		}
+		const clinic = clinics.find((ele) => ele._id === row.target?.id);
+		return { hook: clinicLike, state: clinicLike.likeState(row.target.id, !!clinic?.meLiked?.[0]?.myFavorite, clinic?.clinicLikes ?? 0) };
+	};
 
 	return (
 		<div className="pb-follow-list">
-			{members === null && <SkeletonCards count={3} />}
-			{members?.length === 0 && <p className="pb-empty">{isFollowers ? 'No followers yet.' : 'Not following anyone yet.'}</p>}
-			{rows.map(({ member, doctor, clinic, isPro, href }) => {
-				const name = getMemberName(member);
-				const role = doctor ? `Doctor · ${formatEnum(doctor.specialty)}` : clinic ? `Clinic · ${formatEnum(clinic.clinicType)}` : formatEnum(member.memberType);
+			{items === null && <SkeletonCards count={3} />}
+			{items?.length === 0 && <p className="pb-empty">{isFollowers ? 'No followers yet.' : 'Not following any doctor or clinic yet.'}</p>}
+			{rows.map((row) => {
 				const info = (
 					<>
-						<Avatar name={name} image={member.memberImage} size={42} />
+						<Avatar name={row.name} image={row.image} size={42} radius={row.target?.group === FollowGroup.CLINIC ? 12 : '50%'} />
 						<span className="pb-follow-row__text">
-							<strong>{name}</strong>
-							<small>{role}</small>
+							<strong>{row.name}</strong>
+							<small>{row.role}</small>
 						</span>
 					</>
 				);
-				const target = doctor ?? clinic;
-				const like = doctor
-					? { ...doctorLike, state: doctorLike.likeState(doctor._id, !!doctor.meLiked?.[0]?.myFavorite, doctor.doctorLikes) }
-					: clinic
-					? { ...clinicLike, state: clinicLike.likeState(clinic._id, !!clinic.meLiked?.[0]?.myFavorite, clinic.clinicLikes) }
-					: null;
-				const following = isFollowing(member._id);
+				const like = likeOf(row);
+				const following = row.target ? isFollowing(row.target.id) : false;
 
 				return (
-					<div key={member._id} className="pb-follow-row">
-						{href ? (
-							<Link href={href} className="pb-follow-row__main">
+					<div key={row.key} className="pb-follow-row">
+						{row.href ? (
+							<Link href={row.href} className="pb-follow-row__main">
 								{info}
 							</Link>
 						) : (
 							<span className="pb-follow-row__main">{info}</span>
 						)}
-						{isPro && user._id && member._id !== user._id && (
+						{row.target && user._id && canFollow(row.target.ownerId) && (
 							<span className="pb-follow-row__acts">
-								{target && like && (
+								{like && (
 									<button
 										type="button"
 										className={`pb-follow-row__like ${like.state.liked ? 'is-on' : ''}`}
 										aria-pressed={like.state.liked}
-										aria-label={like.state.liked ? `Unlike ${name}` : `Like ${name}`}
-										onClick={() => like.toggleLike(target._id, like.state)}
+										aria-label={like.state.liked ? `Unlike ${row.name}` : `Like ${row.name}`}
+										onClick={() => row.target && like.hook.toggleLike(row.target.id, like.state)}
 									>
 										<Icon name="heart" size={16} fill={like.state.liked} />
 									</button>
 								)}
-								{canFollow(member._id) && (
-									<button
-										type="button"
-										className={`pb-chip ${following ? 'pb-chip--following' : 'pb-chip--follow'}`}
-										aria-pressed={following}
-										onClick={() => toggleFollow(member._id)}
-									>
-										{following ? 'Following' : 'Follow'}
-									</button>
-								)}
+								<button
+									type="button"
+									className={`pb-chip ${following ? 'pb-chip--following' : 'pb-chip--follow'}`}
+									aria-pressed={following}
+									onClick={() => row.target && toggleFollow(row.target.group, row.target.id)}
+								>
+									{following ? 'Following' : 'Follow'}
+								</button>
 							</span>
 						)}
 					</div>

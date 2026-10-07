@@ -1,6 +1,5 @@
 import { MemberStatus, MemberType } from '../../enums/member.enum';
 import { MeLiked, TotalCounter } from '../common';
-import { MeFollowed } from '../follow/follow';
 
 export interface Member {
 	_id: string;
@@ -26,7 +25,6 @@ export interface Member {
 	updatedAt: Date;
 	// Enable for authentications
 	meLiked?: MeLiked[];
-	meFollowed?: MeFollowed[];
 	accessToken?: string;
 }
 

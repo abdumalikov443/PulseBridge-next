@@ -6,6 +6,7 @@ import { MemberType } from '../../enums/member.enum';
 import { formatCount } from '../ui/ActionChips';
 import Icon, { IconName } from '../ui/Icon';
 import MySection from './MySection';
+import { useMyFollowTarget } from '../../hooks/useMyFollowTarget';
 import MyAppointments from './MyAppointments';
 
 interface QuickAction {
@@ -40,8 +41,10 @@ const quickActions = (memberType: string): QuickAction[] => {
 const MyOverview = () => {
 	const user = useReactiveVar(userVar);
 	const name = user.memberFullName || user.memberNick;
+	const target = useMyFollowTarget();
 	const stats: { label: string; value: number; icon: IconName }[] = [
-		{ label: 'Followers', value: user.memberFollowers, icon: 'users' },
+		// patients are not followed; doctors and clinics show the followers of their profile
+		...(target ? [{ label: 'Followers', value: target.followers, icon: 'users' as IconName }] : []),
 		{ label: 'Following', value: user.memberFollowings, icon: 'userCheck' },
 		{ label: 'Articles', value: user.memberArticles, icon: 'comment' },
 		{ label: 'Likes', value: user.memberLikes, icon: 'heart' },

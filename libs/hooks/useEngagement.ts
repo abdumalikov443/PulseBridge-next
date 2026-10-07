@@ -6,8 +6,9 @@ import { SUBSCRIBE, UNSUBSCRIBE } from '../../apollo/user/mutation';
 import { Messages } from '../config';
 import { sweetMixinErrorAlert } from '../sweetAlert';
 import { T } from '../types/common';
+import { FollowGroup } from '../enums/follow.enum';
 
-// members I follow; cards read the follow state from here (lists do not carry meFollowed)
+// doctors and clinics I follow (ids of the doctor / clinic, not of their members)
 export const useFollowing = () => {
 	const user = useReactiveVar(userVar);
 	const [following, setFollowing] = useState<Set<string>>(new Set());
@@ -19,28 +20,29 @@ export const useFollowing = () => {
 		skip: !user?._id,
 		variables: { input: { page: 1, limit: 200, search: { followerId: user?._id } } },
 		onCompleted: (data: T) => {
-			const ids = (data?.getMemberFollowings?.list ?? []).map((ele: T) => ele.followingId);
+			const ids = (data?.getMemberFollowings?.list ?? []).map((ele: T) => ele.followRefId);
 			setFollowing(new Set(ids));
 		},
 	});
 
-	const isFollowing = useCallback((memberId?: string) => !!memberId && following.has(memberId), [following]);
+	const isFollowing = useCallback((refId?: string) => !!refId && following.has(refId), [following]);
 
-	// nobody follows themselves: hide the button for my own cards
-	const canFollow = useCallback((memberId?: string) => !!memberId && memberId !== user?._id, [user?._id]);
+	// nobody follows their own doctor profile or clinic
+	const canFollow = useCallback((ownerMemberId?: string) => !!ownerMemberId && ownerMemberId !== user?._id, [user?._id]);
 
 	const toggleFollow = useCallback(
-		async (memberId?: string) => {
+		async (followGroup: FollowGroup, refId?: string) => {
 			try {
-				if (!memberId) return;
+				if (!refId) return;
 				if (!user?._id) throw new Error(Messages.error2);
-				const on = following.has(memberId);
+				const on = following.has(refId);
 				const next = new Set(following);
-				if (on) next.delete(memberId);
-				else next.add(memberId);
+				if (on) next.delete(refId);
+				else next.add(refId);
 				setFollowing(next);
-				if (on) await unsubscribe({ variables: { input: memberId } });
-				else await subscribe({ variables: { input: memberId } });
+				const input = { followGroup, refId };
+				if (on) await unsubscribe({ variables: { input } });
+				else await subscribe({ variables: { input } });
 			} catch (err: any) {
 				sweetMixinErrorAlert(err.message).then();
 			}

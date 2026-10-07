@@ -30,8 +30,9 @@ const sourceOf = (item: Notification): { href: string; label: string } => {
 			return { href: '/mypage?category=myAppointments', label: 'My appointments' };
 		case NotificationType.DOCTOR_REQUEST:
 			return { href: '/mypage?category=joinRequests', label: 'Join requests' };
+		// someone followed my doctor profile / clinic
 		case NotificationType.FOLLOW:
-			return { href: `/member?memberId=${item.authorId}`, label: `${item.authorData?.memberNick ?? 'Member'}'s profile` };
+			return { href: '/mypage?category=followers', label: 'Your followers' };
 	}
 	if (item.notificationGroup === NotificationGroup.CLINIC) return { href: '/mypage?category=myClinic', label: 'My clinic' };
 	return { href: `/member?memberId=${item.authorId}`, label: `${item.authorData?.memberNick ?? 'Member'}'s profile` };
@@ -143,7 +144,7 @@ const NotificationMenu = () => {
 									<span className="pb-note-item__src">
 										<Icon name="arrow" size={12} />
 										{source.label}
-										{item.authorData?.memberNick && item.notificationType !== NotificationType.FOLLOW && <em> · by {item.authorData.memberNick}</em>}
+										{item.authorData?.memberNick && <em> · by {item.authorData.memberNick}</em>}
 									</span>
 								</span>
 								<span className="pb-note-item__time">

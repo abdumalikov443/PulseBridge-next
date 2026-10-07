@@ -13,6 +13,7 @@ import ActionChips from '../../libs/components/ui/ActionChips';
 import Icon from '../../libs/components/ui/Icon';
 import FollowButton from '../../libs/components/ui/FollowButton';
 import FollowModal, { FollowMode } from '../../libs/components/common/FollowModal';
+import { FollowGroup } from '../../libs/enums/follow.enum';
 import { formatCount } from '../../libs/components/ui/ActionChips';
 import ClinicJoinButton from '../../libs/components/common/ClinicJoinButton';
 import { EcgLine, SkeletonCards } from '../../libs/components/ui/Loaders';
@@ -72,7 +73,9 @@ const ClinicDetail: NextPage = () => {
 	}
 
 	const like = clinicLike.likeState(clinic._id, !!clinic.meLiked?.[0]?.myFavorite, clinic.clinicLikes);
-	const following = isFollowing(clinic.memberId);
+	const following = isFollowing(clinic._id);
+	const followers = (clinic.clinicFollowers ?? 0) + followDelta;
+	const followings = clinic.memberData?.memberFollowings ?? 0;
 	const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(clinic.clinicAddress)}`;
 	const tabs: { id: Tab; label: string }[] = [
 		{ id: 'overview', label: 'Overview' },
@@ -121,16 +124,17 @@ const ClinicDetail: NextPage = () => {
 					/>
 					<div className="pb-follow-counts">
 						<button type="button" onClick={() => setFollowMode('followers')}>
-							<strong>{formatCount((clinic.memberData?.memberFollowers ?? 0) + followDelta)}</strong> {(clinic.memberData?.memberFollowers ?? 0) + followDelta === 1 ? 'follower' : 'followers'}
+							<strong>{formatCount(followers)}</strong> {followers === 1 ? 'follower' : 'followers'}
 						</button>
 						<button type="button" onClick={() => setFollowMode('followings')}>
-							<strong>{formatCount((clinic.memberData?.memberFollowings ?? 0))}</strong> following
+							<strong>{formatCount(followings)}</strong> following
 						</button>
 					</div>
 					<FollowModal
+						target={{ followGroup: FollowGroup.CLINIC, refId: clinic._id }}
 						memberId={clinic.memberId}
 						mode={followMode}
-						counts={{ followers: (clinic.memberData?.memberFollowers ?? 0) + followDelta, followings: (clinic.memberData?.memberFollowings ?? 0) }}
+						counts={{ followers, followings }}
 						onMode={setFollowMode}
 						onClose={() => setFollowMode(null)}
 					/>
@@ -142,7 +146,7 @@ const ClinicDetail: NextPage = () => {
 							following={following}
 							onClick={() => {
 								setFollowDelta((delta) => delta + (following ? -1 : 1));
-								toggleFollow(clinic.memberId);
+								toggleFollow(FollowGroup.CLINIC, clinic._id);
 							}}
 						/>
 					)}

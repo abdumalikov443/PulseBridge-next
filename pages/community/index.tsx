@@ -12,7 +12,7 @@ import Icon from '../../libs/components/ui/Icon';
 import { userVar } from '../../apollo/store';
 import { GET_ARTICLES } from '../../apollo/user/query';
 import { LIKE_TARGET_ARTICLE } from '../../apollo/user/mutation';
-import { useFollowing, useLikeToggle } from '../../libs/hooks/useEngagement';
+import { useLikeToggle } from '../../libs/hooks/useEngagement';
 import { Article } from '../../libs/types/article/article';
 import { ArticlesInquiry } from '../../libs/types/article/article.input';
 import { Direction } from '../../libs/enums/common.enum';
@@ -38,7 +38,6 @@ const Community: NextPage = () => {
 	const [text, setText] = useState('');
 	const [articles, setArticles] = useState<Article[] | null>(null);
 	const [total, setTotal] = useState(0);
-	const { isFollowing, canFollow, toggleFollow } = useFollowing();
 	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_ARTICLE);
 
 	/** APOLLO REQUESTS **/
@@ -121,8 +120,6 @@ const Community: NextPage = () => {
 							liked={state.liked}
 							likes={state.likes}
 							onLike={() => toggleLike(article._id, state)}
-							following={isFollowing(article.memberId)}
-							onFollow={canFollow(article.memberId) ? () => toggleFollow(article.memberId) : undefined}
 						/>
 					);
 				})}

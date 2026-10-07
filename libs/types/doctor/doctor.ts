@@ -2,6 +2,7 @@ import { DoctorSpecialty, JoinRequestStatus } from '../../enums/doctor.enum';
 import { Member } from '../member/member';
 import { Clinic } from '../clinic/clinic';
 import { MeLiked, TotalCounter } from '../common';
+import { MeFollowed } from '../follow/follow';
 
 export interface Doctor {
 	_id: string;
@@ -13,11 +14,13 @@ export interface Doctor {
 	doctorViews: number;
 	doctorLikes: number;
 	doctorComments: number;
+	doctorFollowers: number;
 	doctorRank: number;
 	createdAt: Date;
 	updatedAt: Date;
 	/** from aggregation **/
 	meLiked?: MeLiked[];
+	meFollowed?: MeFollowed[];
 	memberData?: Member;
 	clinicData?: Clinic;
 }

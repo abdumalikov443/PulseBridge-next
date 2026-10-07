@@ -29,6 +29,7 @@ const initialInput: DoctorsInquiry = { page: 1, limit: 12, sort: 'doctorRank', d
 const sortOptions = [
 	{ value: 'doctorRank', label: 'Top rated' },
 	{ value: 'doctorLikes', label: 'Most liked' },
+	{ value: 'doctorFollowers', label: 'Most followed' },
 	{ value: 'doctorViews', label: 'Most viewed' },
 	{ value: 'experience', label: 'Experience' },
 	{ value: 'createdAt', label: 'Newest' },

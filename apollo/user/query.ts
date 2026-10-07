@@ -27,11 +27,6 @@ export const GET_MEMBER = gql(`
 			deletedAt
 			createdAt
 			updatedAt
-			meFollowed {
-				followingId
-				followerId
-				myFollowing
-			}
 		}
 	}
 `);
@@ -53,6 +48,7 @@ export const GET_CLINIC = gql`
 			clinicViews
 			clinicLikes
 			clinicComments
+			clinicFollowers
 			clinicDoctors
 			clinicRank
 			memberId
@@ -74,6 +70,11 @@ export const GET_CLINIC = gql`
 				likeRefId
 				myFavorite
 			}
+			meFollowed {
+				followerId
+				followRefId
+				myFollowing
+			}
 		}
 	}
 `;
@@ -92,6 +93,7 @@ export const GET_CLINICS = gql`
 				clinicViews
 				clinicLikes
 				clinicComments
+				clinicFollowers
 				clinicDoctors
 				clinicRank
 				memberId
@@ -101,6 +103,11 @@ export const GET_CLINICS = gql`
 					memberId
 					likeRefId
 					myFavorite
+				}
+				meFollowed {
+					followerId
+					followRefId
+					myFollowing
 				}
 			}
 			metaCounter {
@@ -123,6 +130,7 @@ export const GET_MY_CLINIC = gql`
 			clinicViews
 			clinicLikes
 			clinicComments
+			clinicFollowers
 			clinicDoctors
 			clinicRank
 			memberId
@@ -211,6 +219,7 @@ export const GET_DOCTOR = gql`
 			doctorViews
 			doctorLikes
 			doctorComments
+			doctorFollowers
 			doctorRank
 			createdAt
 			updatedAt
@@ -218,6 +227,11 @@ export const GET_DOCTOR = gql`
 				memberId
 				likeRefId
 				myFavorite
+			}
+			meFollowed {
+				followerId
+				followRefId
+				myFollowing
 			}
 			memberData {
 				_id
@@ -252,6 +266,7 @@ export const GET_DOCTORS = gql`
 				doctorViews
 				doctorLikes
 				doctorComments
+				doctorFollowers
 				doctorRank
 				createdAt
 				updatedAt
@@ -259,6 +274,11 @@ export const GET_DOCTORS = gql`
 					memberId
 					likeRefId
 					myFavorite
+				}
+				meFollowed {
+					followerId
+					followRefId
+					myFollowing
 				}
 				memberData {
 					_id
@@ -291,6 +311,7 @@ export const GET_MY_DOCTOR_PROFILE = gql`
 			doctorViews
 			doctorLikes
 			doctorComments
+			doctorFollowers
 			doctorRank
 			createdAt
 			updatedAt
@@ -603,38 +624,22 @@ export const GET_COMMENTS = gql`
 /**************************
  *         FOLLOW        *
  *************************/
-export const GET_MEMBER_FOLLOWERS = gql`
-	query GetMemberFollowers($input: FollowInquiry!) {
-		getMemberFollowers(input: $input) {
+// members who follow a doctor profile or a clinic
+export const GET_FOLLOWERS = gql`
+	query GetFollowers($input: FollowersInquiry!) {
+		getFollowers(input: $input) {
 			list {
 				_id
-				followingId
 				followerId
+				followGroup
+				followRefId
 				createdAt
-				updatedAt
-				meLiked {
-					memberId
-					likeRefId
-					myFavorite
-				}
-				meFollowed {
-					followingId
-					followerId
-					myFollowing
-				}
 				followerData {
 					_id
 					memberType
-					memberStatus
 					memberNick
 					memberFullName
 					memberImage
-					memberArticles
-					memberFollowers
-					memberFollowings
-					memberLikes
-					memberViews
-					createdAt
 				}
 			}
 			metaCounter {
@@ -644,38 +649,45 @@ export const GET_MEMBER_FOLLOWERS = gql`
 	}
 `;
 
+// doctors and clinics a member follows
 export const GET_MEMBER_FOLLOWINGS = gql`
-	query GetMemberFollowings($input: FollowInquiry!) {
+	query GetMemberFollowings($input: FollowingsInquiry!) {
 		getMemberFollowings(input: $input) {
 			list {
 				_id
-				followingId
 				followerId
+				followGroup
+				followRefId
 				createdAt
-				updatedAt
-				followingData {
-					_id
-					memberType
-					memberStatus
-					memberNick
-					memberFullName
-					memberImage
-					memberArticles
-					memberFollowers
-					memberFollowings
-					memberLikes
-					memberViews
-					createdAt
-				}
-				meLiked {
-					memberId
-					likeRefId
-					myFavorite
-				}
 				meFollowed {
-					followingId
 					followerId
+					followRefId
 					myFollowing
+				}
+				doctorData {
+					_id
+					memberId
+					clinicId
+					specialty
+					experience
+					doctorLikes
+					doctorFollowers
+					memberData {
+						_id
+						memberNick
+						memberFullName
+						memberImage
+					}
+				}
+				clinicData {
+					_id
+					memberId
+					clinicName
+					clinicType
+					clinicImage
+					clinicAddress
+					clinicLikes
+					clinicFollowers
 				}
 			}
 			metaCounter {

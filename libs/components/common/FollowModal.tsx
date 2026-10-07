@@ -1,39 +1,48 @@
 import React from 'react';
 import { Dialog } from '@mui/material';
-import FollowList from './FollowList';
+import FollowList, { FollowTarget } from './FollowList';
 import { formatCount } from '../ui/ActionChips';
 import Icon from '../ui/Icon';
 
 export type FollowMode = 'followers' | 'followings';
 
 interface FollowModalProps {
+	// whose followers (a doctor / clinic); without it only the "Following" list is shown
+	target?: FollowTarget;
+	// whose followings (the member behind the profile)
 	memberId: string;
 	mode: FollowMode | null;
-	counts: Record<FollowMode, number>;
+	counts: Partial<Record<FollowMode, number>>;
 	onMode: (mode: FollowMode) => void;
 	onClose: () => void;
 }
 
-// followers / following of a member in a popup, with a switch between the two lists
-const FollowModal = ({ memberId, mode, counts, onMode, onClose }: FollowModalProps) => (
-	<Dialog open={!!mode} onClose={onClose} PaperProps={{ className: 'pb-follow-modal' }} aria-labelledby="follow-modal-title">
-		<div className="pb-follow-modal__head">
-			<h2 id="follow-modal-title" className="pb-sr">
-				{mode === 'followers' ? 'Followers' : 'Following'}
-			</h2>
-			<div className="pb-follow-modal__tabs" role="tablist">
-				{(['followers', 'followings'] as FollowMode[]).map((item) => (
-					<button key={item} type="button" role="tab" aria-selected={mode === item} className={`pb-pill ${mode === item ? 'pb-pill--active' : ''}`} onClick={() => onMode(item)}>
-						{item === 'followers' ? 'Followers' : 'Following'} · {formatCount(counts[item])}
-					</button>
-				))}
+const FollowModal = ({ target, memberId, mode, counts, onMode, onClose }: FollowModalProps) => {
+	const modes: FollowMode[] = target ? ['followers', 'followings'] : ['followings'];
+
+	return (
+		<Dialog open={!!mode} onClose={onClose} PaperProps={{ className: 'pb-follow-modal' }} aria-labelledby="follow-modal-title">
+			<div className="pb-follow-modal__head">
+				<h2 id="follow-modal-title" className="pb-sr">
+					{mode === 'followers' ? 'Followers' : 'Following'}
+				</h2>
+				<div className="pb-follow-modal__tabs" role="tablist">
+					{modes.map((item) => (
+						<button key={item} type="button" role="tab" aria-selected={mode === item} className={`pb-pill ${mode === item ? 'pb-pill--active' : ''}`} onClick={() => onMode(item)}>
+							{item === 'followers' ? 'Followers' : 'Following'} · {formatCount(counts[item] ?? 0)}
+						</button>
+					))}
+				</div>
+				<button type="button" className="pb-drawer__close" aria-label="Close" onClick={onClose}>
+					<Icon name="close" size={18} />
+				</button>
 			</div>
-			<button type="button" className="pb-drawer__close" aria-label="Close" onClick={onClose}>
-				<Icon name="close" size={18} />
-			</button>
-		</div>
-		<div className="pb-follow-modal__body">{mode && <FollowList key={mode} mode={mode} memberId={memberId} />}</div>
-	</Dialog>
-);
+			<div className="pb-follow-modal__body">
+				{mode === 'followers' && target && <FollowList key="followers" mode="followers" target={target} />}
+				{mode === 'followings' && <FollowList key="followings" mode="followings" memberId={memberId} />}
+			</div>
+		</Dialog>
+	);
+};
 
 export default FollowModal;

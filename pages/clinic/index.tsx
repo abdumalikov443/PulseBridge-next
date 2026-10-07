@@ -29,6 +29,7 @@ const initialInput: ClinicsInquiry = { page: 1, limit: 9, sort: 'clinicRank', di
 const sortOptions = [
 	{ value: 'clinicRank', label: 'Top rated' },
 	{ value: 'clinicLikes', label: 'Most liked' },
+	{ value: 'clinicFollowers', label: 'Most followed' },
 	{ value: 'clinicDoctors', label: 'Most doctors' },
 	{ value: 'createdAt', label: 'Newest' },
 ];

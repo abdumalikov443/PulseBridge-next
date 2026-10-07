@@ -16,7 +16,7 @@ import { EcgLine, SkeletonCards } from '../../libs/components/ui/Loaders';
 import { userVar } from '../../apollo/store';
 import { GET_ARTICLES, GET_MEMBER } from '../../apollo/user/query';
 import { LIKE_TARGET_ARTICLE } from '../../apollo/user/mutation';
-import { useFollowing, useLikeToggle } from '../../libs/hooks/useEngagement';
+import { useLikeToggle } from '../../libs/hooks/useEngagement';
 import { Member } from '../../libs/types/member/member';
 import { Article } from '../../libs/types/article/article';
 import { T } from '../../libs/types/common';
@@ -43,14 +43,12 @@ const MemberPage: NextPage = () => {
 	const [articles, setArticles] = useState<Article[] | null>(null);
 	const [page, setPage] = useState(1);
 	const [total, setTotal] = useState(0);
-	const [followDelta, setFollowDelta] = useState(0);
-	const { isFollowing, canFollow, toggleFollow } = useFollowing();
 	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_ARTICLE);
 
 	/** LIFECYCLES **/
 	useEffect(() => {
 		const category = router.query.category;
-		if (category === 'followers' || category === 'followings') setFollowMode(category);
+		if (category === 'followings') setFollowMode(category);
 	}, [router.query.category]);
 
 	useEffect(() => {
@@ -85,9 +83,8 @@ const MemberPage: NextPage = () => {
 	}
 
 	const name = getMemberName(member);
-	const following = isFollowing(member._id);
 	const tabs: { id: Tab; label: string }[] = [{ id: 'articles', label: `Articles (${member.memberArticles})` }];
-	const followCounts = { followers: (member.memberFollowers ?? 0) + followDelta, followings: member.memberFollowings ?? 0 };
+	const followCounts = { followings: member.memberFollowings ?? 0 };
 	const stats = [
 		{ label: 'Articles', value: member.memberArticles },
 		{ label: 'Likes', value: member.memberLikes },
@@ -107,9 +104,6 @@ const MemberPage: NextPage = () => {
 					{member.memberDesc && <p style={{ margin: 0, color: 'var(--pb-muted)', lineHeight: 1.6 }}>{member.memberDesc}</p>}
 					<div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center', marginTop: 4 }}>
 						<div className="pb-follow-counts">
-							<button type="button" onClick={() => setFollowMode('followers')}>
-								<strong>{formatCount(followCounts.followers)}</strong> {followCounts.followers === 1 ? 'follower' : 'followers'}
-							</button>
 							<button type="button" onClick={() => setFollowMode('followings')}>
 								<strong>{formatCount(followCounts.followings)}</strong> following
 							</button>
@@ -121,21 +115,6 @@ const MemberPage: NextPage = () => {
 						))}
 					</div>
 				</div>
-				{canFollow(member._id) && (
-					<button
-						type="button"
-						className={`pb-btn ${following ? 'pb-btn--outline' : 'pb-btn--primary'}`}
-						aria-pressed={following}
-						onClick={() => {
-							if (!user._id) return router.push('/account/join');
-							setFollowDelta((delta) => delta + (following ? -1 : 1));
-							toggleFollow(member._id);
-						}}
-					>
-						<Icon name={following ? 'userCheck' : 'userPlus'} size={18} />
-						{following ? 'Following' : 'Follow'}
-					</button>
-				)}
 			</section>
 
 			<JoinRequestReview memberId={member._id} />

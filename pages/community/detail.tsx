@@ -14,7 +14,7 @@ import Icon from '../../libs/components/ui/Icon';
 import { EcgLine } from '../../libs/components/ui/Loaders';
 import { GET_ARTICLE } from '../../apollo/user/query';
 import { LIKE_TARGET_ARTICLE } from '../../apollo/user/mutation';
-import { useFollowing, useLikeToggle } from '../../libs/hooks/useEngagement';
+import { useLikeToggle } from '../../libs/hooks/useEngagement';
 import { Article } from '../../libs/types/article/article';
 import { CommentGroup } from '../../libs/enums/comment.enum';
 import { MemberType } from '../../libs/enums/member.enum';
@@ -34,7 +34,6 @@ const CommunityDetail: NextPage = () => {
 	const articleId = router.query.id as string | undefined;
 	const [article, setArticle] = useState<Article | null>(null);
 	const [commentTotal, setCommentTotal] = useState<number | null>(null);
-	const { isFollowing, canFollow, toggleFollow } = useFollowing();
 	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_ARTICLE);
 
 	/** APOLLO REQUESTS **/
@@ -55,7 +54,6 @@ const CommunityDetail: NextPage = () => {
 
 	const author = getMemberName(article.memberData);
 	const like = likeState(article._id, !!article.meLiked?.[0]?.myFavorite, article.articleLikes);
-	const following = isFollowing(article.memberId);
 
 	return (
 		<div className="pb-container" style={{ maxWidth: 860 }}>
@@ -77,12 +75,6 @@ const CommunityDetail: NextPage = () => {
 						</span>
 						<span style={{ fontSize: 13, color: 'var(--pb-muted)' }}>{moment(article.createdAt).format('MMMM D, YYYY')}</span>
 					</div>
-					{canFollow(article.memberId) && (
-						<button type="button" className={`pb-chip ${following ? 'pb-chip--following' : 'pb-chip--follow'}`} aria-pressed={following} onClick={() => toggleFollow(article.memberId)}>
-							<Icon name={following ? 'userCheck' : 'userPlus'} size={16} />
-							{following ? 'Following' : 'Follow'}
-						</button>
-					)}
 				</div>
 
 				<h1 className="pb-title" style={{ fontSize: 34 }}>

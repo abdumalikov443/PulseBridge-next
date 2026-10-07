@@ -19,6 +19,7 @@ import WriteArticle from '../../libs/components/mypage/WriteArticle';
 import MyProfile from '../../libs/components/mypage/MyProfile';
 import MySection from '../../libs/components/mypage/MySection';
 import FollowList from '../../libs/components/common/FollowList';
+import MyFollowers from '../../libs/components/mypage/MyFollowers';
 import { EcgLine } from '../../libs/components/ui/Loaders';
 
 export const getStaticProps = async ({ locale }: any) => ({
@@ -57,13 +58,9 @@ const MyPage: NextPage = () => {
 		myArticles: <MyArticles />,
 		writeArticle: <WriteArticle />,
 		myProfile: <MyProfile />,
-		followers: (
-			<MySection title="Followers">
-				<FollowList mode="followers" memberId={user._id} />
-			</MySection>
-		),
+		followers: <MyFollowers />,
 		followings: (
-			<MySection title="Following">
+			<MySection title="Following" subTitle="Doctors and clinics you follow">
 				<FollowList mode="followings" memberId={user._id} />
 			</MySection>
 		),

@@ -26,12 +26,10 @@ interface PostCardProps {
 	liked: boolean;
 	likes: number;
 	onLike: () => void;
-	following?: boolean;
-	onFollow?: () => void;
 }
 
 // community post: author with date and read time, title, text, then like / view / comment (images only on the detail page)
-const PostCard = ({ article, liked, likes, onLike, following, onFollow }: PostCardProps) => {
+const PostCard = ({ article, liked, likes, onLike }: PostCardProps) => {
 	const author = getMemberName(article.memberData);
 	const detail = `/community/detail?id=${article._id}`;
 
@@ -50,11 +48,6 @@ const PostCard = ({ article, liked, likes, onLike, following, onFollow }: PostCa
 						<time dateTime={moment(article.createdAt).toISOString()}>{moment(article.createdAt).format('MMM D, YYYY')}</time> · {readMinutes(article.articleContent)} min read
 					</span>
 				</span>
-				{onFollow && (
-					<button type="button" className={`pb-chip ${following ? 'pb-chip--following' : 'pb-chip--follow'}`} aria-pressed={!!following} onClick={onFollow}>
-						{following ? 'Following' : 'Follow'}
-					</button>
-				)}
 			</div>
 			<Link href={detail} className="pb-post__title">
 				{article.articleTitle}

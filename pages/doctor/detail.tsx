@@ -11,6 +11,7 @@ import ActionChips from '../../libs/components/ui/ActionChips';
 import Icon from '../../libs/components/ui/Icon';
 import FollowButton from '../../libs/components/ui/FollowButton';
 import FollowModal, { FollowMode } from '../../libs/components/common/FollowModal';
+import { FollowGroup } from '../../libs/enums/follow.enum';
 import { formatCount } from '../../libs/components/ui/ActionChips';
 import { EcgLine } from '../../libs/components/ui/Loaders';
 import { userVar } from '../../apollo/store';
@@ -69,8 +70,9 @@ const DoctorDetail: NextPage = () => {
 
 	const name = getMemberName(doctor.memberData);
 	const like = likeState(doctor._id, !!doctor.meLiked?.[0]?.myFavorite, doctor.doctorLikes);
-	const following = isFollowing(doctor.memberId);
-	const followers = (doctor.memberData?.memberFollowers ?? 0) + followDelta;
+	const following = isFollowing(doctor._id);
+	const followers = (doctor.doctorFollowers ?? 0) + followDelta;
+	const followings = doctor.memberData?.memberFollowings ?? 0;
 	const canBook = !user?._id || user.memberType === MemberType.PATIENT;
 
 	return (
@@ -119,13 +121,14 @@ const DoctorDetail: NextPage = () => {
 							<strong>{formatCount(followers)}</strong> {followers === 1 ? 'follower' : 'followers'}
 						</button>
 						<button type="button" onClick={() => setFollowMode('followings')}>
-							<strong>{formatCount((doctor.memberData?.memberFollowings ?? 0))}</strong> following
+							<strong>{formatCount(followings)}</strong> following
 						</button>
 					</div>
 					<FollowModal
+						target={{ followGroup: FollowGroup.DOCTOR, refId: doctor._id }}
 						memberId={doctor.memberId}
 						mode={followMode}
-						counts={{ followers: followers, followings: (doctor.memberData?.memberFollowings ?? 0) }}
+						counts={{ followers, followings }}
 						onMode={setFollowMode}
 						onClose={() => setFollowMode(null)}
 					/>
@@ -142,7 +145,7 @@ const DoctorDetail: NextPage = () => {
 								following={following}
 								onClick={() => {
 									setFollowDelta((delta) => delta + (following ? -1 : 1));
-									toggleFollow(doctor.memberId);
+									toggleFollow(FollowGroup.DOCTOR, doctor._id);
 								}}
 							/>
 						)}

@@ -19,11 +19,12 @@ interface MenuItemType {
 const overview: MenuItemType = { category: 'overview', title: 'Overview', icon: 'clinic' };
 const appointments: MenuItemType = { category: 'myAppointments', title: 'Appointments', icon: 'calendar' };
 const joinRequests: MenuItemType = { category: 'joinRequests', title: 'Join requests', icon: 'userPlus' };
+// only doctor profiles and clinics can be followed
+const followers: MenuItemType = { category: 'followers', title: 'Followers', icon: 'users' };
 const common: MenuItemType[] = [
 	{ category: 'myFavorites', title: 'Favorites', icon: 'heart' },
 	{ category: 'recentlyVisited', title: 'Recently visited', icon: 'eye' },
-	{ category: 'followers', title: 'Followers', icon: 'users' },
-	{ category: 'followings', title: 'Followings', icon: 'userCheck' },
+	{ category: 'followings', title: 'Following', icon: 'userCheck' },
 	{ category: 'myArticles', title: 'My articles', icon: 'comment' },
 	{ category: 'writeArticle', title: 'Write article', icon: 'edit' },
 	{ category: 'myProfile', title: 'Profile', icon: 'users' },
@@ -39,10 +40,11 @@ export const getMenuItems = (memberType: string): MenuItemType[] => {
 				{ category: 'clinicDoctors', title: 'Doctors', icon: 'users' },
 				joinRequests,
 				appointments,
+				followers,
 				...common,
 			];
 		case MemberType.DOCTOR:
-			return [overview, appointments, joinRequests, ...common];
+			return [overview, appointments, joinRequests, followers, ...common];
 		case MemberType.PATIENT:
 			return [overview, appointments, ...common];
 		default:
