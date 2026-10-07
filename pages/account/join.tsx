@@ -49,15 +49,18 @@ const Join: NextPage = () => {
 	const [clinicProfile, setClinicProfile] = useState<ClinicInput>({ clinicType: ClinicType.PRIVATE, clinicName: '', clinicAddress: '', clinicDesc: '', ...DEFAULT_SCHEDULE });
 
 	/** HANDLERS **/
-	const signupInvalid =
-		input.nick.length < 3 ||
-		input.password.length < 5 ||
-		!input.phone ||
-		(input.type === MemberType.CLINIC &&
-			(clinicProfile.clinicName.trim().length < 3 ||
-				clinicProfile.clinicAddress.trim().length < 3 ||
-				clinicProfile.clinicDesc.trim().length < 5 ||
-				!!scheduleError(withScheduleDefaults(clinicProfile))));
+	// what still blocks the signup, shown under the button (same limits as the backend)
+	const missing: string[] = [];
+	if (input.nick.length < 3) missing.push('nickname (3–12 characters)');
+	if (input.password.length < 5) missing.push('password (5–12 characters)');
+	if (!input.phone) missing.push('phone');
+	if (input.type === MemberType.CLINIC) {
+		if (clinicProfile.clinicName.trim().length < 3) missing.push('clinic name (min 3 characters)');
+		if (clinicProfile.clinicAddress.trim().length < 3) missing.push('address (min 3 characters)');
+		if (clinicProfile.clinicDesc.trim().length < 5) missing.push(`description (${clinicProfile.clinicDesc.trim().length}/5 characters)`);
+		if (scheduleError(withScheduleDefaults(clinicProfile))) missing.push('working hours');
+	}
+	const signupInvalid = missing.length > 0;
 
 	// upload needs a login, so the photo is saved after signup; a failure here keeps the new account
 	const savePhoto = async (file: File, type: MemberType) => {
@@ -238,6 +241,11 @@ const Join: NextPage = () => {
 						{busy ? <EcgLine small /> : loginView ? 'Log in' : 'Create account'}
 						{!busy && <Icon name="arrow" className="pb-arrow" />}
 					</button>
+					{!loginView && signupInvalid && (
+						<p className="pb-auth__missing" aria-live="polite">
+							To continue, fill in: {missing.join(', ')}.
+						</p>
+					)}
 				</form>
 
 				<aside className="pb-auth__visual" aria-hidden="true">

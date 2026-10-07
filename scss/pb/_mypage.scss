@@ -508,3 +508,10 @@
 		color: var(--pb-danger);
 	}
 }
+
+.pb-auth__missing {
+	margin: -6px 0 0;
+	text-align: center;
+	font-size: 13px;
+	color: var(--pb-warning);
+}
