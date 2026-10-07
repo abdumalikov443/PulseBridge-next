@@ -838,3 +838,131 @@
 		color: var(--pb-muted);
 	}
 }
+
+/* appointment confirmation "ticket" */
+.pb-ticket {
+	border-radius: var(--pb-radius-lg);
+	background: var(--pb-surface);
+	box-shadow: var(--pb-shadow);
+	overflow: hidden;
+	&__head {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+		padding: 28px;
+		background: linear-gradient(140deg, var(--pb-soft-1), var(--pb-bg));
+		border-bottom: 2px dashed var(--pb-line);
+		small {
+			font-size: 13px;
+			color: var(--pb-muted);
+		}
+	}
+	&__when {
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		font-family: var(--pb-font-display);
+		span {
+			font-size: 20px;
+			font-weight: 700;
+		}
+		strong {
+			font-size: 48px;
+			line-height: 1;
+			font-weight: 800;
+			letter-spacing: -0.03em;
+			color: var(--pb-deep);
+			font-variant-numeric: tabular-nums;
+		}
+	}
+	&__rows {
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+		padding: 24px 28px;
+	}
+	&__row {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		> span:last-child {
+			display: flex;
+			flex-direction: column;
+			gap: 1px;
+			min-width: 0;
+		}
+		small {
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: var(--pb-muted);
+		}
+		em {
+			font-style: normal;
+			font-size: 13px;
+			color: var(--pb-muted);
+		}
+	}
+	&__icon {
+		width: 48px;
+		height: 48px;
+		border-radius: 14px;
+		background: var(--pb-soft-1);
+		color: var(--pb-deep);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex: none;
+	}
+	&__reason {
+		padding: 14px 16px;
+		border-radius: 14px;
+		background: var(--pb-bg);
+		small {
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: var(--pb-muted);
+		}
+		p {
+			margin: 4px 0 0;
+			line-height: 1.55;
+		}
+	}
+	&__foot {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		flex-wrap: wrap;
+		padding: 18px 28px 24px;
+		border-top: 1px solid var(--pb-line);
+		small {
+			font-size: 12px;
+			color: var(--pb-muted);
+			font-variant-numeric: tabular-nums;
+		}
+	}
+	&__note {
+		font-size: 14px;
+		color: var(--pb-danger);
+		font-weight: 600;
+	}
+	&__down {
+		transform: rotate(90deg);
+	}
+	@media (max-width: $pb-phone) {
+		&__head,
+		&__rows,
+		&__foot {
+			padding-left: 18px;
+			padding-right: 18px;
+		}
+		&__when strong {
+			font-size: 40px;
+		}
+	}
+}

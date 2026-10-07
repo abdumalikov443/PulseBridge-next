@@ -11,6 +11,8 @@ import { EcgLine } from '../../libs/components/ui/Loaders';
 import { userVar } from '../../apollo/store';
 import { GET_DOCTOR, GET_DOCTOR_AVAILABILITY } from '../../apollo/user/query';
 import { DayAvailability } from '../../libs/types/appointment/availability';
+import { downloadAppointmentPdf } from '../../libs/appointmentPdf';
+import { sweetErrorHandling } from '../../libs/sweetAlert';
 import { CREATE_APPOINTMENT } from '../../apollo/user/mutation';
 import { Doctor } from '../../libs/types/doctor/doctor';
 import { MemberType } from '../../libs/enums/member.enum';
@@ -48,6 +50,7 @@ const Booking: NextPage = () => {
 	const [reason, setReason] = useState('');
 	const [error, setError] = useState('');
 	const [done, setDone] = useState(false);
+	const [bookedId, setBookedId] = useState('');
 
 	/** APOLLO REQUESTS **/
 	const [createAppointment, { loading: booking }] = useMutation(CREATE_APPOINTMENT);
@@ -80,9 +83,10 @@ const Booking: NextPage = () => {
 	const confirmHandler = async () => {
 		try {
 			setError('');
-			await createAppointment({
+			const result = await createAppointment({
 				variables: { input: { doctorId, appointmentDate: date, appointmentTime: time, ...(reasonText && { appointmentReason: reasonText }) } },
 			});
+			setBookedId(result.data?.createAppointment?._id ?? '');
 			setDone(true);
 		} catch (err: any) {
 			const message: string = err?.graphQLErrors?.[0]?.message ?? err.message;
@@ -190,9 +194,25 @@ const Booking: NextPage = () => {
 							<p style={{ margin: 0, color: 'var(--pb-muted)' }}>
 								{dayLabel?.weekday}, {dayLabel?.label} at {time} with {name}. The doctor has been notified.
 							</p>
-							<Link href="/mypage?category=myAppointments" className="pb-btn pb-btn--primary">
-								Go to my appointments
-							</Link>
+							<div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+								{bookedId && (
+									<Link href={`/appointment?id=${bookedId}`} className="pb-btn pb-btn--primary">
+										View confirmation
+									</Link>
+								)}
+								{bookedId && (
+									<button
+										type="button"
+										className="pb-btn pb-btn--outline"
+										onClick={() => downloadAppointmentPdf(bookedId).catch((err) => sweetErrorHandling(err))}
+									>
+										Download PDF
+									</button>
+								)}
+								<Link href="/mypage?category=myAppointments" className="pb-btn pb-btn--light">
+									My appointments
+								</Link>
+							</div>
 						</div>
 					) : (
 						<>

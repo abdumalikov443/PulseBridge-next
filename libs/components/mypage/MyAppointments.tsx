@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import moment from 'moment';
 import { Pagination } from '@mui/material';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
@@ -13,8 +14,14 @@ import { T } from '../../types/common';
 import { getMemberName } from '../../config';
 import { formatEnum } from '../../utils';
 import { UPDATE_APPOINTMENT } from '../../../apollo/user/mutation';
-import { GET_CLINIC_APPOINTMENTS, GET_DOCTOR_APPOINTMENTS, GET_MY_APPOINTMENTS, GET_MY_DOCTOR_PROFILE } from '../../../apollo/user/query';
+import {
+	GET_CLINIC_APPOINTMENTS,
+	GET_DOCTOR_APPOINTMENTS,
+	GET_MY_APPOINTMENTS,
+	GET_MY_DOCTOR_PROFILE,
+} from '../../../apollo/user/query';
 import { sweetConfirmAlert, sweetErrorHandling, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import { downloadAppointmentPdf } from '../../appointmentPdf';
 import ListRow, { Tone } from './ListRow';
 import MySection from './MySection';
 import Avatar from '../ui/Avatar';
@@ -40,6 +47,7 @@ interface MyAppointmentsProps {
 }
 
 const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
+	const router = useRouter();
 	const user = useReactiveVar(userVar);
 	const isPatient = user.memberType === MemberType.PATIENT;
 	const isDoctor = user.memberType === MemberType.DOCTOR;
@@ -85,6 +93,14 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 			await updateAppointment({ variables: { input: { _id: id, appointmentStatus: status } } });
 			await refetch({ input });
 			await sweetTopSmallSuccessAlert('Done', 800);
+		} catch (err: any) {
+			await sweetErrorHandling(err);
+		}
+	};
+
+	const pdfHandler = async (id: string) => {
+		try {
+			await downloadAppointmentPdf(id);
 		} catch (err: any) {
 			await sweetErrorHandling(err);
 		}
@@ -148,7 +164,9 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 			)}
 			{appointments?.map((appointment) => {
 				const person = isPatient ? appointment.doctorData?.memberData : appointment.memberData;
-				const doctorLine = isPatient ? formatEnum(appointment.doctorData?.specialty) : `Dr. ${getMemberName(appointment.doctorData?.memberData)}`;
+				const doctorLine = isPatient
+					? formatEnum(appointment.doctorData?.specialty)
+					: `Dr. ${getMemberName(appointment.doctorData?.memberData)}`;
 				const confirmed = appointment.appointmentStatus === AppointmentStatus.CONFIRMED;
 				return (
 					<ListRow
@@ -157,22 +175,45 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 						title={getMemberName(person)}
 						subTitle={`${doctorLine} · ${appointment.clinicData?.clinicName ?? ''}`}
 						extra={appointment.appointmentReason}
-						dateText={`${moment.utc(appointment.appointmentDate).format('ddd, MMM D')} · ${appointment.appointmentTime}`}
+						dateText={`${moment.utc(appointment.appointmentDate).format('ddd, MMM D')} · ${
+							appointment.appointmentTime
+						}`}
 						status={formatEnum(appointment.appointmentStatus)}
 						tone={tones[appointment.appointmentStatus]}
+						onClick={() => router.push(`/appointment?id=${appointment._id}`)}
 						actions={
-							confirmed ? (
-								<>
-									{!isPatient && (
-										<button type="button" className="pb-btn pb-btn--primary pb-btn--sm" onClick={() => updateStatusHandler(appointment._id, AppointmentStatus.COMPLETED)}>
-											Complete
-										</button>
-									)}
-									<button type="button" className="pb-btn pb-btn--danger pb-btn--sm" onClick={() => updateStatusHandler(appointment._id, AppointmentStatus.CANCELLED)}>
-										Cancel
+							<>
+								{appointment.appointmentStatus !== AppointmentStatus.CANCELLED && (
+									<button
+										type="button"
+										className="pb-btn pb-btn--light pb-btn--sm"
+										onClick={() => pdfHandler(appointment._id)}
+										aria-label="Download PDF"
+									>
+										PDF
 									</button>
-								</>
-							) : undefined
+								)}
+								{confirmed && (
+									<>
+										{!isPatient && (
+											<button
+												type="button"
+												className="pb-btn pb-btn--primary pb-btn--sm"
+												onClick={() => updateStatusHandler(appointment._id, AppointmentStatus.COMPLETED)}
+											>
+												Complete
+											</button>
+										)}
+										<button
+											type="button"
+											className="pb-btn pb-btn--danger pb-btn--sm"
+											onClick={() => updateStatusHandler(appointment._id, AppointmentStatus.CANCELLED)}
+										>
+											Cancel
+										</button>
+									</>
+								)}
+							</>
 						}
 					/>
 				);
@@ -180,7 +221,13 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 
 			{!compact && total > input.limit && (
 				<div className="pb-pagination">
-					<Pagination page={input.page} count={Math.ceil(total / input.limit)} onChange={(e, page) => setInput({ ...input, page })} shape="circular" color="primary" />
+					<Pagination
+						page={input.page}
+						count={Math.ceil(total / input.limit)}
+						onChange={(e, page) => setInput({ ...input, page })}
+						shape="circular"
+						color="primary"
+					/>
 				</div>
 			)}
 		</MySection>

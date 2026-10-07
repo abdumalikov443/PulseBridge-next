@@ -17,6 +17,7 @@ const pageTitles: Record<string, string> = {
 	'/clinic': 'Clinics',
 	'/clinic/detail': 'Clinic',
 	'/booking': 'Book an appointment',
+	'/appointment': 'Appointment',
 	'/community': 'Community',
 	'/community/detail': 'Community',
 	'/mypage': 'My Page',

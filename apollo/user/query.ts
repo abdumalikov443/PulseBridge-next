@@ -472,6 +472,52 @@ export const GET_CLINIC_JOIN_REQUESTS = gql`
  *       APPOINTMENT      *
  *************************/
 
+// one appointment for its confirmation page (patient, doctor, clinic owner or ADMIN)
+export const GET_APPOINTMENT = gql`
+	query GetAppointment($appointmentId: String!) {
+		getAppointment(appointmentId: $appointmentId) {
+			_id
+			appointmentDate
+			appointmentTime
+			appointmentStatus
+			appointmentReason
+			memberId
+			doctorId
+			clinicId
+			createdAt
+			updatedAt
+			memberData {
+				_id
+				memberNick
+				memberFullName
+				memberImage
+				memberPhone
+			}
+			doctorData {
+				_id
+				memberId
+				specialty
+				experience
+				memberData {
+					_id
+					memberNick
+					memberFullName
+					memberImage
+					memberPhone
+				}
+			}
+			clinicData {
+				_id
+				memberId
+				clinicName
+				clinicType
+				clinicAddress
+				clinicImage
+			}
+		}
+	}
+`;
+
 // free / booked 30-minute slots of a doctor for the next 5 days (from tomorrow)
 export const GET_DOCTOR_AVAILABILITY = gql`
 	query GetDoctorAvailability($doctorId: String!) {
