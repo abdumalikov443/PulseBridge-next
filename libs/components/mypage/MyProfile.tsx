@@ -46,7 +46,17 @@ const MyProfile = () => {
 				setUploading(true);
 				input.memberImage = await uploadImage(photo, 'member');
 			}
-			(Object.keys(input) as (keyof MemberUpdate)[]).forEach((key) => input[key] === '' && delete input[key]);
+			// trimmed values; an emptied optional field is sent as null so it is really cleared
+			// (an empty string would fail the backend length check, a missing key would keep the old value)
+			const clearable: (keyof MemberUpdate)[] = ['memberFullName', 'memberAddress', 'memberDesc'];
+			(Object.keys(input) as (keyof MemberUpdate)[]).forEach((key) => {
+				const value = input[key];
+				if (typeof value !== 'string') return;
+				const trimmed = value.trim();
+				if (trimmed) (input as any)[key] = trimmed;
+				else if (clearable.includes(key)) (input as any)[key] = null;
+				else delete input[key];
+			});
 			const result = await updateMember({ variables: { input } });
 			const jwtToken = result.data?.updateMember?.accessToken;
 			if (jwtToken) {

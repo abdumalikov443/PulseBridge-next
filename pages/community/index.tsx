@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { canWriteArticles } from '../../libs/utils';
+import { useArticleAccess } from '../../libs/hooks/useArticleAccess';
 import { useQuery, useReactiveVar } from '@apollo/client';
 import { Pagination } from '@mui/material';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -35,6 +35,7 @@ const tabs = [
 const Community: NextPage = () => {
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
+	const articleAccess = useArticleAccess();
 	const [input, setInput] = useState<ArticlesInquiry>({ page: 1, limit: 8, sort: 'createdAt', direction: Direction.DESC, search: {} });
 	const [text, setText] = useState('');
 	const [articles, setArticles] = useState<Article[] | null>(null);
@@ -72,7 +73,7 @@ const Community: NextPage = () => {
 					<h1 className="pb-title">Community</h1>
 					<p>Short health notes from doctors and clinics.</p>
 				</div>
-				{canWriteArticles(user.memberType) && (
+				{articleAccess.allowed && (
 					<Link href="/mypage?category=writeArticle" className="pb-btn pb-btn--primary">
 						<Icon name="edit" size={16} /> Write a post
 					</Link>

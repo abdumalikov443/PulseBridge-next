@@ -175,6 +175,9 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 											/>
 											{article?.memberData?.memberNick}
 										</Link>
+										<span className={`pb-badge ${article?.memberData?.memberType === 'DOCTOR' || article?.memberData?.memberType === 'CLINIC' ? 'pb-badge--soft' : 'pb-badge--warning'}`} style={{ marginLeft: 8 }}>
+											{article?.memberData?.memberType}
+										</span>
 									</TableCell>
 									<TableCell align="center">{article?.articleViews}</TableCell>
 									<TableCell align="center">{article?.articleLikes}</TableCell>

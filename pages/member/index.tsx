@@ -39,10 +39,7 @@ const MemberPage: NextPage = () => {
 	// followers and following open in a popup; ?category=followers still opens it from old links
 	const tab: Tab = 'articles';
 	const [followMode, setFollowMode] = useState<FollowMode | null>(null);
-	const [member, setMember] = useState<Member | null>(null);
-	const [articles, setArticles] = useState<Article[] | null>(null);
 	const [page, setPage] = useState(1);
-	const [total, setTotal] = useState(0);
 	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_ARTICLE);
 
 	/** LIFECYCLES **/
@@ -56,23 +53,21 @@ const MemberPage: NextPage = () => {
 	}, [memberId, user._id, router]);
 
 	/** APOLLO REQUESTS **/
-	useQuery(GET_MEMBER, {
+	// read from data: onCompleted does not always fire here (the page stayed on the loader)
+	const { data: memberResult } = useQuery(GET_MEMBER, {
 		fetchPolicy: 'network-only',
 		skip: !memberId,
 		variables: { input: memberId },
-		onCompleted: (data: T) => setMember(data?.getMember ?? null),
 	});
+	const member: Member | null = memberResult?.getMember ?? null;
 
-	useQuery(GET_ARTICLES, {
+	const { data: articleResult, error: articleError } = useQuery(GET_ARTICLES, {
 		fetchPolicy: 'cache-and-network',
 		skip: !memberId || tab !== 'articles',
 		variables: { input: { page, limit: LIMIT, sort: 'createdAt', direction: 'DESC', search: { memberId } } },
-		onCompleted: (data: T) => {
-			setArticles(data?.getArticles?.list ?? []);
-			setTotal(data?.getArticles?.metaCounter?.[0]?.total ?? 0);
-		},
-		onError: () => setArticles([]),
 	});
+	const articles: Article[] | null = articleError ? [] : articleResult?.getArticles?.list ?? null;
+	const total: number = articleResult?.getArticles?.metaCounter?.[0]?.total ?? 0;
 
 	if (!member) {
 		return (

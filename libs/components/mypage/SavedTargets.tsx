@@ -6,6 +6,7 @@ import { Doctor } from '../../types/doctor/doctor';
 import { OrdinaryInquiry, T } from '../../types/common';
 import { LIKE_TARGET_CLINIC, LIKE_TARGET_DOCTOR } from '../../../apollo/user/mutation';
 import { useLikeToggle } from '../../hooks/useEngagement';
+import { usePublicTargets } from '../../hooks/usePublicTargets';
 import ClinicCard from '../cards/ClinicCard';
 import DoctorCard from '../cards/DoctorCard';
 import MySection from './MySection';
@@ -20,10 +21,12 @@ interface SavedTargetsProps {
 	clinicResultKey: string;
 	doctorQuery: DocumentNode;
 	doctorResultKey: string;
+	// every favorite is liked; recently visited reads the like state from the public lists
+	allLiked?: boolean;
 }
 
 // clinics and doctors saved by the member: favorites or recently visited
-const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQuery, doctorResultKey }: SavedTargetsProps) => {
+const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQuery, doctorResultKey, allLiked = false }: SavedTargetsProps) => {
 	const [target, setTarget] = useState<Target>('doctor');
 	const [inquiry, setInquiry] = useState<OrdinaryInquiry>({ page: 1, limit: 6 });
 	const [clinics, setClinics] = useState<Clinic[] | null>(null);
@@ -31,6 +34,8 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 	const [total, setTotal] = useState(0);
 	const clinicLike = useLikeToggle(LIKE_TARGET_CLINIC);
 	const doctorLike = useLikeToggle(LIKE_TARGET_DOCTOR);
+	// these lists come without meLiked and (for doctors) without clinicData
+	const { doctorById, clinicById } = usePublicTargets();
 
 	/** APOLLO REQUESTS **/
 	useQuery(clinicQuery, {
@@ -81,8 +86,10 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 			<div className={target === 'clinic' ? 'pb-grid pb-grid--wide' : 'pb-grid'}>
 				{list === null && <SkeletonCards count={3} />}
 				{target === 'doctor' &&
-					doctors?.map((doctor) => {
-						const state = doctorLike.likeState(doctor._id, !!doctor.meLiked?.[0]?.myFavorite, doctor.doctorLikes);
+					doctors?.map((saved) => {
+						const listed = doctorById.get(saved._id);
+						const doctor = listed ? { ...saved, clinicData: listed.clinicData, meLiked: listed.meLiked } : saved;
+						const state = doctorLike.likeState(doctor._id, listed ? !!listed.meLiked?.[0]?.myFavorite : allLiked, doctor.doctorLikes);
 						return (
 							<DoctorCard
 								key={doctor._id}
@@ -95,7 +102,8 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 					})}
 				{target === 'clinic' &&
 					clinics?.map((clinic, index) => {
-						const state = clinicLike.likeState(clinic._id, !!clinic.meLiked?.[0]?.myFavorite, clinic.clinicLikes);
+						const listed = clinicById.get(clinic._id);
+						const state = clinicLike.likeState(clinic._id, listed ? !!listed.meLiked?.[0]?.myFavorite : allLiked, clinic.clinicLikes);
 						return (
 							<ClinicCard
 								key={clinic._id}

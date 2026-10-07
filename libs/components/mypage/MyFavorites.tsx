@@ -10,6 +10,7 @@ const MyFavorites = () => (
 		clinicResultKey={'getFavoriteClinics'}
 		doctorQuery={GET_FAVORITE_DOCTORS}
 		doctorResultKey={'getFavoriteDoctors'}
+		allLiked
 	/>
 );
 

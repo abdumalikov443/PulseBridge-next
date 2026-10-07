@@ -3,9 +3,10 @@ import Link from 'next/link';
 import { Pagination } from '@mui/material';
 import { useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
-import { GET_CLINICS, GET_DOCTORS, GET_FOLLOWERS, GET_MEMBER_FOLLOWINGS } from '../../../apollo/user/query';
+import { GET_FOLLOWERS, GET_MEMBER_FOLLOWINGS } from '../../../apollo/user/query';
 import { LIKE_TARGET_CLINIC, LIKE_TARGET_DOCTOR } from '../../../apollo/user/mutation';
 import { useFollowing, useLikeToggle } from '../../hooks/useEngagement';
+import { usePublicTargets } from '../../hooks/usePublicTargets';
 import { Follow } from '../../types/follow/follow';
 import { Doctor } from '../../types/doctor/doctor';
 import { Clinic } from '../../types/clinic/clinic';
@@ -41,25 +42,6 @@ interface Row {
 }
 
 const LIMIT = 10;
-// list items carry no like state; the public doctor / clinic lists do (meLiked)
-const TARGET_LIMIT = 100;
-
-const usePublicTargets = () => {
-	const [doctors, setDoctors] = useState<Doctor[]>([]);
-	const [clinics, setClinics] = useState<Clinic[]>([]);
-	useQuery(GET_DOCTORS, {
-		fetchPolicy: 'network-only',
-		variables: { input: { page: 1, limit: TARGET_LIMIT, search: {} } },
-		onCompleted: (data: T) => setDoctors(data?.getDoctors?.list ?? []),
-	});
-	useQuery(GET_CLINICS, {
-		fetchPolicy: 'network-only',
-		variables: { input: { page: 1, limit: TARGET_LIMIT, search: {} } },
-		onCompleted: (data: T) => setClinics(data?.getClinics?.list ?? []),
-	});
-	return { doctors, clinics };
-};
-
 const FollowList = ({ mode, target, memberId }: FollowListProps) => {
 	const user = useReactiveVar(userVar);
 	const [page, setPage] = useState(1);

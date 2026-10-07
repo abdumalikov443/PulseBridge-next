@@ -12,9 +12,11 @@ import { LIKE_TARGET_ARTICLE } from '../../../apollo/user/mutation';
 import { useLikeToggle } from '../../hooks/useEngagement';
 import PostCard from '../cards/PostCard';
 import MySection from './MySection';
+import { useArticleAccess } from '../../hooks/useArticleAccess';
 import { SkeletonCards } from '../ui/Loaders';
 
 const MyArticles = () => {
+	const access = useArticleAccess();
 	const user = useReactiveVar(userVar);
 	const [input, setInput] = useState<ArticlesInquiry>({ page: 1, limit: 6, sort: 'createdAt', direction: Direction.DESC, search: { memberId: user._id } });
 	const [articles, setArticles] = useState<Article[] | null>(null);
@@ -38,9 +40,11 @@ const MyArticles = () => {
 			title="My articles"
 			subTitle={`${total} published`}
 			actions={
-				<Link href="/mypage?category=writeArticle" className="pb-btn pb-btn--primary pb-btn--sm">
-					Write article
-				</Link>
+				access.allowed ? (
+					<Link href="/mypage?category=writeArticle" className="pb-btn pb-btn--primary pb-btn--sm">
+						Write article
+					</Link>
+				) : undefined
 			}
 		>
 			<div className="pb-grid pb-grid--posts">

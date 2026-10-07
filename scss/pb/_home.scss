@@ -622,3 +622,11 @@
 	background: var(--pb-chip);
 	color: var(--pb-muted);
 }
+
+// cards in a row share a height; the footer stays at the bottom with or without tags
+.pb-clinic-card__foot {
+	margin-top: auto;
+}
+.pb-doc-card > .pb-btn:last-child {
+	margin-top: auto;
+}
