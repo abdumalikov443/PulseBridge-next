@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
+import { canWriteArticles } from '../../libs/utils';
 import { useReactiveVar } from '@apollo/client';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
@@ -55,8 +56,7 @@ const MyPage: NextPage = () => {
 		joinRequests: <JoinRequests />,
 		myFavorites: <MyFavorites />,
 		recentlyVisited: <RecentlyVisited />,
-		myArticles: <MyArticles />,
-		writeArticle: <WriteArticle />,
+		...(canWriteArticles(user.memberType) && { myArticles: <MyArticles />, writeArticle: <WriteArticle /> }),
 		myProfile: <MyProfile />,
 		followers: <MyFollowers />,
 		followings: (

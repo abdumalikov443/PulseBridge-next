@@ -22,6 +22,7 @@ const quickActions = (memberType: string): QuickAction[] => {
 				{ href: '/mypage?category=myClinic', label: 'Edit my clinic', icon: 'clinic' },
 				{ href: '/mypage?category=joinRequests', label: 'Join requests', icon: 'userPlus' },
 				{ href: '/mypage?category=clinicDoctors', label: 'Our doctors', icon: 'users' },
+				{ href: '/mypage?category=writeArticle', label: 'Write an article', icon: 'comment' },
 			];
 		case MemberType.DOCTOR:
 			return [

@@ -25,9 +25,12 @@ const common: MenuItemType[] = [
 	{ category: 'myFavorites', title: 'Favorites', icon: 'heart' },
 	{ category: 'recentlyVisited', title: 'Recently visited', icon: 'eye' },
 	{ category: 'followings', title: 'Following', icon: 'userCheck' },
+	{ category: 'myProfile', title: 'Profile', icon: 'users' },
+];
+// only doctors and clinics write articles
+const articles: MenuItemType[] = [
 	{ category: 'myArticles', title: 'My articles', icon: 'comment' },
 	{ category: 'writeArticle', title: 'Write article', icon: 'edit' },
-	{ category: 'myProfile', title: 'Profile', icon: 'users' },
 ];
 
 // menu items depend on the role: patients book, doctors join clinics, clinics manage doctors
@@ -41,10 +44,11 @@ export const getMenuItems = (memberType: string): MenuItemType[] => {
 				joinRequests,
 				appointments,
 				followers,
+				...articles,
 				...common,
 			];
 		case MemberType.DOCTOR:
-			return [overview, appointments, joinRequests, followers, ...common];
+			return [overview, appointments, joinRequests, followers, ...articles, ...common];
 		case MemberType.PATIENT:
 			return [overview, appointments, ...common];
 		default:

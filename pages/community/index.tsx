@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { canWriteArticles } from '../../libs/utils';
 import { useQuery, useReactiveVar } from '@apollo/client';
 import { Pagination } from '@mui/material';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -69,11 +70,13 @@ const Community: NextPage = () => {
 			<header className="pb-page-head" style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16 }}>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
 					<h1 className="pb-title">Community</h1>
-					<p>Short health notes and questions from patients and doctors.</p>
+					<p>Short health notes from doctors and clinics.</p>
 				</div>
-				<Link href={user._id ? '/mypage?category=writeArticle' : '/account/join'} className="pb-btn pb-btn--primary">
-					<Icon name="edit" size={16} /> Write a post
-				</Link>
+				{canWriteArticles(user.memberType) && (
+					<Link href="/mypage?category=writeArticle" className="pb-btn pb-btn--primary">
+						<Icon name="edit" size={16} /> Write a post
+					</Link>
+				)}
 			</header>
 
 			<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', padding: '16px 0 20px' }}>
