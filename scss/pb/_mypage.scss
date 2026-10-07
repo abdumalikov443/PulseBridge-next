@@ -442,3 +442,69 @@
 		}
 	}
 }
+
+/* clinic working hours form */
+.pb-schedule {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	margin: 0;
+	padding: 16px;
+	border: 0;
+	border-radius: var(--pb-radius);
+	background: var(--pb-bg);
+	legend {
+		float: left;
+		padding: 0;
+		font-size: 15px;
+		font-weight: 800;
+		& + * {
+			clear: both;
+		}
+	}
+	&__check {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		input {
+			width: 18px;
+			height: 18px;
+			accent-color: var(--pb-deep);
+		}
+	}
+	&__days {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	&__day {
+		min-width: 48px;
+		min-height: 38px;
+		padding: 0 12px;
+		border: 0;
+		border-radius: 999px;
+		background: var(--pb-surface);
+		color: var(--pb-muted);
+		box-shadow: inset 0 0 0 1px #c9dce8;
+		font: inherit;
+		font-size: 13px;
+		font-weight: 700;
+		text-decoration: line-through;
+		cursor: pointer;
+		&.is-open {
+			background: var(--pb-deep);
+			color: #fff;
+			box-shadow: none;
+			text-decoration: none;
+		}
+	}
+	&__error {
+		margin: 0;
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--pb-danger);
+	}
+}

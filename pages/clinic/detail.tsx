@@ -14,6 +14,7 @@ import Icon from '../../libs/components/ui/Icon';
 import FollowButton from '../../libs/components/ui/FollowButton';
 import FollowModal, { FollowMode } from '../../libs/components/common/FollowModal';
 import { FollowGroup } from '../../libs/enums/follow.enum';
+import { WEEK_DAYS, WEEK_DAY_LABEL, withScheduleDefaults, workingDaysText } from '../../libs/schedule';
 import { formatCount } from '../../libs/components/ui/ActionChips';
 import ClinicJoinButton from '../../libs/components/common/ClinicJoinButton';
 import { EcgLine, SkeletonCards } from '../../libs/components/ui/Loaders';
@@ -74,6 +75,7 @@ const ClinicDetail: NextPage = () => {
 
 	const like = clinicLike.likeState(clinic._id, !!clinic.meLiked?.[0]?.myFavorite, clinic.clinicLikes);
 	const following = isFollowing(clinic._id);
+	const schedule = withScheduleDefaults(clinic);
 	const followers = (clinic.clinicFollowers ?? 0) + followDelta;
 	const followings = clinic.memberData?.memberFollowings ?? 0;
 	const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(clinic.clinicAddress)}`;
@@ -222,6 +224,34 @@ const ClinicDetail: NextPage = () => {
 				</div>
 
 				<aside className="pb-split__side">
+					<section className="pb-card pb-card--flat pb-hours">
+						<strong style={{ fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
+							<Icon name="clock" size={16} /> Working hours
+						</strong>
+						<dl>
+							<div>
+								<dt>{workingDaysText(schedule.clinicOffDays)}</dt>
+								<dd>
+									{schedule.clinicOpenTime} – {schedule.clinicCloseTime}
+								</dd>
+							</div>
+							{schedule.clinicBreakStart && schedule.clinicBreakEnd && (
+								<div>
+									<dt>Break</dt>
+									<dd>
+										{schedule.clinicBreakStart} – {schedule.clinicBreakEnd}
+									</dd>
+								</div>
+							)}
+							{schedule.clinicOffDays.length > 0 && (
+								<div>
+									<dt>Closed</dt>
+									<dd>{WEEK_DAYS.filter((day) => schedule.clinicOffDays.includes(day)).map((day) => WEEK_DAY_LABEL[day]).join(', ')}</dd>
+								</div>
+							)}
+						</dl>
+						<small>Seoul time · 30-minute visits</small>
+					</section>
 					<section className="pb-card pb-card--flat">
 						<strong style={{ fontSize: 15 }}>Contact</strong>
 						<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}>

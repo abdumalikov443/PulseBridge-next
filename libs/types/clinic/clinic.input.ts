@@ -1,4 +1,4 @@
-import { ClinicStatus, ClinicType } from '../../enums/clinic.enum';
+import { ClinicStatus, ClinicType, WeekDay } from '../../enums/clinic.enum';
 import { Direction } from '../../enums/common.enum';
 
 // clinic profile sent with a CLINIC signup
@@ -8,6 +8,12 @@ export interface ClinicInput {
 	clinicAddress: string;
 	clinicDesc: string;
 	clinicImage?: string;
+	// working hours "HH:mm" on half hours (Seoul time)
+	clinicOpenTime?: string;
+	clinicCloseTime?: string;
+	clinicBreakStart?: string | null;
+	clinicBreakEnd?: string | null;
+	clinicOffDays?: WeekDay[];
 }
 
 interface CLISearch {

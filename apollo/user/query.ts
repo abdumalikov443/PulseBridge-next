@@ -45,6 +45,11 @@ export const GET_CLINIC = gql`
 			clinicAddress
 			clinicDesc
 			clinicImage
+			clinicOpenTime
+			clinicCloseTime
+			clinicBreakStart
+			clinicBreakEnd
+			clinicOffDays
 			clinicViews
 			clinicLikes
 			clinicComments
@@ -127,6 +132,11 @@ export const GET_MY_CLINIC = gql`
 			clinicAddress
 			clinicDesc
 			clinicImage
+			clinicOpenTime
+			clinicCloseTime
+			clinicBreakStart
+			clinicBreakEnd
+			clinicOffDays
 			clinicViews
 			clinicLikes
 			clinicComments
@@ -249,6 +259,11 @@ export const GET_DOCTOR = gql`
 				clinicName
 				clinicAddress
 				clinicImage
+				clinicOpenTime
+				clinicCloseTime
+				clinicBreakStart
+				clinicBreakEnd
+				clinicOffDays
 			}
 		}
 	}
@@ -456,6 +471,21 @@ export const GET_CLINIC_JOIN_REQUESTS = gql`
 /**************************
  *       APPOINTMENT      *
  *************************/
+
+// free / booked 30-minute slots of a doctor for the next 5 days (from tomorrow)
+export const GET_DOCTOR_AVAILABILITY = gql`
+	query GetDoctorAvailability($doctorId: String!) {
+		getDoctorAvailability(doctorId: $doctorId) {
+			date
+			dayOfWeek
+			isOpen
+			slots {
+				time
+				available
+			}
+		}
+	}
+`;
 
 const APPOINTMENT_LIST_FIELDS = `
 	list {

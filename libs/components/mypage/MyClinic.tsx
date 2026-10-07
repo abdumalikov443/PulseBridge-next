@@ -11,6 +11,8 @@ import { GET_MY_CLINIC } from '../../../apollo/user/query';
 import { T } from '../../types/common';
 import MySection from './MySection';
 import ImagePicker from '../ui/ImagePicker';
+import ScheduleFields from '../common/ScheduleFields';
+import { scheduleError, withScheduleDefaults } from '../../schedule';
 import { EcgLine, SkeletonCards } from '../ui/Loaders';
 
 // CLINIC members only: the clinic is created at signup, here it is edited
@@ -38,6 +40,7 @@ const MyClinic = () => {
 				clinicAddress: value.clinicAddress,
 				clinicDesc: value.clinicDesc,
 				clinicImage: value.clinicImage ?? '',
+				...withScheduleDefaults(value),
 			});
 		},
 		onError: () => setMissing(true),
@@ -48,7 +51,8 @@ const MyClinic = () => {
 		!clinic ||
 		(clinic.clinicName ?? '').trim().length < 3 ||
 		(clinic.clinicAddress ?? '').trim().length < 3 ||
-		(clinic.clinicDesc ?? '').trim().length < 5;
+		(clinic.clinicDesc ?? '').trim().length < 5 ||
+		!!scheduleError(withScheduleDefaults(clinic));
 
 	const saveHandler = async () => {
 		try {
@@ -128,6 +132,7 @@ const MyClinic = () => {
 						<span>Description</span>
 						<textarea className="pb-textarea" rows={5} maxLength={500} value={clinic.clinicDesc} onChange={(e) => setClinic({ ...clinic, clinicDesc: e.target.value })} />
 					</label>
+					<ScheduleFields value={withScheduleDefaults(clinic)} onChange={(schedule) => setClinic({ ...clinic, ...schedule })} />
 					<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
 						<button type="submit" className="pb-btn pb-btn--primary" disabled={invalid || saving || uploading}>
 							{saving || uploading ? <EcgLine small /> : 'Save changes'}

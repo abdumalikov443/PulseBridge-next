@@ -616,3 +616,9 @@
 .pb-grid--posts {
 	align-items: start;
 }
+
+.pb-doc-card__next b.is-none,
+.pb-doc-card__next b.is-loading {
+	background: var(--pb-chip);
+	color: var(--pb-muted);
+}

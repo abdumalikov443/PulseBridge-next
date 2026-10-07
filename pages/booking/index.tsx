@@ -9,7 +9,8 @@ import Avatar from '../../libs/components/ui/Avatar';
 import Icon from '../../libs/components/ui/Icon';
 import { EcgLine } from '../../libs/components/ui/Loaders';
 import { userVar } from '../../apollo/store';
-import { GET_DOCTOR } from '../../apollo/user/query';
+import { GET_DOCTOR, GET_DOCTOR_AVAILABILITY } from '../../apollo/user/query';
+import { DayAvailability } from '../../libs/types/appointment/availability';
 import { CREATE_APPOINTMENT } from '../../apollo/user/mutation';
 import { Doctor } from '../../libs/types/doctor/doctor';
 import { MemberType } from '../../libs/enums/member.enum';
@@ -23,45 +24,26 @@ export const getStaticProps = async ({ locale }: any) => ({
 	},
 });
 
-// appointment slots are Seoul wall-clock times (the backend checks them in Asia/Seoul)
-const TIME_ZONE = 'Asia/Seoul';
-const SLOTS = Array.from({ length: 18 }, (_, i) => `${String(9 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`);
 const STEPS = ['Date & time', 'Reason', 'Confirm'];
 
-const seoulNow = () => {
-	const parts = new Intl.DateTimeFormat('en-CA', {
-		timeZone: TIME_ZONE,
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-		hour: '2-digit',
-		minute: '2-digit',
-		hourCycle: 'h23',
-	}).formatToParts(new Date());
-	const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
-	return { date: `${get('year')}-${get('month')}-${get('day')}`, time: `${get('hour')}:${get('minute')}` };
+const toDay = (day: DayAvailability) => {
+	const date = new Date(`${day.date}T00:00:00Z`);
+	return {
+		value: day.date,
+		weekday: date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }),
+		label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
+	};
 };
-
-const nextDays = (count: number) => {
-	const start = new Date(`${seoulNow().date}T00:00:00Z`);
-	return Array.from({ length: count }, (_, i) => {
-		const day = new Date(start.getTime() + i * 86400000);
-		return {
-			value: day.toISOString().slice(0, 10),
-			weekday: day.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }),
-			label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
-		};
-	});
-};
+const firstFree = (days: DayAvailability[]) => days.find((day) => day.isOpen && day.slots.some((slot) => slot.available));
 
 const Booking: NextPage = () => {
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
 	const doctorId = router.query.doctorId as string | undefined;
-	const days = useMemo(() => nextDays(14), []);
+	const [availability, setAvailability] = useState<DayAvailability[] | null>(null);
 	const [doctor, setDoctor] = useState<Doctor | null>(null);
 	const [step, setStep] = useState(0);
-	const [date, setDate] = useState(days[0].value);
+	const [date, setDate] = useState('');
 	const [time, setTime] = useState('');
 	const [reason, setReason] = useState('');
 	const [error, setError] = useState('');
@@ -69,6 +51,20 @@ const Booking: NextPage = () => {
 
 	/** APOLLO REQUESTS **/
 	const [createAppointment, { loading: booking }] = useMutation(CREATE_APPOINTMENT);
+	const { refetch: refetchAvailability } = useQuery(GET_DOCTOR_AVAILABILITY, {
+		fetchPolicy: 'network-only',
+		skip: !doctorId,
+		variables: { doctorId },
+		notifyOnNetworkStatusChange: true,
+		onCompleted: (data: T) => {
+			const list: DayAvailability[] = data?.getDoctorAvailability ?? [];
+			setAvailability(list);
+			// keep the chosen day if it still has room, otherwise jump to the first free day
+			setDate((current) => (list.some((day) => day.date === current && day.isOpen) ? current : firstFree(list)?.date ?? ''));
+		},
+		onError: () => setAvailability([]),
+	});
+
 	useQuery(GET_DOCTOR, {
 		skip: !doctorId,
 		variables: { input: doctorId },
@@ -76,8 +72,8 @@ const Booking: NextPage = () => {
 	});
 
 	/** HANDLERS **/
-	const now = seoulNow();
-	const isPast = (slot: string) => date < now.date || (date === now.date && slot <= now.time);
+	const days = useMemo(() => (availability ?? []).map((day) => ({ ...toDay(day), day })), [availability]);
+	const selectedDay = availability?.find((day) => day.date === date);
 	const reasonText = reason.trim();
 	const reasonOk = !reasonText || reasonText.length >= 3;
 
@@ -91,10 +87,11 @@ const Booking: NextPage = () => {
 		} catch (err: any) {
 			const message: string = err?.graphQLErrors?.[0]?.message ?? err.message;
 			setError(message);
-			// a taken slot sends the patient back to choose another time
-			if (/already booked|future/i.test(message)) {
+			// a slot taken meanwhile (or out of the schedule) sends the patient back with fresh slots
+			if (/already booked|future|schedule/i.test(message)) {
 				setTime('');
 				setStep(0);
+				refetchAvailability().then();
 			}
 		}
 	};
@@ -158,7 +155,9 @@ const Booking: NextPage = () => {
 								<dd style={{ margin: '2px 0 0', fontWeight: 800 }}>{time || '—'}</dd>
 							</div>
 						</dl>
-						<p style={{ margin: 0, fontSize: 13, color: 'var(--pb-muted)', lineHeight: 1.5 }}>Times are Seoul time. You can cancel a confirmed visit from My Page.</p>
+						<p style={{ margin: 0, fontSize: 13, color: 'var(--pb-muted)', lineHeight: 1.5 }}>
+							Seoul time. Visits can be booked from tomorrow for the next 5 days, inside the clinic's working hours. You can cancel a confirmed visit from My Page.
+						</p>
 					</section>
 				</aside>
 
@@ -201,39 +200,47 @@ const Booking: NextPage = () => {
 								<>
 									<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 										<h2 style={{ margin: 0, fontSize: 18 }}>Choose a day</h2>
-										<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(76px, 1fr))', gap: 8 }}>
-											{days.map((day) => (
-												<button
-													key={day.value}
-													type="button"
-													aria-pressed={date === day.value}
-													className={`pb-pill ${date === day.value ? 'pb-pill--active' : ''}`}
-													onClick={() => {
-														setDate(day.value);
-														setTime('');
-													}}
-													style={{ minHeight: 64, borderRadius: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 0, boxShadow: date === day.value ? undefined : 'inset 0 0 0 1px #c9dce8' }}
-												>
-													<span style={{ fontSize: 12, opacity: 0.8 }}>{day.weekday}</span>
-													<span style={{ fontSize: 15 }}>{day.label}</span>
-												</button>
-											))}
+										{availability === null && <EcgLine small />}
+										{availability?.length === 0 && <p className="pb-empty">This doctor cannot be booked right now.</p>}
+										<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))', gap: 8 }}>
+											{days.map(({ value, weekday, label, day }) => {
+												const free = day.slots.filter((slot) => slot.available).length;
+												const closed = !day.isOpen;
+												return (
+													<button
+														key={value}
+														type="button"
+														disabled={closed || free === 0}
+														aria-pressed={date === value}
+														className={`pb-pill pb-day ${date === value ? 'pb-pill--active' : ''}`}
+														onClick={() => {
+															setDate(value);
+															setTime('');
+														}}
+													>
+														<span style={{ fontSize: 12, opacity: 0.8 }}>{weekday}</span>
+														<span style={{ fontSize: 15 }}>{label}</span>
+														<small>{closed ? 'Closed' : free === 0 ? 'Full' : `${free} free`}</small>
+													</button>
+												);
+											})}
 										</div>
 									</div>
 									<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 										<h2 style={{ margin: 0, fontSize: 18 }}>Choose a time</h2>
+										{!selectedDay && availability && availability.length > 0 && <p style={{ margin: 0, color: 'var(--pb-muted)' }}>No free time in the next 5 days.</p>}
 										<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))', gap: 8 }}>
-											{SLOTS.map((slot) => (
+											{selectedDay?.slots.map((slot) => (
 												<button
-													key={slot}
+													key={slot.time}
 													type="button"
-													disabled={isPast(slot)}
-													aria-pressed={time === slot}
-													className={`pb-pill ${time === slot ? 'pb-pill--active' : ''}`}
-													onClick={() => setTime(slot)}
-													style={{ borderRadius: 12, opacity: isPast(slot) ? 0.4 : 1, boxShadow: time === slot ? undefined : 'inset 0 0 0 1px #c9dce8' }}
+													disabled={!slot.available}
+													aria-pressed={time === slot.time}
+													title={slot.available ? undefined : 'Already booked'}
+													className={`pb-pill pb-slot ${time === slot.time ? 'pb-pill--active' : ''}`}
+													onClick={() => setTime(slot.time)}
 												>
-													{slot}
+													{slot.time}
 												</button>
 											))}
 										</div>

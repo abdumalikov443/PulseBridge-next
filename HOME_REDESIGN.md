@@ -8,7 +8,7 @@ Backend API does not change; everything below uses existing operations.
 
 - Header layout as in the draft: logo with "Clinical discovery" subtitle, pill nav, Emergency 119 chip, "Sign In / Book Consult" button.
 - No rating, no consultation price, no Profile button on doctor cards (the whole card opens the profile).
-- "Next available" on doctor cards is static text for now (no schedule API).
+- "Next available" on doctor cards is the first free slot from getDoctorAvailability (static until the backend added it).
 - Doctor and clinic cards get like + view chips (`ActionChips`). When liked, only the heart icon turns red; the count and chip background stay the same.
 - Doctor card: photo on the left, name and specialty on its right.
 - Clinic tags = specialties of that clinic's doctors. No rating on clinics.

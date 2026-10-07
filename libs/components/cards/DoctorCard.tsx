@@ -1,4 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@apollo/client';
+import { GET_DOCTOR_AVAILABILITY } from '../../../apollo/user/query';
+import { DayAvailability } from '../../types/appointment/availability';
+import { T } from '../../types/common';
+import { dayLabel } from '../../schedule';
 import Link from 'next/link';
 import { useTranslation } from 'next-i18next';
 import { Doctor } from '../../types/doctor/doctor';
@@ -8,14 +13,22 @@ import Avatar from '../ui/Avatar';
 import ActionChips from '../ui/ActionChips';
 import Icon from '../ui/Icon';
 
-// TODO: the backend has no schedule API yet, so "Next available" is static for now
-const nextSlots = [
-	{ label: 'Today, 14:30', soon: true },
-	{ label: 'Tomorrow, 10:00', soon: true },
-	{ label: 'Today, 17:00', soon: true },
-	{ label: 'Wed, 09:00', soon: false },
-];
-const slotFor = (id: string) => nextSlots[id.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % nextSlots.length];
+// first free 30-minute slot from the doctor's availability (next 5 days from tomorrow)
+const useNextSlot = (doctorId: string) => {
+	const [next, setNext] = useState<{ date: string; time: string } | null | undefined>(undefined);
+	useQuery(GET_DOCTOR_AVAILABILITY, {
+		fetchPolicy: 'cache-first',
+		variables: { doctorId },
+		onCompleted: (data: T) => {
+			const days: DayAvailability[] = data?.getDoctorAvailability ?? [];
+			const day = days.find((ele) => ele.isOpen && ele.slots.some((slot) => slot.available));
+			const slot = day?.slots.find((ele) => ele.available);
+			setNext(day && slot ? { date: day.date, time: slot.time } : null);
+		},
+		onError: () => setNext(null),
+	});
+	return next;
+};
 
 interface DoctorCardProps {
 	doctor: Doctor;
@@ -30,7 +43,7 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 	const { t } = useTranslation('common');
 	const name = getMemberName(doctor.memberData);
 	const detail = `/doctor/detail?id=${doctor._id}`;
-	const slot = slotFor(doctor._id);
+	const next = useNextSlot(doctor._id);
 
 	return (
 		<article className="pb-card pb-card--hover pb-doc-card" style={style}>
@@ -47,7 +60,15 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 			</span>
 			<div className="pb-doc-card__next">
 				<span>{t('Next available')}</span>
-				<b className={slot.soon ? '' : 'is-later'}>{slot.label}</b>
+				{next === undefined ? (
+					<b className="is-loading">…</b>
+				) : next ? (
+					<b className={dayLabel(next.date) === 'Tomorrow' ? '' : 'is-later'}>
+						{dayLabel(next.date)}, {next.time}
+					</b>
+				) : (
+					<b className="is-none">{t('No free time')}</b>
+				)}
 			</div>
 			<ActionChips likes={likes} views={doctor.doctorViews} liked={liked} onLike={onLike} />
 			<Link href={`/booking?doctorId=${doctor._id}`} className="pb-btn pb-btn--primary pb-btn--block">

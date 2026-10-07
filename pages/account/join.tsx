@@ -7,6 +7,8 @@ import Icon from '../../libs/components/ui/Icon';
 import { EcgLine } from '../../libs/components/ui/Loaders';
 import { useApolloClient } from '@apollo/client';
 import ImagePicker from '../../libs/components/ui/ImagePicker';
+import ScheduleFields from '../../libs/components/common/ScheduleFields';
+import { DEFAULT_SCHEDULE, scheduleError, withScheduleDefaults } from '../../libs/schedule';
 import { getJwtToken, logIn, signUp } from '../../libs/auth';
 import { saveMemberImage } from '../../libs/memberPhoto';
 import { uploadImage } from '../../libs/upload';
@@ -44,7 +46,7 @@ const Join: NextPage = () => {
 	const [input, setInput] = useState({ nick: '', password: '', phone: '', type: MemberType.PATIENT as MemberType });
 	// DOCTOR and CLINIC send their profile in the same signup
 	const [doctorProfile, setDoctorProfile] = useState<DoctorProfileInput>({ specialty: DoctorSpecialty.GENERAL, experience: 0 });
-	const [clinicProfile, setClinicProfile] = useState<ClinicInput>({ clinicType: ClinicType.PRIVATE, clinicName: '', clinicAddress: '', clinicDesc: '' });
+	const [clinicProfile, setClinicProfile] = useState<ClinicInput>({ clinicType: ClinicType.PRIVATE, clinicName: '', clinicAddress: '', clinicDesc: '', ...DEFAULT_SCHEDULE });
 
 	/** HANDLERS **/
 	const signupInvalid =
@@ -52,7 +54,10 @@ const Join: NextPage = () => {
 		input.password.length < 5 ||
 		!input.phone ||
 		(input.type === MemberType.CLINIC &&
-			(clinicProfile.clinicName.trim().length < 3 || clinicProfile.clinicAddress.trim().length < 3 || clinicProfile.clinicDesc.trim().length < 5));
+			(clinicProfile.clinicName.trim().length < 3 ||
+				clinicProfile.clinicAddress.trim().length < 3 ||
+				clinicProfile.clinicDesc.trim().length < 5 ||
+				!!scheduleError(withScheduleDefaults(clinicProfile))));
 
 	// upload needs a login, so the photo is saved after signup; a failure here keeps the new account
 	const savePhoto = async (file: File, type: MemberType) => {
@@ -225,6 +230,7 @@ const Join: NextPage = () => {
 								<span>Description (min 5 characters)</span>
 								<textarea className="pb-textarea" rows={3} maxLength={500} value={clinicProfile.clinicDesc} onChange={(e) => setClinicProfile({ ...clinicProfile, clinicDesc: e.target.value })} />
 							</label>
+							<ScheduleFields value={withScheduleDefaults(clinicProfile)} onChange={(schedule) => setClinicProfile({ ...clinicProfile, ...schedule })} />
 						</>
 					)}
 

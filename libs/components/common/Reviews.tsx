@@ -106,7 +106,7 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 					{title}
 				</h2>
 				<span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-					<span style={{ fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>{total} total</span>
+					<span style={{ fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>{total}</span>
 					{!isOwner &&
 						!writing &&
 						(user?._id ? (
