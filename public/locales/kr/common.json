@@ -69,5 +69,15 @@
   "doctor": "명의 의사",
   "yrs of exp": "년 경력",
   "Sign In / Book": "로그인 / 예약",
-  "No free time": "예약 가능 시간 없음"
+  "No free time": "예약 가능 시간 없음",
+  "Your schedule and top doctors": "내 일정과 추천 의사",
+  "View": "보기",
+  "Next patient": "다음 환자",
+  "Your schedule": "내 일정",
+  "No booked visits yet": "예약된 진료가 없습니다",
+  "Patients book your doctors here": "환자들이 여기에서 의사를 예약합니다",
+  "Patients book you from your profile": "환자들이 프로필에서 예약합니다",
+  "Admin": "관리자",
+  "Admin panel": "관리자 패널",
+  "Members, clinics, articles and appointments": "회원, 병원, 글, 예약"
 }

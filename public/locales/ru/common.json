@@ -69,5 +69,15 @@
   "doctor": "врач",
   "yrs of exp": "лет опыта",
   "Sign In / Book": "Войти / Записаться",
-  "No free time": "Нет свободного времени"
+  "No free time": "Нет свободного времени",
+  "Your schedule and top doctors": "Ваше расписание и лучшие врачи",
+  "View": "Открыть",
+  "Next patient": "Следующий пациент",
+  "Your schedule": "Ваше расписание",
+  "No booked visits yet": "Пока нет записей",
+  "Patients book your doctors here": "Пациенты записываются к вашим врачам здесь",
+  "Patients book you from your profile": "Пациенты записываются через ваш профиль",
+  "Admin": "Админ",
+  "Admin panel": "Панель администратора",
+  "Members, clinics, articles and appointments": "Участники, клиники, статьи и записи"
 }

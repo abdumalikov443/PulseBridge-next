@@ -4,7 +4,7 @@ import moment from 'moment';
 import { useTranslation } from 'next-i18next';
 import { useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
-import { GET_DOCTORS, GET_MY_APPOINTMENTS } from '../../../apollo/user/query';
+import { GET_CLINIC_APPOINTMENTS, GET_DOCTOR_APPOINTMENTS, GET_DOCTORS, GET_MY_APPOINTMENTS } from '../../../apollo/user/query';
 import { MemberType } from '../../enums/member.enum';
 import { AppointmentStatus } from '../../enums/appointment.enum';
 import { DoctorSpecialty } from '../../enums/doctor.enum';
@@ -25,25 +25,35 @@ const HomeHero = () => {
 	const { t } = useTranslation('common');
 	const user = useReactiveVar(userVar);
 	const isPatient = user?.memberType === MemberType.PATIENT;
-	const [topDoctor, setTopDoctor] = useState<Doctor | null>(null);
-	const [nextVisit, setNextVisit] = useState<Appointment | null>(null);
+	const isDoctor = user?.memberType === MemberType.DOCTOR;
+	const isClinic = user?.memberType === MemberType.CLINIC;
+	const isAdmin = user?.memberType === MemberType.ADMIN;
+	// only patients (and guests, after login) book; doctors and clinics see their own schedule here
+	const canBook = !user?._id || isPatient;
 
 	/** APOLLO REQUESTS **/
-	useQuery(GET_DOCTORS, {
+	// read from data: onCompleted does not always fire for cached results
+	const { data: topData } = useQuery(GET_DOCTORS, {
 		fetchPolicy: 'cache-and-network',
 		variables: { input: { page: 1, limit: 1, sort: 'doctorRank', direction: 'DESC', search: {} } },
-		onCompleted: (data: T) => setTopDoctor(data?.getDoctors?.list?.[0] ?? null),
 	});
+	const topDoctor: Doctor | null = topData?.getDoctors?.list?.[0] ?? null;
 
-	// a patient sees the next confirmed visit in the care card
-	useQuery(GET_MY_APPOINTMENTS, {
+	// the next confirmed visit: my booking (patient), my next patient (doctor) or the clinic's next visit
+	const visitQuery = isDoctor
+		? { query: GET_DOCTOR_APPOINTMENTS, key: 'getDoctorAppointments' }
+		: isClinic
+		? { query: GET_CLINIC_APPOINTMENTS, key: 'getClinicAppointments' }
+		: { query: GET_MY_APPOINTMENTS, key: 'getMyAppointments' };
+	const { data: visitData } = useQuery(visitQuery.query, {
 		fetchPolicy: 'network-only',
-		skip: !isPatient,
+		skip: !(isPatient || isDoctor || isClinic),
 		variables: {
 			input: { page: 1, limit: 1, sort: 'appointmentDate', direction: 'ASC', search: { appointmentStatus: AppointmentStatus.CONFIRMED } },
 		},
-		onCompleted: (data: T) => setNextVisit(data?.getMyAppointments?.list?.[0] ?? null),
 	});
+	const nextVisit: Appointment | null = visitData?.[visitQuery.key]?.list?.[0] ?? null;
+	const staff = isDoctor || isClinic;
 
 	return (
 		<section className="pb-home-hero">
@@ -89,7 +99,7 @@ const HomeHero = () => {
 						</span>
 						<div style={{ flex: 1, minWidth: 0 }}>
 							<strong>{t('Your care')}</strong>
-							<small>{t('Visits and top doctors')}</small>
+							<small>{staff ? t('Your schedule and top doctors') : t('Visits and top doctors')}</small>
 						</div>
 						<span className={`pb-badge ${user?._id ? 'pb-badge--success' : 'pb-badge--soft'}`}>
 							{user?._id ? t('Signed in') : t('Guest')}
@@ -108,25 +118,59 @@ const HomeHero = () => {
 									</small>
 								</span>
 							</Link>
-							<Link href={`/booking?doctorId=${topDoctor._id}`} className="pb-btn pb-btn--primary pb-btn--sm">
-								{t('Book')}
-							</Link>
+							{canBook ? (
+								<Link href={`/booking?doctorId=${topDoctor._id}`} className="pb-btn pb-btn--primary pb-btn--sm">
+									{t('Book')}
+								</Link>
+							) : (
+								<Link href={`/doctor/detail?id=${topDoctor._id}`} className="pb-btn pb-btn--light pb-btn--sm">
+									{t('View')}
+								</Link>
+							)}
 						</div>
 					)}
 
 					{nextVisit ? (
+						<Link href={`/appointment?id=${nextVisit._id}`} className="pb-care__visit">
+							<span className="pb-care__visit-icon">
+								<Icon name="calendar" />
+							</span>
+							<span style={{ minWidth: 0 }}>
+								<small>{staff ? t('Next patient') : t('Upcoming visit')}</small>
+								<strong>
+									{moment.utc(nextVisit.appointmentDate).format('ddd, MMM D')} · {nextVisit.appointmentTime}
+								</strong>
+								<span>
+									{staff
+										? `${getMemberName(nextVisit.memberData)}${isClinic && nextVisit.doctorData ? ` · Dr. ${getMemberName(nextVisit.doctorData.memberData)}` : ''}`
+										: nextVisit.clinicData?.clinicName}
+								</span>
+							</span>
+							<span className="pb-care__tag">{formatEnum(nextVisit.appointmentStatus)}</span>
+						</Link>
+					) : staff ? (
 						<Link href="/mypage?category=myAppointments" className="pb-care__visit">
 							<span className="pb-care__visit-icon">
 								<Icon name="calendar" />
 							</span>
 							<span style={{ minWidth: 0 }}>
-								<small>{t('Upcoming visit')}</small>
-								<strong>
-									{moment.utc(nextVisit.appointmentDate).format('ddd, MMM D')} · {nextVisit.appointmentTime}
-								</strong>
-								<span>{nextVisit.clinicData?.clinicName}</span>
+								<small>{t('Your schedule')}</small>
+								<strong>{t('No booked visits yet')}</strong>
+								<span>{isClinic ? t('Patients book your doctors here') : t('Patients book you from your profile')}</span>
 							</span>
-							<span className="pb-care__tag">{formatEnum(nextVisit.appointmentStatus)}</span>
+							<Icon name="arrow" className="pb-arrow" />
+						</Link>
+					) : isAdmin ? (
+						<Link href="/_admin" className="pb-care__visit">
+							<span className="pb-care__visit-icon">
+								<Icon name="users" />
+							</span>
+							<span style={{ minWidth: 0 }}>
+								<small>{t('Admin')}</small>
+								<strong>{t('Admin panel')}</strong>
+								<span>{t('Members, clinics, articles and appointments')}</span>
+							</span>
+							<Icon name="arrow" className="pb-arrow" />
 						</Link>
 					) : (
 						<Link href={user?._id ? '/doctor' : '/account/join'} className="pb-care__visit">

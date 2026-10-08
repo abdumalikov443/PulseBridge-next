@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import { useReactiveVar } from '@apollo/client';
+import { useQuery, useReactiveVar } from '@apollo/client';
+import { GET_FAVORITE_CLINICS, GET_FAVORITE_DOCTORS, GET_MEMBER } from '../../../apollo/user/query';
 import { userVar } from '../../../apollo/store';
 import { MemberType } from '../../enums/member.enum';
 import { formatCount } from '../ui/ActionChips';
@@ -43,12 +44,22 @@ const MyOverview = () => {
 	const user = useReactiveVar(userVar);
 	const name = user.memberFullName || user.memberNick;
 	const target = useMyFollowTarget();
+	const isPatient = user.memberType === MemberType.PATIENT;
+
+	// fresh counters (the login token keeps the values from the moment of login)
+	const { data: memberData } = useQuery(GET_MEMBER, { fetchPolicy: 'network-only', skip: !user._id, variables: { input: user._id } });
+	const favoriteInput = { input: { page: 1, limit: 1 } };
+	const { data: favDoctors } = useQuery(GET_FAVORITE_DOCTORS, { fetchPolicy: 'network-only', skip: !isPatient, variables: favoriteInput });
+	const { data: favClinics } = useQuery(GET_FAVORITE_CLINICS, { fetchPolicy: 'network-only', skip: !isPatient, variables: favoriteInput });
+	const me = memberData?.getMember;
+	const favorites = (favDoctors?.getFavoriteDoctors?.metaCounter?.[0]?.total ?? 0) + (favClinics?.getFavoriteClinics?.metaCounter?.[0]?.total ?? 0);
+
 	const stats: { label: string; value: number; icon: IconName }[] = [
-		// patients are not followed; doctors and clinics show the followers of their profile
+		// doctors and clinics are followed and liked through their profile; patients see what they liked
 		...(target ? [{ label: 'Followers', value: target.followers, icon: 'users' as IconName }] : []),
-		{ label: 'Following', value: user.memberFollowings, icon: 'userCheck' },
-		{ label: 'Articles', value: user.memberArticles, icon: 'comment' },
-		{ label: 'Likes', value: user.memberLikes, icon: 'heart' },
+		{ label: 'Following', value: me?.memberFollowings ?? user.memberFollowings, icon: 'userCheck' },
+		...(isPatient ? [] : [{ label: 'Articles', value: me?.memberArticles ?? user.memberArticles, icon: 'comment' as IconName }]),
+		target ? { label: 'Likes', value: target.likes, icon: 'heart' } : { label: 'Favorites', value: favorites, icon: 'heart' },
 	];
 
 	return (

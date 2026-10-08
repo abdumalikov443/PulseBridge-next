@@ -1,38 +1,37 @@
-import { useState } from 'react';
 import { useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../apollo/store';
 import { GET_MY_CLINIC, GET_MY_DOCTOR_PROFILE } from '../../apollo/user/query';
 import { MemberType } from '../enums/member.enum';
 import { FollowGroup } from '../enums/follow.enum';
-import { T } from '../types/common';
 
 export interface MyFollowTarget {
 	followGroup: FollowGroup;
 	refId: string;
 	followers: number;
+	likes: number;
 }
 
-// doctors and clinic owners are followed through their doctor profile / clinic; patients have no followers
+// doctors and clinic owners are followed and liked through their doctor profile / clinic; patients have none
 export const useMyFollowTarget = (): MyFollowTarget | null => {
 	const user = useReactiveVar(userVar);
-	const [target, setTarget] = useState<MyFollowTarget | null>(null);
 
-	useQuery(GET_MY_DOCTOR_PROFILE, {
+	// read from data (fresh on every visit), not from onCompleted
+	const { data: doctorData } = useQuery(GET_MY_DOCTOR_PROFILE, {
 		fetchPolicy: 'cache-and-network',
 		skip: user?.memberType !== MemberType.DOCTOR,
-		onCompleted: (data: T) => {
-			const doctor = data?.getMyDoctorProfile;
-			if (doctor) setTarget({ followGroup: FollowGroup.DOCTOR, refId: doctor._id, followers: doctor.doctorFollowers ?? 0 });
-		},
 	});
-	useQuery(GET_MY_CLINIC, {
+	const { data: clinicData } = useQuery(GET_MY_CLINIC, {
 		fetchPolicy: 'cache-and-network',
 		skip: user?.memberType !== MemberType.CLINIC,
-		onCompleted: (data: T) => {
-			const clinic = data?.getMyClinic;
-			if (clinic) setTarget({ followGroup: FollowGroup.CLINIC, refId: clinic._id, followers: clinic.clinicFollowers ?? 0 });
-		},
 	});
 
-	return target;
+	const doctor = doctorData?.getMyDoctorProfile;
+	if (user?.memberType === MemberType.DOCTOR && doctor) {
+		return { followGroup: FollowGroup.DOCTOR, refId: doctor._id, followers: doctor.doctorFollowers ?? 0, likes: doctor.doctorLikes ?? 0 };
+	}
+	const clinic = clinicData?.getMyClinic;
+	if (user?.memberType === MemberType.CLINIC && clinic) {
+		return { followGroup: FollowGroup.CLINIC, refId: clinic._id, followers: clinic.clinicFollowers ?? 0, likes: clinic.clinicLikes ?? 0 };
+	}
+	return null;
 };
