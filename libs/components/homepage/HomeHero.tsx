@@ -19,7 +19,6 @@ import Icon from '../ui/Icon';
 export const specialtyHref = (specialty: DoctorSpecialty) =>
 	`/doctor?input=${JSON.stringify({ page: 1, limit: 10, sort: 'createdAt', direction: 'DESC', search: { specialtyList: [specialty] } })}`;
 
-const popular = [DoctorSpecialty.CARDIOLOGY, DoctorSpecialty.PEDIATRICS, DoctorSpecialty.DENTISTRY, DoctorSpecialty.GENERAL];
 
 const HomeHero = () => {
 	const { t } = useTranslation('common');
@@ -69,17 +68,6 @@ const HomeHero = () => {
 					<p className="pb-home-hero__lead pb-in" style={{ animationDelay: '.15s' }}>
 						{t('Pick a specialty, compare doctors and clinics, and book a visit at a time that suits you.')}
 					</p>
-					<div className="pb-home-hero__popular pb-in" style={{ animationDelay: '.2s' }}>
-						<span>
-							<Icon name="search" size={14} />
-							{t('Popular specialties')}
-						</span>
-						{popular.map((specialty) => (
-							<Link key={specialty} href={specialtyHref(specialty)} className="pb-chip">
-								{formatEnum(specialty)}
-							</Link>
-						))}
-					</div>
 					<div className="pb-home-hero__ctas pb-in" style={{ animationDelay: '.25s' }}>
 						<Link href="/doctor" className="pb-btn pb-btn--primary pb-btn--lg">
 							<Icon name="stethoscope" />

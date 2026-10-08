@@ -757,3 +757,15 @@ button.pb-header__link {
 		opacity: 0.75;
 	}
 }
+
+button.pb-emergency {
+	border: 0;
+	font: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: box-shadow 0.2s ease;
+	&:hover {
+		box-shadow: inset 0 0 0 1.5px var(--pb-accent);
+	}
+}

@@ -36,6 +36,11 @@ export const sweetConfirmAlert = async (msg: string): Promise<boolean> => {
 	return !!response?.isConfirmed;
 };
 
+export const sweetActionConfirmAlert = async (msg: string, confirmText: string): Promise<boolean> => {
+	const response = await dialog.fire({ text: msg, confirmButtonText: confirmText, cancelButtonText: 'Cancel' });
+	return !!response?.isConfirmed;
+};
+
 export const sweetLoginConfirmAlert = async (msg: string): Promise<boolean> => {
 	const response = await dialog.fire({ text: msg, confirmButtonText: 'Login', cancelButtonText: 'Cancel' });
 	return !!response?.isConfirmed;

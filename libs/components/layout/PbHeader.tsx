@@ -10,7 +10,7 @@ import { MemberType } from '../../enums/member.enum';
 import NotificationMenu from '../common/NotificationMenu';
 import Avatar from '../ui/Avatar';
 import Icon from '../ui/Icon';
-import { sweetBasicAlert } from '../../sweetAlert';
+import { sweetActionConfirmAlert } from '../../sweetAlert';
 
 const languages = [
 	{ id: 'en', label: 'English' },
@@ -31,6 +31,7 @@ const PbHeader = () => {
 		{ href: '/doctor', label: t('Find Doctors') },
 		{ href: '/clinic', label: t('Clinics') },
 		{ href: '/community', label: t('Health Stories') },
+		{ href: '/about', label: t('About') },
 	];
 
 	/** LIFECYCLES **/
@@ -45,6 +46,11 @@ const PbHeader = () => {
 	}, [router.asPath]);
 
 	/** HANDLERS **/
+
+	// asks first; on phones tel: opens the dialer, on desktops the system call app (if any)
+	const emergencyHandler = async () => {
+		if (await sweetActionConfirmAlert(t('Call 119 (ambulance and fire) now?'), t('Call 119'))) window.location.href = 'tel:119';
+	};
 
 	const isActive = (href: string) => (href === '/' ? router.pathname === '/' : router.pathname.startsWith(href));
 
@@ -83,19 +89,14 @@ const PbHeader = () => {
 							{item.label}
 						</Link>
 					))}
-					{/* no telehealth API yet */}
-					<button type="button" className="pb-header__link" onClick={() => sweetBasicAlert(t('Telehealth is coming soon.'))}>
-						{t('Telehealth')}
-						<span className="pb-header__live" aria-hidden="true" />
-					</button>
 				</nav>
 
 				<div className="pb-header__actions">
-					<span className="pb-emergency">
+					<button type="button" className="pb-emergency" onClick={emergencyHandler} aria-label={t('Call emergency 119')}>
 						<Icon name="asterisk" size={14} />
 						<span className="pb-emergency__label">{t('Emergency')}:&nbsp;</span>
 						<b>119</b>
-					</span>
+					</button>
 					<button
 						type="button"
 						className="pb-icon-btn"

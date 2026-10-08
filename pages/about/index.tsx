@@ -37,6 +37,14 @@ const About: NextPage = () => (
 				<p className="pb-hero__lead pb-in" style={{ animationDelay: '.15s' }}>
 					PulseBridge connects patients, doctors and clinics. No phone queues: see who works where, pick a time and get confirmed in seconds.
 				</p>
+				<div className="pb-in" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', animationDelay: '.25s' }}>
+					<Link href={{ pathname: '/cs', query: { tab: 'faq' } }} className="pb-btn pb-btn--primary pb-btn--lg">
+						Read the FAQ <Icon name="arrow" className="pb-arrow" />
+					</Link>
+					<Link href="/doctor" className="pb-btn pb-btn--outline pb-btn--lg">
+						Find a doctor
+					</Link>
+				</div>
 			</div>
 			<div className="pb-hero__visual" style={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-hidden="true">
 				<div className="pb-hero__blob pb-hero__blob--a" />
@@ -88,9 +96,14 @@ const About: NextPage = () => (
 				<strong style={{ fontFamily: 'var(--pb-font-display)', fontSize: 26 }}>Ready when you are</strong>
 				<p style={{ margin: '6px 0 0', opacity: 0.85 }}>Create an account as a patient, doctor or clinic.</p>
 			</div>
-			<Link href="/account/join" className="pb-btn pb-btn--light pb-btn--lg">
-				Get started <Icon name="arrow" className="pb-arrow" />
-			</Link>
+			<div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+				<Link href={{ pathname: '/cs', query: { tab: 'faq' } }} className="pb-btn pb-btn--outline pb-btn--lg">
+					FAQ
+				</Link>
+				<Link href="/account/join" className="pb-btn pb-btn--light pb-btn--lg">
+					Get started <Icon name="arrow" className="pb-arrow" />
+				</Link>
+			</div>
 		</section>
 	</div>
 );
