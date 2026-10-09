@@ -660,3 +660,87 @@
 .pb-doc-card > .pb-btn:last-child {
 	margin-top: auto;
 }
+
+.pb-tone {
+	&--cyan {
+		background: #e0f4f6;
+		color: #0e7c86;
+	}
+	&--rose {
+		background: #fbe6ea;
+		color: #b4325a;
+	}
+	&--slate {
+		background: #e9edf2;
+		color: #475a6e;
+	}
+	&--lime {
+		background: #eef6df;
+		color: #5a7d1a;
+	}
+}
+.pb-spec {
+	&--cyan {
+		--spec-soft: #e0f4f6;
+		--spec-color: #0e7c86;
+	}
+	&--rose {
+		--spec-soft: #fbe6ea;
+		--spec-color: #b4325a;
+	}
+	&--slate {
+		--spec-soft: #e9edf2;
+		--spec-color: #475a6e;
+	}
+	&--lime {
+		--spec-soft: #eef6df;
+		--spec-color: #5a7d1a;
+	}
+}
+// ten specialties: two rows of five on wide screens
+.pb-spec-grid {
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	@media (max-width: 1080px) {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+	@media (max-width: $pb-phone) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* short description above an element on hover / keyboard focus (data-tip) */
+.pb-tip {
+	position: relative;
+	&::after {
+		content: attr(data-tip);
+		position: absolute;
+		left: 50%;
+		bottom: calc(100% + 8px);
+		z-index: 20;
+		width: max-content;
+		max-width: 220px;
+		padding: 6px 10px;
+		border-radius: 8px;
+		background: var(--pb-ink);
+		color: #fff;
+		font-size: 12px;
+		font-weight: 600;
+		line-height: 1.35;
+		text-align: center;
+		white-space: normal;
+		pointer-events: none;
+		opacity: 0;
+		transform: translate(-50%, 4px);
+		transition: opacity 0.15s ease, transform 0.15s ease;
+	}
+	&:hover::after,
+	&:focus-visible::after {
+		opacity: 1;
+		transform: translate(-50%, 0);
+	}
+	@media (hover: none) {
+		&::after {
+			display: none;
+		}
+	}
+}

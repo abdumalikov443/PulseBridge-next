@@ -50,6 +50,22 @@ const paths: Record<string, React.ReactNode> = {
 			<path d="M4 19V5M9 7h6" />
 		</>
 	),
+	droplet: <path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z" />,
+	ribbon: (
+		<>
+			<circle cx="12" cy="8" r="5" />
+			<path d="m9 12-3 9 6-3 6 3-3-9" />
+		</>
+	),
+	bone: (
+		<path d="M17 3a3 3 0 0 1 2.1 5.1A3 3 0 0 1 15.9 13L13 15.9a3 3 0 0 1-4.9 3.2A3 3 0 1 1 4.9 15 3 3 0 0 1 8.1 11L11 8.1A3 3 0 0 1 17 3z" />
+	),
+	stomach: (
+		<>
+			<path d="M9 3v4a4 4 0 0 0 4 4h1a5 5 0 0 1 5 5 5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-1" />
+			<path d="M9 17h4" />
+		</>
+	),
 	navigate: <path d="M12 2 4.5 20.3l.7.7L12 18l6.8 3 .7-.7z" />,
 	send: <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z" />,
 	chat: (

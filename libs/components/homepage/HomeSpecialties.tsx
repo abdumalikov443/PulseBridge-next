@@ -1,37 +1,28 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'next-i18next';
 import { useQuery } from '@apollo/client';
 import { GET_DOCTORS } from '../../../apollo/user/query';
 import { DoctorSpecialty } from '../../enums/doctor.enum';
-import { T } from '../../types/common';
 import { formatEnum } from '../../utils';
 import Icon, { IconName } from '../ui/Icon';
+import { SPECIALTY_INFO } from '../../specialty';
 import { specialtyHref } from './HomeHero';
 
-const tiles: { specialty: DoctorSpecialty; icon: IconName; tone: string }[] = [
-	{ specialty: DoctorSpecialty.CARDIOLOGY, icon: 'heart', tone: 'pink' },
-	{ specialty: DoctorSpecialty.DERMATOLOGY, icon: 'shield', tone: 'blue' },
-	{ specialty: DoctorSpecialty.PEDIATRICS, icon: 'smile', tone: 'orange' },
-	{ specialty: DoctorSpecialty.NEUROLOGY, icon: 'brain', tone: 'violet' },
-	{ specialty: DoctorSpecialty.DENTISTRY, icon: 'tooth', tone: 'sand' },
-	{ specialty: DoctorSpecialty.GENERAL, icon: 'stethoscope', tone: 'green' },
-];
+const tiles = Object.values(DoctorSpecialty).map((specialty) => ({ specialty, ...SPECIALTY_INFO[specialty] }));
 
 // one tile per specialty; the count is metaCounter.total for that specialty
-const SpecialtyTile = ({ specialty, icon, tone }: { specialty: DoctorSpecialty; icon: IconName; tone: string }) => {
+const SpecialtyTile = ({ specialty, icon, tone, desc }: { specialty: DoctorSpecialty; icon: IconName; tone: string; desc: string }) => {
 	const { t } = useTranslation('common');
-	const [count, setCount] = useState<number | null>(null);
-
-	useQuery(GET_DOCTORS, {
+	// read from data: onCompleted does not always fire for cached results
+	const { data, error } = useQuery(GET_DOCTORS, {
 		fetchPolicy: 'cache-first',
 		variables: { input: { page: 1, limit: 1, search: { specialtyList: [specialty] } } },
-		onCompleted: (data: T) => setCount(data?.getDoctors?.metaCounter?.[0]?.total ?? 0),
-		onError: () => setCount(0),
 	});
+	const count: number | null = error ? 0 : data ? data.getDoctors?.metaCounter?.[0]?.total ?? 0 : null;
 
 	return (
-		<Link href={specialtyHref(specialty)} className={`pb-spec pb-spec--${tone}`}>
+		<Link href={specialtyHref(specialty)} className={`pb-spec pb-spec--${tone} pb-tip`} data-tip={t(desc)} aria-label={`${formatEnum(specialty)}: ${t(desc)}`}>
 			<span className={`pb-spec__icon pb-tone--${tone}`}>
 				<Icon name={icon} />
 			</span>

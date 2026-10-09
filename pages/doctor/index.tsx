@@ -8,6 +8,7 @@ import DoctorCard from '../../libs/components/cards/DoctorCard';
 import { SkeletonCards } from '../../libs/components/ui/Loaders';
 import Icon from '../../libs/components/ui/Icon';
 import SortSelect from '../../libs/components/ui/SortSelect';
+import { SPECIALTY_INFO } from '../../libs/specialty';
 import PbPagination from '../../libs/components/ui/PbPagination';
 import { useDebouncedValue } from '../../libs/hooks/useDebouncedValue';
 import { GET_DOCTORS } from '../../apollo/user/query';
@@ -135,8 +136,10 @@ const DoctorList: NextPage = () => {
 					<button
 						key={value}
 						type="button"
-						className={`pb-pill ${specialty === value ? 'pb-pill--active' : ''}`}
+						className={`pb-pill pb-tip ${specialty === value ? 'pb-pill--active' : ''}`}
+						data-tip={SPECIALTY_INFO[value].desc}
 						aria-pressed={specialty === value}
+						aria-description={SPECIALTY_INFO[value].desc}
 						onClick={() => setSearch({ specialtyList: [value] })}
 					>
 						{formatEnum(value)}
