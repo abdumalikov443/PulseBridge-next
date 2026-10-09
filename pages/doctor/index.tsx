@@ -173,7 +173,7 @@ const DoctorList: NextPage = () => {
 			</div>
 			{doctors?.length === 0 && !loading && <p className="pb-empty">No doctors match these filters.</p>}
 
-			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => pushInput({ ...input, page })} noun="doctor" />
+			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => pushInput({ ...input, page })} />
 		</div>
 	);
 };

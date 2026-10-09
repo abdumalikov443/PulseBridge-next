@@ -160,7 +160,7 @@ const ClinicList: NextPage = () => {
 			</div>
 			{clinics?.length === 0 && !loading && <p className="pb-empty">No clinics match these filters.</p>}
 
-			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => pushInput({ ...input, page })} noun="clinic" />
+			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => pushInput({ ...input, page })} />
 		</div>
 	);
 };

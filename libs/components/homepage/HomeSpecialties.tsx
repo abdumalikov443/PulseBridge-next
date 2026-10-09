@@ -12,7 +12,7 @@ import { specialtyHref } from './HomeHero';
 const tiles = Object.values(DoctorSpecialty).map((specialty) => ({ specialty, ...SPECIALTY_INFO[specialty] }));
 
 // one tile per specialty; the count is metaCounter.total for that specialty
-const SpecialtyTile = ({ specialty, icon, tone, desc }: { specialty: DoctorSpecialty; icon: IconName; tone: string; desc: string }) => {
+const SpecialtyTile = ({ specialty, icon, tone, desc, copy }: { specialty: DoctorSpecialty; icon: IconName; tone: string; desc: string; copy?: boolean }) => {
 	const { t } = useTranslation('common');
 	// read from data: onCompleted does not always fire for cached results
 	const { data, error } = useQuery(GET_DOCTORS, {
@@ -22,7 +22,15 @@ const SpecialtyTile = ({ specialty, icon, tone, desc }: { specialty: DoctorSpeci
 	const count: number | null = error ? 0 : data ? data.getDoctors?.metaCounter?.[0]?.total ?? 0 : null;
 
 	return (
-		<Link href={specialtyHref(specialty)} className={`pb-spec pb-spec--${tone} pb-tip`} data-tip={t(desc)} aria-label={`${formatEnum(specialty)}: ${t(desc)}`}>
+		<Link
+			href={specialtyHref(specialty)}
+			className={`pb-spec pb-spec--${tone} pb-tip`}
+			data-tip={t(desc)}
+			aria-label={`${formatEnum(specialty)}: ${t(desc)}`}
+			// the second copy only fills the loop; screen readers and Tab skip it
+			aria-hidden={copy || undefined}
+			tabIndex={copy ? -1 : undefined}
+		>
 			<span className={`pb-spec__icon pb-tone--${tone}`}>
 				<Icon name={icon} />
 			</span>
@@ -50,10 +58,16 @@ const HomeSpecialties = () => {
 					{t('All doctors')} <Icon name="arrow" size={16} className="pb-arrow" />
 				</Link>
 			</div>
-			<div className="pb-spec-grid">
-				{tiles.map((tile) => (
-					<SpecialtyTile key={tile.specialty} {...tile} />
-				))}
+			{/* endless row: the tiles run twice so the loop has no gap; it stops while hovered or focused */}
+			<div className="pb-spec-marquee">
+				<div className="pb-spec-marquee__track">
+					{tiles.map((tile) => (
+						<SpecialtyTile key={tile.specialty} {...tile} />
+					))}
+					{tiles.map((tile) => (
+						<SpecialtyTile key={`copy-${tile.specialty}`} {...tile} copy />
+					))}
+				</div>
 			</div>
 		</section>
 	);

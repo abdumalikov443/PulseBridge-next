@@ -967,7 +967,7 @@
 	}
 }
 
-/* pagination: page numbers centered, total under them (as in Nestar) */
+/* pagination: page numbers centered (as in Nestar) */
 .pb-pager,
 .pb-pagination {
 	display: flex;
@@ -1002,11 +1002,18 @@
 		box-shadow: none;
 	}
 }
-.pb-pager__total {
-	margin: 0;
-	font-size: 16px;
-	font-weight: 400;
-	color: var(--pb-muted);
+/* small count with an icon next to a section title (reviews, comments) */
+.pb-count-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 12px;
+	border-radius: 999px;
+	background: var(--pb-soft-1);
+	color: var(--pb-deep);
+	font-size: 14px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
 }
 
 /* sort dropdown */

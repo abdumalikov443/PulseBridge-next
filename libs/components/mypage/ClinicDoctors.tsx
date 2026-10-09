@@ -80,7 +80,7 @@ const ClinicDoctors = () => {
 					}
 				/>
 			))}
-			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} noun="doctor" />
+			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} />
 		</MySection>
 	);
 };

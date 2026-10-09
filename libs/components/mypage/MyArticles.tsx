@@ -56,7 +56,7 @@ const MyArticles = () => {
 				})}
 			</div>
 			{articles?.length === 0 && <p className="pb-empty">You have not written any article yet.</p>}
-			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} noun="article" />
+			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} />
 		</MySection>
 	);
 };

@@ -143,7 +143,7 @@ const Community: NextPage = () => {
 			</div>
 			{articles?.length === 0 && !loading && <p className="pb-empty">No posts yet.</p>}
 
-			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} noun="post" />
+			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} />
 		</div>
 	);
 };

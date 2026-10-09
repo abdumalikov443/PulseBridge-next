@@ -141,7 +141,7 @@ const MemberPage: NextPage = () => {
 						})}
 					</div>
 					{articles?.length === 0 && <p className="pb-empty">No articles yet.</p>}
-					<PbPagination page={page} total={total} limit={LIMIT} onChange={setPage} noun="article" />
+					<PbPagination page={page} total={total} limit={LIMIT} onChange={setPage} />
 				</>
 			)}
 			<FollowModal memberId={member._id} mode={followMode} counts={followCounts} onMode={setFollowMode} onClose={() => setFollowMode(null)} />

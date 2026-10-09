@@ -209,7 +209,7 @@ const JoinRequests = () => {
 				),
 			)}
 
-			<PbPagination page={inquiry.page} total={total} limit={inquiry.limit} onChange={(page) => setInquiry({ ...inquiry, page })} noun="request" />
+			<PbPagination page={inquiry.page} total={total} limit={inquiry.limit} onChange={(page) => setInquiry({ ...inquiry, page })} />
 		</MySection>
 	);
 };

@@ -119,7 +119,7 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 			</div>
 			{list?.length === 0 && <p className="pb-empty">Nothing here yet.</p>}
 
-			<PbPagination page={inquiry.page} total={total} limit={inquiry.limit} onChange={(page) => setInquiry({ ...inquiry, page })} noun={target === 'clinic' ? 'clinic' : 'doctor'} />
+			<PbPagination page={inquiry.page} total={total} limit={inquiry.limit} onChange={(page) => setInquiry({ ...inquiry, page })} />
 		</MySection>
 	);
 };

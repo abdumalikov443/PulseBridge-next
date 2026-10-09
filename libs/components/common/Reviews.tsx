@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import moment from 'moment';
-import { Pagination } from '@mui/material';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { GET_COMMENTS } from '../../../apollo/user/query';
 import { CREATE_COMMENT, UPDATE_COMMENT } from '../../../apollo/user/mutation';
 import { CommentGroup, CommentStatus } from '../../enums/comment.enum';
+import { MemberType } from '../../enums/member.enum';
+import { usePublicTargets } from '../../hooks/usePublicTargets';
 import { Comment } from '../../types/comment/comment';
 import { T } from '../../types/common';
 import { COMMENT_CONTENT_MAX, getMemberName, Messages } from '../../config';
@@ -39,6 +40,21 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 	// the form stays folded until the button is pressed
 	const [writing, setWriting] = useState(false);
 	const isReview = title === 'Reviews';
+	const { doctors, clinics } = usePublicTargets(comments.length === 0);
+
+	// doctors and clinics are shown by their public profile; patients have no profile link
+	const authorOf = useMemo(() => {
+		const doctorByMember = new Map(doctors.map((ele) => [ele.memberId, ele]));
+		const clinicByMember = new Map(clinics.map((ele) => [ele.memberId, ele]));
+		return (comment: Comment): { name: string; image?: string | null; href: string | null; square?: boolean } => {
+			const member = comment.memberData;
+			const doctor = member?.memberType === MemberType.DOCTOR ? doctorByMember.get(member._id) : undefined;
+			const clinic = member?.memberType === MemberType.CLINIC ? clinicByMember.get(member._id) : undefined;
+			if (clinic) return { name: clinic.clinicName, image: clinic.clinicImage, href: `/clinic/detail?id=${clinic._id}`, square: true };
+			if (doctor) return { name: getMemberName(doctor.memberData ?? member), image: member?.memberImage, href: `/doctor/detail?id=${doctor._id}` };
+			return { name: getMemberName(member), image: member?.memberImage, href: null };
+		};
+	}, [doctors, clinics]);
 
 	/** APOLLO REQUESTS **/
 	const [createComment, { loading: posting }] = useMutation(CREATE_COMMENT);
@@ -107,7 +123,10 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 					{title}
 				</h2>
 				<span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-					<span style={{ fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>{total}</span>
+					<span className="pb-count-chip" title={`${total} ${isReview ? 'reviews' : 'comments'}`}>
+						<Icon name="comment" size={14} />
+						{total}
+					</span>
 					{!isOwner &&
 						!writing &&
 						(user?._id ? (
@@ -171,15 +190,19 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 
 			{comments.length === 0 && <p style={{ margin: 0, color: 'var(--pb-muted)' }}>Nothing here yet.</p>}
 			{comments.map((comment) => {
-				const author = getMemberName(comment.memberData);
+				const author = authorOf(comment);
 				return (
 					<article key={comment._id} style={{ display: 'flex', gap: 12, paddingTop: 14, borderTop: '1px solid var(--pb-line)' }}>
-						<Avatar name={author} image={comment.memberData?.memberImage} size={40} />
+						<Avatar name={author.name} image={author.image} size={40} radius={author.square ? 12 : '50%'} />
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
 							<span style={{ fontSize: 14 }}>
-								<Link href={`/member?memberId=${comment.memberData?._id}`} style={{ fontWeight: 700 }}>
-									{author}
-								</Link>{' '}
+								{author.href ? (
+									<Link href={author.href} style={{ fontWeight: 700 }}>
+										{author.name}
+									</Link>
+								) : (
+									<strong>{author.name}</strong>
+								)}{' '}
 								<span style={{ color: 'var(--pb-muted)' }}>· {moment(comment.createdAt).format('MMM D, YYYY')}</span>
 							</span>
 							{editing?.id === comment._id ? (
@@ -219,7 +242,7 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 				);
 			})}
 
-			<PbPagination page={page} total={total} limit={LIMIT} onChange={setPage} noun={title === 'Reviews' ? 'review' : 'comment'} scrollTop={false} />
+			<PbPagination page={page} total={total} limit={LIMIT} onChange={setPage} scrollTop={false} />
 		</section>
 	);
 };
