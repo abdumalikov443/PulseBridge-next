@@ -19,7 +19,7 @@ import { Article } from '../../libs/types/article/article';
 import { CommentGroup } from '../../libs/enums/comment.enum';
 import { MemberType } from '../../libs/enums/member.enum';
 import { T } from '../../libs/types/common';
-import { getMemberName, REACT_APP_API_URL } from '../../libs/config';
+import { getMemberName } from '../../libs/config';
 
 const ToastViewer = dynamic(() => import('../../libs/components/community/TViewer'), { ssr: false });
 
@@ -81,15 +81,6 @@ const CommunityDetail: NextPage = () => {
 					{article.articleTitle}
 				</h1>
 
-				{article.articleImage && (
-					<div className="pb-media" style={{ height: 320 }}>
-						<img src={`${REACT_APP_API_URL}/${article.articleImage}`} alt="" />
-						<span className="pb-badge">
-							<Icon name="calendar" size={14} />
-							<time dateTime={moment(article.createdAt).toISOString()}>{moment(article.createdAt).format('MMM D')}</time>
-						</span>
-					</div>
-				)}
 
 				<ToastViewer markdown={article.articleContent} />
 

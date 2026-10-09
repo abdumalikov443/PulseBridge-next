@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
-import ScrollableFeed from 'react-scrollable-feed';
 import { useReactiveVar } from '@apollo/client';
-import { socketVar, userVar } from '../../apollo/store';
+import { chatMessagesVar, chatNewVar, chatOnlineVar, socketVar, userVar } from '../../apollo/store';
 import { Member } from '../types/member/member';
 import { MemberType } from '../enums/member.enum';
 import { getMemberName } from '../config';
 import { formatEnum } from '../utils';
 import Avatar from './ui/Avatar';
 import Icon from './ui/Icon';
+import AiAssistant from './chat/AiAssistant';
 
 interface MessagePayload {
 	event: string;
@@ -16,49 +16,43 @@ interface MessagePayload {
 	memberData: Member;
 }
 
-interface InfoPayload {
-	event: string;
-	totalClients: number;
-	memberData: Member;
-	action: string;
-}
+type ChatTab = 'community' | 'ai';
 
 const MESSAGE_MAX = 200;
+const HINT_KEY = 'pb_chat_hint_closed';
 
-// live community chat over the backend WebSocket (the server keeps the last 5 messages)
+// floating chat: live community chat (WebSocket, the server keeps the last 5 messages) and the AI assistant
 const Chat = () => {
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
 	const socket = useReactiveVar(socketVar);
 	const inputRef = useRef<HTMLInputElement>(null);
-	const [messagesList, setMessagesList] = useState<MessagePayload[]>([]);
-	const [onlineUsers, setOnlineUsers] = useState<number>(0);
+	const endRef = useRef<HTMLDivElement>(null);
+	const socketMessages: MessagePayload[] = useReactiveVar(chatMessagesVar);
+	const socketOnline = useReactiveVar(chatOnlineVar);
+	const newCount = useReactiveVar(chatNewVar);
+	// socket data can arrive before hydration; the server HTML has none, so it is shown after mount
+	const [mounted, setMounted] = useState(false);
+	const messagesList = mounted ? socketMessages : [];
+	const onlineUsers = mounted ? socketOnline : 0;
 	const [messageInput, setMessageInput] = useState<string>('');
 	const [open, setOpen] = useState(false);
-	const [unread, setUnread] = useState(0);
-	const openRef = useRef(open);
-	openRef.current = open;
+	const [tab, setTab] = useState<ChatTab>('community');
+	const [hint, setHint] = useState(false);
+	// messages that came in while the chat was closed
+	const [seen, setSeen] = useState(0);
+	const unread = open ? 0 : Math.max(0, newCount - seen);
 
 	/** LIFECYCLES **/
 
 	useEffect(() => {
-		if (!socket) return;
-		socket.onmessage = (msg) => {
-			const data = JSON.parse(msg.data);
-			switch (data.event) {
-				case 'info':
-					setOnlineUsers((data as InfoPayload).totalClients);
-					break;
-				case 'getMessages':
-					setMessagesList(data.list ?? []);
-					break;
-				case 'message':
-					setMessagesList((list) => [...list, data as MessagePayload]);
-					if (!openRef.current) setUnread((count) => count + 1);
-					break;
-			}
-		};
-	}, [socket]);
+		setMounted(true);
+		try {
+			setHint(!localStorage.getItem(HINT_KEY));
+		} catch {
+			setHint(true);
+		}
+	}, []);
 
 	useEffect(() => {
 		setOpen(false);
@@ -66,12 +60,30 @@ const Chat = () => {
 
 	useEffect(() => {
 		if (open) {
-			setUnread(0);
-			inputRef.current?.focus();
+			setSeen(newCount);
+			if (tab === 'community') inputRef.current?.focus();
 		}
-	}, [open]);
+	}, [open, newCount, tab]);
+
+	// keep the newest message in view
+	useEffect(() => {
+		if (open && tab === 'community') endRef.current?.scrollIntoView({ block: 'end' });
+	}, [messagesList.length, open, tab]);
 
 	/** HANDLERS **/
+	const closeHint = () => {
+		setHint(false);
+		try {
+			localStorage.setItem(HINT_KEY, '1');
+		} catch {}
+	};
+
+	const openChat = (next: ChatTab) => {
+		setTab(next);
+		setOpen(true);
+		closeHint();
+	};
+
 	const sendHandler = () => {
 		const text = messageInput.trim();
 		if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
@@ -81,89 +93,121 @@ const Chat = () => {
 
 	return (
 		<div className="pb-chat">
+			{mounted && hint && !open && (
+				<div className="pb-chat__hint" role="note">
+					<button type="button" className="pb-chat__hint-text" onClick={() => openChat('ai')}>
+						<strong>Not sure which doctor you need?</strong>
+						<span>Describe your symptoms to the AI assistant</span>
+					</button>
+					<button type="button" className="pb-chat__hint-close" aria-label="Hide this tip" onClick={closeHint}>
+						<Icon name="close" size={14} />
+					</button>
+				</div>
+			)}
+
 			<button
 				type="button"
 				className={`pb-chat__launcher ${open ? 'is-open' : ''}`}
 				aria-label={open ? 'Close chat' : 'Open chat'}
 				aria-expanded={open}
-				onClick={() => setOpen(!open)}
+				onClick={() => (open ? setOpen(false) : openChat(tab))}
 			>
 				<Icon name={open ? 'close' : 'chat'} size={24} />
 				{!open && unread > 0 && <span className="pb-chat__unread">{unread > 9 ? '9+' : unread}</span>}
 			</button>
 
-			<section className={`pb-chat__panel ${open ? 'is-open' : ''}`} aria-label="Live chat" aria-hidden={!open}>
+			<section className={`pb-chat__panel ${open ? 'is-open' : ''}`} aria-label="Chat" aria-hidden={!open}>
 				<header className="pb-chat__head">
 					<span className="pb-chat__mark">
-						<Icon name="chat" size={20} />
+						<Icon name={tab === 'ai' ? 'pulse' : 'chat'} size={20} />
 					</span>
 					<div style={{ flex: 1, minWidth: 0 }}>
-						<strong>Live chat</strong>
-						<span className="pb-chat__online">
-							<i aria-hidden="true" />
-							{onlineUsers} online
-						</span>
+						<strong>{tab === 'ai' ? 'AI assistant' : 'Live chat'}</strong>
+						{tab === 'ai' ? (
+							<span className="pb-chat__online">Finds the right type of doctor</span>
+						) : (
+							<span className="pb-chat__online">
+								<i aria-hidden="true" />
+								{onlineUsers} online
+							</span>
+						)}
 					</div>
 					<button type="button" className="pb-chat__close" aria-label="Close chat" onClick={() => setOpen(false)}>
 						<Icon name="close" size={18} />
 					</button>
 				</header>
 
-				<div className="pb-chat__body">
-					<ScrollableFeed>
-						<div className="pb-chat__list">
-							<p className="pb-chat__note">Ask the community about clinics, doctors and healthy habits. Please do not share private medical data.</p>
-							{messagesList.length === 0 && <p className="pb-chat__empty">No messages yet. Say hello!</p>}
-							{messagesList.map((ele: MessagePayload, index: number) => {
-								const { text, memberData } = ele;
-								const mine = !!user?._id && memberData?._id === user._id;
-								const prev = messagesList[index - 1];
-								const grouped = !!prev && (prev.memberData?._id ?? 'guest') === (memberData?._id ?? 'guest');
-								const name = getMemberName(memberData) || 'Guest';
-								const role = memberData?.memberType && memberData.memberType !== MemberType.PATIENT ? formatEnum(memberData.memberType) : '';
-
-								return (
-									<div key={index} className={`pb-msg ${mine ? 'pb-msg--mine' : ''} ${grouped ? 'pb-msg--grouped' : ''}`}>
-										{!mine && (
-											<span className="pb-msg__avatar">{!grouped && <Avatar name={name} image={memberData?.memberImage} size={32} />}</span>
-										)}
-										<div className="pb-msg__col">
-											{!mine && !grouped && (
-												<span className="pb-msg__name">
-													{name}
-													{role && <em>{role}</em>}
-												</span>
-											)}
-											<p className="pb-msg__bubble">{text}</p>
-										</div>
-									</div>
-								);
-							})}
-						</div>
-					</ScrollableFeed>
+				<div className="pb-chat__tabs" role="tablist" aria-label="Chat type">
+					<button type="button" role="tab" aria-selected={tab === 'community'} className={tab === 'community' ? 'is-active' : ''} onClick={() => setTab('community')}>
+						<Icon name="users" size={15} /> Community
+					</button>
+					<button type="button" role="tab" aria-selected={tab === 'ai'} className={tab === 'ai' ? 'is-active' : ''} onClick={() => setTab('ai')}>
+						<Icon name="pulse" size={15} /> AI assistant
+					</button>
 				</div>
 
-				<form
-					className="pb-chat__form"
-					onSubmit={(e) => {
-						e.preventDefault();
-						sendHandler();
-					}}
-				>
-					<input
-						ref={inputRef}
-						type="text"
-						name="message"
-						aria-label="Message"
-						placeholder={user?._id ? 'Write a message…' : 'Write as guest…'}
-						maxLength={MESSAGE_MAX}
-						value={messageInput}
-						onChange={(e) => setMessageInput(e.target.value)}
-					/>
-					<button type="submit" className="pb-chat__send" aria-label="Send" disabled={!messageInput.trim()}>
-						<Icon name="send" size={18} />
-					</button>
-				</form>
+				{tab === 'ai' ? (
+					<AiAssistant active={open && tab === 'ai'} />
+				) : (
+					<>
+						<div className="pb-chat__body">
+							<div className="pb-chat__scroll">
+								<div className="pb-chat__list">
+									<p className="pb-chat__note">Ask the community about clinics, doctors and healthy habits. Please do not share private medical data.</p>
+									{messagesList.length === 0 && <p className="pb-chat__empty">No messages yet. Say hello!</p>}
+									{messagesList.map((ele: MessagePayload, index: number) => {
+										const { text, memberData } = ele;
+										const mine = !!user?._id && memberData?._id === user._id;
+										const prev = messagesList[index - 1];
+										const grouped = !!prev && (prev.memberData?._id ?? 'guest') === (memberData?._id ?? 'guest');
+										const name = getMemberName(memberData) || 'Guest';
+										const role = memberData?.memberType && memberData.memberType !== MemberType.PATIENT ? formatEnum(memberData.memberType) : '';
+
+										return (
+											<div key={index} className={`pb-msg ${mine ? 'pb-msg--mine' : ''} ${grouped ? 'pb-msg--grouped' : ''}`}>
+												{!mine && (
+													<span className="pb-msg__avatar">{!grouped && <Avatar name={name} image={memberData?.memberImage} size={32} />}</span>
+												)}
+												<div className="pb-msg__col">
+													{!mine && !grouped && (
+														<span className="pb-msg__name">
+															{name}
+															{role && <em>{role}</em>}
+														</span>
+													)}
+													<p className="pb-msg__bubble">{text}</p>
+												</div>
+											</div>
+										);
+									})}
+									<div ref={endRef} />
+								</div>
+							</div>
+						</div>
+
+						<form
+							className="pb-chat__form"
+							onSubmit={(e) => {
+								e.preventDefault();
+								sendHandler();
+							}}
+						>
+							<input
+								ref={inputRef}
+								type="text"
+								name="message"
+								aria-label="Message"
+								placeholder={user?._id ? 'Write a message…' : 'Write as guest…'}
+								maxLength={MESSAGE_MAX}
+								value={messageInput}
+								onChange={(e) => setMessageInput(e.target.value)}
+							/>
+							<button type="submit" className="pb-chat__send" aria-label="Send" disabled={!messageInput.trim()}>
+								<Icon name="send" size={18} />
+							</button>
+						</form>
+					</>
+				)}
 			</section>
 		</div>
 	);

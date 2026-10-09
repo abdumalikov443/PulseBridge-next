@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -48,6 +48,11 @@ const Booking: NextPage = () => {
 	const [date, setDate] = useState('');
 	const [time, setTime] = useState('');
 	const [reason, setReason] = useState('');
+	// the AI assistant passes its complaint summary; the patient can still edit it
+	useEffect(() => {
+		const prefill = router.query.reason;
+		if (typeof prefill === 'string' && prefill) setReason((current) => current || prefill.slice(0, 500));
+	}, [router.query.reason]);
 	const [error, setError] = useState('');
 	const [done, setDone] = useState(false);
 	const [bookedId, setBookedId] = useState('');

@@ -326,3 +326,35 @@ export const READ_ALL_NOTIFICATIONS = gql`
 		readAllNotifications
 	}
 `;
+
+/**************************
+ *        AI INTAKE       *
+ *************************/
+
+// one turn with the AI assistant (guests too); keep sessionKey for the next message
+export const INTAKE_CHAT = gql`
+	mutation IntakeChat($input: IntakeChatInput!) {
+		intakeChat(input: $input) {
+			sessionKey
+			reply
+			ready
+			specialty
+			urgency
+			complaintSummary
+			remainingMessages
+		}
+	}
+`;
+
+// after a patient logs in: attach the guest conversation to the account
+export const CLAIM_INTAKE_SESSION = gql`
+	mutation ClaimIntakeSession($sessionKey: String!) {
+		claimIntakeSession(sessionKey: $sessionKey) {
+			_id
+			ready
+			specialty
+			urgency
+			complaintSummary
+		}
+	}
+`;

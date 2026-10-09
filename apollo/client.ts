@@ -7,7 +7,10 @@ import { onError } from '@apollo/client/link/error';
 import { getJwtToken } from '../libs/auth';
 import { TokenRefreshLink } from 'apollo-link-token-refresh';
 import { sweetErrorAlert } from '../libs/sweetAlert';
-import { pendingRequestsVar, serverReadyVar, socketVar } from './store';
+import { chatMessagesVar, chatNewVar, chatOnlineVar, pendingRequestsVar, serverReadyVar, socketVar } from './store';
+
+// messages kept in the open chat during a visit
+const CHAT_HISTORY = 50;
 let apolloClient: ApolloClient<NormalizedCacheObject>;
 
 function getHeaders() {
@@ -41,8 +44,26 @@ class LoggingWebSocket {
 			console.log("WebSocket Connection!");
 		};
 
+		// "info" and "getMessages" arrive right after connecting, before the chat is mounted
 		this.socket.onmessage = (msg) => {
-			console.log("WebSocket Message: ", msg.data);
+			try {
+				const data = JSON.parse(msg.data);
+				switch (data.event) {
+					case 'info':
+						chatOnlineVar(data.totalClients ?? 0);
+						break;
+					case 'getMessages':
+						// the server keeps the last 5 messages and sends them to every new connection
+						chatMessagesVar(data.list ?? []);
+						break;
+					case 'message':
+						chatMessagesVar([...chatMessagesVar(), data].slice(-CHAT_HISTORY));
+						chatNewVar(chatNewVar() + 1);
+						break;
+				}
+			} catch (err) {
+				console.log('WebSocket message parse error:', err);
+			}
 		};
 
 		this.socket.onerror = (err) => {

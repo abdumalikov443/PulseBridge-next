@@ -31,3 +31,9 @@ export const pendingRequestsVar = makeVar<number>(0);
 
 // @ts-ignore
 export const socketVar = makeVar<WebSocket>();
+
+// live chat: filled by the socket from the first message (online count, last messages from the server)
+export const chatOnlineVar = makeVar<number>(0);
+export const chatMessagesVar = makeVar<any[]>([]);
+// counts messages that arrived after the history; the chat shows them as unread while closed
+export const chatNewVar = makeVar<number>(0);

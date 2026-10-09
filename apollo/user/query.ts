@@ -804,3 +804,48 @@ export const GET_NOTIFICATIONS = gql`
 		}
 	}
 `;
+
+/**************************
+ *        AI INTAKE       *
+ *************************/
+
+export const GET_INTAKE_SESSION = gql`
+	query GetIntakeSession($sessionKey: String!) {
+		getIntakeSession(sessionKey: $sessionKey) {
+			_id
+			messages {
+				role
+				content
+			}
+			ready
+			specialty
+			urgency
+			complaintSummary
+			expiresAt
+		}
+	}
+`;
+
+// top doctors for the specialty the assistant suggested (patients)
+export const GET_INTAKE_RECOMMENDATIONS = gql`
+	query GetIntakeRecommendations($sessionKey: String!) {
+		getIntakeRecommendations(sessionKey: $sessionKey) {
+			list {
+				_id
+				specialty
+				experience
+				doctorLikes
+				memberData {
+					_id
+					memberNick
+					memberFullName
+					memberImage
+				}
+				clinicData {
+					_id
+					clinicName
+				}
+			}
+		}
+	}
+`;
