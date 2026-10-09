@@ -434,13 +434,43 @@
 		justify-content: center;
 		transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
 	}
+	// hover takes the color of the tile's own icon
+	--spec-soft: var(--pb-soft-1);
+	--spec-color: var(--pb-deep);
+	&--pink {
+		--spec-soft: var(--pb-like-soft);
+		--spec-color: var(--pb-like);
+	}
+	&--blue {
+		--spec-soft: var(--pb-soft-1);
+		--spec-color: var(--pb-deep);
+	}
+	&--orange {
+		--spec-soft: var(--pb-soft-2);
+		--spec-color: #c46a1b;
+	}
+	&--violet {
+		--spec-soft: var(--pb-soft-3);
+		--spec-color: #6a5fc1;
+	}
+	&--sand {
+		--spec-soft: var(--pb-warning-soft);
+		--spec-color: #a87a12;
+	}
+	&--green {
+		--spec-soft: var(--pb-soft-4);
+		--spec-color: var(--pb-success);
+	}
 	&:hover {
 		transform: translateY(-2px);
-		background: var(--pb-soft-1);
-		box-shadow: inset 0 0 0 1.5px var(--pb-deep), var(--pb-shadow);
+		background: var(--spec-soft);
+		box-shadow: inset 0 0 0 1.5px var(--spec-color), var(--pb-shadow);
+		strong {
+			color: var(--spec-color);
+		}
 	}
 	&:hover &__icon {
-		background: var(--pb-deep);
+		background: var(--spec-color);
 		color: #fff;
 		transform: scale(1.05);
 	}

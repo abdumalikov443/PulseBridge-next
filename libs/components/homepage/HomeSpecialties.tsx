@@ -31,7 +31,7 @@ const SpecialtyTile = ({ specialty, icon, tone }: { specialty: DoctorSpecialty; 
 	});
 
 	return (
-		<Link href={specialtyHref(specialty)} className="pb-spec">
+		<Link href={specialtyHref(specialty)} className={`pb-spec pb-spec--${tone}`}>
 			<span className={`pb-spec__icon pb-tone--${tone}`}>
 				<Icon name={icon} />
 			</span>

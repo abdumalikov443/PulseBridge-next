@@ -30,7 +30,7 @@ const PbHeader = () => {
 		{ href: '/', label: t('Home') },
 		{ href: '/doctor', label: t('Find Doctors') },
 		{ href: '/clinic', label: t('Clinics') },
-		{ href: '/community', label: t('Health Stories') },
+		{ href: '/community', label: t('Community') },
 		{ href: '/about', label: t('About') },
 	];
 
