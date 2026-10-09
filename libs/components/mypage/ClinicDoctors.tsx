@@ -15,6 +15,7 @@ import ListRow from './ListRow';
 import MySection from './MySection';
 import Avatar from '../ui/Avatar';
 import { SkeletonCards } from '../ui/Loaders';
+import PbPagination from '../ui/PbPagination';
 
 // CLINIC members: doctors working in my clinic; removing keeps the doctor profile, it only leaves the clinic
 const ClinicDoctors = () => {
@@ -79,11 +80,7 @@ const ClinicDoctors = () => {
 					}
 				/>
 			))}
-			{total > input.limit && (
-				<div className="pb-pagination">
-					<Pagination page={input.page} count={Math.ceil(total / input.limit)} onChange={(e, page) => setInput({ ...input, page })} shape="circular" color="primary" />
-				</div>
-			)}
+			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} noun="doctor" />
 		</MySection>
 	);
 };

@@ -5,6 +5,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import Icon, { IconName } from '../../libs/components/ui/Icon';
 import { EcgLine } from '../../libs/components/ui/Loaders';
+import { userAgent } from 'next/server';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {

@@ -14,6 +14,7 @@ import { sweetConfirmAlert, sweetErrorHandling, sweetTopSmallSuccessAlert } from
 import Avatar from '../ui/Avatar';
 import Icon from '../ui/Icon';
 import { EcgLine } from '../ui/Loaders';
+import PbPagination from '../ui/PbPagination';
 
 interface ReviewsProps {
 	refId: string;
@@ -218,11 +219,7 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 				);
 			})}
 
-			{total > LIMIT && (
-				<div className="pb-pagination">
-					<Pagination page={page} count={Math.ceil(total / LIMIT)} onChange={(e, value) => setPage(value)} shape="circular" color="primary" />
-				</div>
-			)}
+			<PbPagination page={page} total={total} limit={LIMIT} onChange={setPage} noun={title === 'Reviews' ? 'review' : 'comment'} scrollTop={false} />
 		</section>
 	);
 };

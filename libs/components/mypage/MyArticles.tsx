@@ -14,6 +14,7 @@ import PostCard from '../cards/PostCard';
 import MySection from './MySection';
 import { useArticleAccess } from '../../hooks/useArticleAccess';
 import { SkeletonCards } from '../ui/Loaders';
+import PbPagination from '../ui/PbPagination';
 
 const MyArticles = () => {
 	const access = useArticleAccess();
@@ -55,11 +56,7 @@ const MyArticles = () => {
 				})}
 			</div>
 			{articles?.length === 0 && <p className="pb-empty">You have not written any article yet.</p>}
-			{total > input.limit && (
-				<div className="pb-pagination">
-					<Pagination page={input.page} count={Math.ceil(total / input.limit)} onChange={(e, page) => setInput({ ...input, page })} shape="circular" color="primary" />
-				</div>
-			)}
+			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} noun="article" />
 		</MySection>
 	);
 };

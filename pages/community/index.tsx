@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useArticleAccess } from '../../libs/hooks/useArticleAccess';
 import { useQuery, useReactiveVar } from '@apollo/client';
-import { Pagination } from '@mui/material';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import PostCard from '../../libs/components/cards/PostCard';
 import { SkeletonCards } from '../../libs/components/ui/Loaders';
 import Icon from '../../libs/components/ui/Icon';
+import PbPagination from '../../libs/components/ui/PbPagination';
+import { useDebouncedValue } from '../../libs/hooks/useDebouncedValue';
 import { userVar } from '../../apollo/store';
 import { GET_ARTICLES } from '../../apollo/user/query';
 import { LIKE_TARGET_ARTICLE } from '../../apollo/user/mutation';
@@ -60,6 +61,23 @@ const Community: NextPage = () => {
 		if (sort && tabs.some((tab) => tab.value === sort)) setInput((prev) => ({ ...prev, page: 1, sort }));
 	}, [router.query.sort]);
 
+	// live search: runs after typing stops; an emptied box also resets the sort to "Latest"
+	const debouncedText = useDebouncedValue(text, 400);
+	useEffect(() => {
+		const typed = debouncedText.trim();
+		if (typed === (input.search?.text ?? '')) return;
+		const search: T = { ...input.search };
+		if (typed) search.text = typed;
+		else delete search.text;
+		if (!typed) {
+			setInput({ ...input, page: 1, sort: 'createdAt', search });
+			router.replace({ pathname: '/community' }, undefined, { shallow: true, scroll: false });
+		} else {
+			setInput({ ...input, page: 1, search });
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [debouncedText]);
+
 	/** HANDLERS **/
 	const changeSort = (sort: string) => {
 		setInput({ ...input, page: 1, sort });
@@ -98,12 +116,7 @@ const Community: NextPage = () => {
 				<form
 					className="pb-search"
 					style={{ flex: '1 1 260px', maxWidth: 360 }}
-					onSubmit={(e) => {
-						e.preventDefault();
-						const search: T = { ...input.search, text: text.trim() };
-						if (!search.text) delete search.text;
-						setInput({ ...input, page: 1, search });
-					}}
+					onSubmit={(e) => e.preventDefault()}
 				>
 					<Icon name="search" />
 					<label htmlFor="post-search" className="pb-sr">
@@ -130,11 +143,7 @@ const Community: NextPage = () => {
 			</div>
 			{articles?.length === 0 && !loading && <p className="pb-empty">No posts yet.</p>}
 
-			{total > input.limit && (
-				<div className="pb-pagination">
-					<Pagination page={input.page} count={Math.ceil(total / input.limit)} onChange={(e, page) => setInput({ ...input, page })} shape="circular" color="primary" />
-				</div>
-			)}
+			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} noun="post" />
 		</div>
 	);
 };

@@ -95,9 +95,22 @@ const ClinicDetail: NextPage = () => {
 
 			<div className="pb-media pb-in" style={{ height: 260, borderRadius: 32, background: 'var(--pb-soft-1)' }}>
 				{clinic.clinicImage ? (
-					<img src={`${REACT_APP_API_URL}/${clinic.clinicImage}`} alt="" style={{ animation: 'pbZoom 1.6s cubic-bezier(.2,.8,.2,1) both' }} />
+					<img
+						src={`${REACT_APP_API_URL}/${clinic.clinicImage}`}
+						alt=""
+						style={{ animation: 'pbZoom 1.6s cubic-bezier(.2,.8,.2,1) both' }}
+					/>
 				) : (
-					<span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(31,111,153,.4)' }}>
+					<span
+						style={{
+							position: 'absolute',
+							inset: 0,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							color: 'rgba(31,111,153,.4)',
+						}}
+					>
 						<Icon name="clinic" size={72} strokeWidth={1.3} />
 					</span>
 				)}
@@ -105,7 +118,15 @@ const ClinicDetail: NextPage = () => {
 
 			<section
 				className="pb-card pb-card--flat"
-				style={{ margin: '-48px 24px 0', position: 'relative', flexDirection: 'row', flexWrap: 'wrap', gap: 20, alignItems: 'center', boxShadow: 'var(--pb-shadow)' }}
+				style={{
+					margin: '-48px 24px 0',
+					position: 'relative',
+					flexDirection: 'row',
+					flexWrap: 'wrap',
+					gap: 20,
+					alignItems: 'center',
+					boxShadow: 'var(--pb-shadow)',
+				}}
 			>
 				<div style={{ flex: '999 1 360px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
 					<div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -114,7 +135,9 @@ const ClinicDetail: NextPage = () => {
 						</h1>
 						<span className="pb-badge pb-badge--soft">{formatEnum(clinic.clinicType)}</span>
 					</div>
-					<span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 15, color: 'var(--pb-muted)' }}>
+					<span
+						style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 15, color: 'var(--pb-muted)' }}
+					>
 						<Icon name="pin" size={16} /> {clinic.clinicAddress} · since {moment(clinic.createdAt).format('YYYY')}
 					</span>
 					<ActionChips
@@ -142,7 +165,11 @@ const ClinicDetail: NextPage = () => {
 					/>
 				</div>
 				<div className="pb-cta">
-					<ClinicJoinButton clinicId={clinic._id} clinicName={clinic.clinicName} onShowDoctors={() => setTab('doctors')} />
+					<ClinicJoinButton
+						clinicId={clinic._id}
+						clinicName={clinic.clinicName}
+						onShowDoctors={() => setTab('doctors')}
+					/>
 					{canFollow(clinic.memberId) && (
 						<FollowButton
 							following={following}
@@ -178,13 +205,37 @@ const ClinicDetail: NextPage = () => {
 								<h2 className="pb-title" style={{ fontSize: 22 }}>
 									About
 								</h2>
-								<p style={{ margin: 0, fontSize: 15, lineHeight: 1.65, color: 'var(--pb-muted)', whiteSpace: 'pre-line' }}>{clinic.clinicDesc}</p>
+								<p
+									style={{
+										margin: 0,
+										fontSize: 15,
+										lineHeight: 1.65,
+										color: 'var(--pb-muted)',
+										whiteSpace: 'pre-line',
+									}}
+								>
+									{clinic.clinicDesc}
+								</p>
 							</section>
 							<section className="pb-card pb-card--flat">
 								<h2 className="pb-title" style={{ fontSize: 22 }}>
 									Location
 								</h2>
-								<a href={mapsUrl} target="_blank" rel="noreferrer" className="pb-media" style={{ height: 180, background: 'var(--pb-soft-1)', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, color: 'var(--pb-deep)' }}>
+								<a
+									href={mapsUrl}
+									target="_blank"
+									rel="noreferrer"
+									className="pb-media"
+									style={{
+										height: 180,
+										background: 'var(--pb-soft-1)',
+										alignItems: 'center',
+										justifyContent: 'center',
+										flexDirection: 'column',
+										gap: 8,
+										color: 'var(--pb-deep)',
+									}}
+								>
 									<Icon name="pin" size={32} />
 									<span style={{ fontWeight: 700 }}>{clinic.clinicAddress}</span>
 									<span style={{ fontSize: 13 }}>Open in Google Maps</span>
@@ -194,22 +245,41 @@ const ClinicDetail: NextPage = () => {
 					)}
 
 					{tab === 'doctors' && (
-						<div className="pb-grid">
-							{doctors === null && <SkeletonCards count={3} />}
-							{doctors?.length === 0 && <p className="pb-empty">No doctors in this clinic yet.</p>}
-							{doctors?.map((doctor) => {
-								const state = doctorLike.likeState(doctor._id, !!doctor.meLiked?.[0]?.myFavorite, doctor.doctorLikes);
-								return (
-									<DoctorCard
-										key={doctor._id}
-										doctor={doctor}
-										liked={state.liked}
-										likes={state.likes}
-										onLike={() => doctorLike.toggleLike(doctor._id, state)}
-									/>
-								);
-							})}
-						</div>
+						// same card as the Reviews tab: title with the count, then the list
+						<section className="pb-card pb-card--flat" style={{ gap: 16 }}>
+							<div className="pb-section-head" style={{ marginBottom: 0 }}>
+								<h2 className="pb-title" style={{ fontSize: 22 }}>
+									Doctors
+								</h2>
+								<span style={{ fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
+									{doctors?.length ?? clinic.clinicDoctors}
+								</span>
+							</div>
+							{doctors === null && <SkeletonCards count={2} />}
+							{doctors?.length === 0 && (
+								<p style={{ margin: 0, color: 'var(--pb-muted)' }}>No doctors in this clinic yet.</p>
+							)}
+							{!!doctors?.length && (
+								<div className="pb-grid">
+									{doctors?.map((doctor) => {
+										const state = doctorLike.likeState(
+											doctor._id,
+											!!doctor.meLiked?.[0]?.myFavorite,
+											doctor.doctorLikes,
+										);
+										return (
+											<DoctorCard
+												key={doctor._id}
+												doctor={doctor}
+												liked={state.liked}
+												likes={state.likes}
+												onLike={() => doctorLike.toggleLike(doctor._id, state)}
+											/>
+										);
+									})}
+								</div>
+							)}
+						</section>
 					)}
 
 					{tab === 'reviews' && (
@@ -246,7 +316,11 @@ const ClinicDetail: NextPage = () => {
 							{schedule.clinicOffDays.length > 0 && (
 								<div>
 									<dt>Closed</dt>
-									<dd>{WEEK_DAYS.filter((day) => schedule.clinicOffDays.includes(day)).map((day) => WEEK_DAY_LABEL[day]).join(', ')}</dd>
+									<dd>
+										{WEEK_DAYS.filter((day) => schedule.clinicOffDays.includes(day))
+											.map((day) => WEEK_DAY_LABEL[day])
+											.join(', ')}
+									</dd>
 								</div>
 							)}
 						</dl>
@@ -255,7 +329,11 @@ const ClinicDetail: NextPage = () => {
 					<section className="pb-card pb-card--flat">
 						<strong style={{ fontSize: 15 }}>Contact</strong>
 						<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-							<Avatar name={getMemberName(clinic.memberData) || clinic.clinicName} image={clinic.memberData?.memberImage} size={44} />
+							<Avatar
+								name={getMemberName(clinic.memberData) || clinic.clinicName}
+								image={clinic.memberData?.memberImage}
+								size={44}
+							/>
 							<span style={{ display: 'flex', flexDirection: 'column' }}>
 								<strong style={{ fontSize: 14 }}>{getMemberName(clinic.memberData)}</strong>
 								{clinic.memberData?.memberPhone && (

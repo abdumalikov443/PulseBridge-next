@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useQuery } from '@apollo/client';
-import { Pagination } from '@mui/material';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import ClinicCard from '../../libs/components/cards/ClinicCard';
 import { SkeletonCards } from '../../libs/components/ui/Loaders';
 import Icon from '../../libs/components/ui/Icon';
+import SortSelect from '../../libs/components/ui/SortSelect';
+import PbPagination from '../../libs/components/ui/PbPagination';
+import { useDebouncedValue } from '../../libs/hooks/useDebouncedValue';
 import { GET_CLINICS } from '../../apollo/user/query';
 import { LIKE_TARGET_CLINIC } from '../../apollo/user/mutation';
 import { useLikeToggle } from '../../libs/hooks/useEngagement';
@@ -75,6 +77,22 @@ const ClinicList: NextPage = () => {
 		pushInput({ ...input, page: 1, search });
 	};
 
+	// live search: runs after typing stops; an emptied box also resets the sort (page refetches)
+	const debouncedText = useDebouncedValue(text, 400);
+	useEffect(() => {
+		if (!router.isReady) return;
+		const typed = debouncedText.trim();
+		if (typed === (input.search?.text ?? '')) return;
+		if (!typed) {
+			const search: T = { ...input.search };
+			delete search.text;
+			pushInput({ ...input, page: 1, sort: initialInput.sort, direction: initialInput.direction, search });
+		} else {
+			setSearch({ text: typed });
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [debouncedText]);
+
 	const clinicType = input.search?.clinicType;
 
 	return (
@@ -109,10 +127,7 @@ const ClinicList: NextPage = () => {
 				<form
 					className="pb-search"
 					style={{ flex: '1 1 260px', maxWidth: 360 }}
-					onSubmit={(e) => {
-						e.preventDefault();
-						setSearch({ text: text.trim() || undefined });
-					}}
+					onSubmit={(e) => e.preventDefault()}
 				>
 					<Icon name="search" />
 					<label htmlFor="clinic-search" className="pb-sr">
@@ -120,20 +135,7 @@ const ClinicList: NextPage = () => {
 					</label>
 					<input id="clinic-search" value={text} placeholder="Clinic name" onChange={(e) => setText(e.target.value)} />
 				</form>
-				<label className="pb-search" style={{ flex: '0 1 200px' }}>
-					<span className="pb-sr">Sort by</span>
-					<select
-						value={input.sort}
-						onChange={(e) => pushInput({ ...input, page: 1, sort: e.target.value, direction: Direction.DESC })}
-						style={{ border: 0, background: 'transparent', font: 'inherit', fontWeight: 700, width: '100%', color: 'inherit' }}
-					>
-						{sortOptions.map((option) => (
-							<option key={option.value} value={option.value}>
-								{option.label}
-							</option>
-						))}
-					</select>
-				</label>
+				<SortSelect value={input.sort ?? initialInput.sort!} options={sortOptions} onChange={(sort) => pushInput({ ...input, page: 1, sort, direction: Direction.DESC })} />
 			</div>
 
 			<p style={{ margin: '4px 0 12px', fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
@@ -158,17 +160,7 @@ const ClinicList: NextPage = () => {
 			</div>
 			{clinics?.length === 0 && !loading && <p className="pb-empty">No clinics match these filters.</p>}
 
-			{total > input.limit && (
-				<div className="pb-pagination">
-					<Pagination
-						page={input.page}
-						count={Math.ceil(total / input.limit)}
-						onChange={(e, page) => pushInput({ ...input, page })}
-						shape="circular"
-						color="primary"
-					/>
-				</div>
-			)}
+			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => pushInput({ ...input, page })} noun="clinic" />
 		</div>
 	);
 };

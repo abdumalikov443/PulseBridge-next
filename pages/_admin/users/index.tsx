@@ -20,6 +20,8 @@ import { AdminMemberUpdate } from '../../../libs/types/member/member.update';
 import { useMutation, useQuery } from '@apollo/client';
 import { UPDATE_MEMBER_BY_ADMIN } from '../../../apollo/admin/mutation';
 import { GET_ALL_MEMBERS_BY_ADMIN } from '../../../apollo/admin/query';
+import { Direction } from '../../../libs/enums/common.enum';
+import { useDebouncedValue } from '../../../libs/hooks/useDebouncedValue';
 import { T } from '../../../libs/types/common';
 
 const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
@@ -55,6 +57,18 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 	useEffect(() => {
 		getAllMembersRefetch({ input: membersInquiry }).then();
 	}, [membersInquiry]);
+
+	// live search: runs after typing stops; an emptied box resets the sort and refetches the list
+	const debouncedSearch = useDebouncedValue(searchText, 400);
+	useEffect(() => {
+		const typed = debouncedSearch.trim();
+		if (typed === (membersInquiry.search?.text ?? '')) return;
+		const search: T = { ...membersInquiry.search };
+		if (typed) search.text = typed;
+		else delete search.text;
+		setMembersInquiry({ ...membersInquiry, page: 1, ...(typed ? {} : { sort: 'createdAt', direction: Direction.DESC }), search });
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [debouncedSearch]);
 
 	/** HANDLERS **/
 	const changePageHandler = async (event: unknown, newPage: number) => {
@@ -126,13 +140,9 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 
 	const searchTextHandler = () => {
 		try {
-			setMembersInquiry({
-				...membersInquiry,
-				search: {
-					...membersInquiry.search,
-					text: searchText,
-				},
-			});
+			const search: T = { ...membersInquiry.search, text: searchText.trim() };
+			if (!search.text) delete search.text;
+			setMembersInquiry({ ...membersInquiry, page: 1, search });
 		} catch (err: any) {
 			console.log('searchTextHandler: ', err.message);
 		}
@@ -216,17 +226,7 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 											{searchText && (
 												<CancelRoundedIcon
 													style={{ cursor: 'pointer' }}
-													onClick={async () => {
-														setSearchText('');
-														setMembersInquiry({
-															...membersInquiry,
-															search: {
-																...membersInquiry.search,
-																text: '',
-															},
-														});
-														await getAllMembersRefetch({ input: membersInquiry });
-													}}
+													onClick={() => setSearchText('')}
 												/>
 											)}
 											<InputAdornment position="end" onClick={() => searchTextHandler()}>

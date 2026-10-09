@@ -18,6 +18,7 @@ import MySection from './MySection';
 import Avatar from '../ui/Avatar';
 import Icon from '../ui/Icon';
 import { SkeletonCards } from '../ui/Loaders';
+import PbPagination from '../ui/PbPagination';
 
 const tones: Record<JoinRequestStatus, Tone> = {
 	[JoinRequestStatus.PENDING]: 'warning',
@@ -208,11 +209,7 @@ const JoinRequests = () => {
 				),
 			)}
 
-			{total > inquiry.limit && (
-				<div className="pb-pagination">
-					<Pagination page={inquiry.page} count={Math.ceil(total / inquiry.limit)} onChange={(e, page) => setInquiry({ ...inquiry, page })} shape="circular" color="primary" />
-				</div>
-			)}
+			<PbPagination page={inquiry.page} total={total} limit={inquiry.limit} onChange={(page) => setInquiry({ ...inquiry, page })} noun="request" />
 		</MySection>
 	);
 };

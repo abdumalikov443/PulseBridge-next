@@ -11,6 +11,7 @@ import ClinicCard from '../cards/ClinicCard';
 import DoctorCard from '../cards/DoctorCard';
 import MySection from './MySection';
 import { SkeletonCards } from '../ui/Loaders';
+import PbPagination from '../ui/PbPagination';
 
 type Target = 'clinic' | 'doctor';
 
@@ -118,11 +119,7 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 			</div>
 			{list?.length === 0 && <p className="pb-empty">Nothing here yet.</p>}
 
-			{total > inquiry.limit && (
-				<div className="pb-pagination">
-					<Pagination page={inquiry.page} count={Math.ceil(total / inquiry.limit)} onChange={(e, page) => setInquiry({ ...inquiry, page })} shape="circular" color="primary" />
-				</div>
-			)}
+			<PbPagination page={inquiry.page} total={total} limit={inquiry.limit} onChange={(page) => setInquiry({ ...inquiry, page })} noun={target === 'clinic' ? 'clinic' : 'doctor'} />
 		</MySection>
 	);
 };

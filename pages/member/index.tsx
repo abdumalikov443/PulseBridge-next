@@ -22,6 +22,7 @@ import { Article } from '../../libs/types/article/article';
 import { T } from '../../libs/types/common';
 import { getMemberName } from '../../libs/config';
 import { formatEnum } from '../../libs/utils';
+import PbPagination from '../../libs/components/ui/PbPagination';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -140,11 +141,7 @@ const MemberPage: NextPage = () => {
 						})}
 					</div>
 					{articles?.length === 0 && <p className="pb-empty">No articles yet.</p>}
-					{total > LIMIT && (
-						<div className="pb-pagination">
-							<Pagination page={page} count={Math.ceil(total / LIMIT)} onChange={(e, value) => setPage(value)} shape="circular" color="primary" />
-						</div>
-					)}
+					<PbPagination page={page} total={total} limit={LIMIT} onChange={setPage} noun="article" />
 				</>
 			)}
 			<FollowModal memberId={member._id} mode={followMode} counts={followCounts} onMode={setFollowMode} onClose={() => setFollowMode(null)} />

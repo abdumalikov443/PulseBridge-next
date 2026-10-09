@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useQuery } from '@apollo/client';
-import { Pagination } from '@mui/material';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import DoctorCard from '../../libs/components/cards/DoctorCard';
 import { SkeletonCards } from '../../libs/components/ui/Loaders';
 import Icon from '../../libs/components/ui/Icon';
+import SortSelect from '../../libs/components/ui/SortSelect';
+import PbPagination from '../../libs/components/ui/PbPagination';
+import { useDebouncedValue } from '../../libs/hooks/useDebouncedValue';
 import { GET_DOCTORS } from '../../apollo/user/query';
 import { LIKE_TARGET_DOCTOR } from '../../apollo/user/mutation';
 import { useLikeToggle } from '../../libs/hooks/useEngagement';
@@ -77,6 +79,26 @@ const DoctorList: NextPage = () => {
 	};
 
 	const specialty = input.search?.specialtyList?.[0];
+	// five specialties first; "More..." shows the rest (always shown when the chosen one is hidden)
+	const specialties = Object.values(DoctorSpecialty);
+	const [showAll, setShowAll] = useState(false);
+	const shownSpecialties = showAll || (specialty && specialties.indexOf(specialty) >= 5) ? specialties : specialties.slice(0, 5);
+
+	// live search: runs after typing stops; an emptied box also resets the sort (page refetches)
+	const debouncedText = useDebouncedValue(text, 400);
+	useEffect(() => {
+		if (!router.isReady) return;
+		const typed = debouncedText.trim();
+		if (typed === (input.search?.text ?? '')) return;
+		if (!typed) {
+			const search: T = { ...input.search };
+			delete search.text;
+			pushInput({ ...input, page: 1, sort: initialInput.sort, direction: initialInput.direction, search });
+		} else {
+			setSearch({ text: typed });
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [debouncedText]);
 
 	return (
 		<div className="pb-container">
@@ -89,10 +111,7 @@ const DoctorList: NextPage = () => {
 				<form
 					className="pb-search"
 					style={{ flex: '1 1 280px' }}
-					onSubmit={(e) => {
-						e.preventDefault();
-						setSearch({ text: text.trim() || undefined });
-					}}
+					onSubmit={(e) => e.preventDefault()}
 				>
 					<Icon name="search" />
 					<label htmlFor="doctor-search" className="pb-sr">
@@ -100,20 +119,7 @@ const DoctorList: NextPage = () => {
 					</label>
 					<input id="doctor-search" value={text} placeholder="Doctor name" onChange={(e) => setText(e.target.value)} />
 				</form>
-				<label className="pb-search" style={{ flex: '0 1 220px' }}>
-					<span className="pb-sr">Sort by</span>
-					<select
-						value={input.sort}
-						onChange={(e) => pushInput({ ...input, page: 1, sort: e.target.value, direction: Direction.DESC })}
-						style={{ border: 0, background: 'transparent', font: 'inherit', fontWeight: 700, width: '100%', color: 'inherit' }}
-					>
-						{sortOptions.map((option) => (
-							<option key={option.value} value={option.value}>
-								{option.label}
-							</option>
-						))}
-					</select>
-				</label>
+				<SortSelect value={input.sort ?? initialInput.sort!} options={sortOptions} onChange={(sort) => pushInput({ ...input, page: 1, sort, direction: Direction.DESC })} />
 			</div>
 
 			<div className="pb-pills" role="group" aria-label="Specialty">
@@ -125,7 +131,7 @@ const DoctorList: NextPage = () => {
 				>
 					All
 				</button>
-				{Object.values(DoctorSpecialty).map((value) => (
+				{shownSpecialties.map((value) => (
 					<button
 						key={value}
 						type="button"
@@ -136,6 +142,11 @@ const DoctorList: NextPage = () => {
 						{formatEnum(value)}
 					</button>
 				))}
+				{shownSpecialties.length < specialties.length && (
+					<button type="button" className="pb-pill pb-pill--more" onClick={() => setShowAll(true)}>
+						More...
+					</button>
+				)}
 			</div>
 
 			<p style={{ margin: '20px 0 12px', fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
@@ -159,17 +170,7 @@ const DoctorList: NextPage = () => {
 			</div>
 			{doctors?.length === 0 && !loading && <p className="pb-empty">No doctors match these filters.</p>}
 
-			{total > input.limit && (
-				<div className="pb-pagination">
-					<Pagination
-						page={input.page}
-						count={Math.ceil(total / input.limit)}
-						onChange={(e, page) => pushInput({ ...input, page })}
-						shape="circular"
-						color="primary"
-					/>
-				</div>
-			)}
+			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => pushInput({ ...input, page })} noun="doctor" />
 		</div>
 	);
 };
