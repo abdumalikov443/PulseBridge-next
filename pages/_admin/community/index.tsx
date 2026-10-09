@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { NextPage } from 'next';
+import AdminTotal from '../../../libs/components/admin/AdminTotal';
 import withAdminLayout from '../../../libs/components/layout/LayoutAdmin';
 import { Box, Stack, MenuItem } from '@mui/material';
 import { List, ListItem } from '@mui/material';
@@ -128,6 +129,7 @@ const AdminCommunity: NextPage = ({ initialInquiry, ...props }: any) => {
 		<Box component={'div'} className={'content'}>
 			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
 				Article List
+				<AdminTotal total={articleTotal} noun="article" />
 			</Typography>
 			<Box component={'div'} className={'table-wrap'}>
 				<Box component={'div'} sx={{ width: '100%', typography: 'body1' }}>

@@ -126,6 +126,10 @@ const Community: NextPage = () => {
 				</form>
 			</div>
 
+			<p style={{ margin: '0 0 12px', minHeight: 20, fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
+				{articles !== null && !loading && `${total} post${total === 1 ? '' : 's'} found`}
+			</p>
+
 			<div className="pb-grid pb-grid--posts">
 				{(articles === null || (loading && articles.length === 0)) && <SkeletonCards count={4} />}
 				{articles?.map((article) => {

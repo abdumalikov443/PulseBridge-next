@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { NextPage } from 'next';
 import Link from 'next/link';
+import AdminTotal from '../../../libs/components/admin/AdminTotal';
 import withAdminLayout from '../../../libs/components/layout/LayoutAdmin';
 import {
 	Avatar,
@@ -74,6 +75,7 @@ const AdminDoctors: NextPage = ({ initialInquiry, ...props }: any) => {
 		<Box component={'div'} className={'content'}>
 			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
 				Doctor List
+				<AdminTotal total={total} noun="doctor" />
 			</Typography>
 			<Box component={'div'} className={'table-wrap'}>
 				<Stack className={'search-area'} sx={{ m: '24px' }}>

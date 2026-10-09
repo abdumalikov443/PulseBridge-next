@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { NextPage } from 'next';
 import moment from 'moment';
+import CopyId from '../../../libs/components/admin/CopyId';
+import AdminTotal from '../../../libs/components/admin/AdminTotal';
 import withAdminLayout from '../../../libs/components/layout/LayoutAdmin';
 import {
 	Box,
@@ -56,6 +58,7 @@ const AdminAppointments: NextPage = ({ initialInquiry, ...props }: any) => {
 		<Box component={'div'} className={'content'}>
 			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
 				Appointment List
+				<AdminTotal total={total} noun="appointment" />
 			</Typography>
 			<Box component={'div'} className={'table-wrap'}>
 				<List className={'tab-menu'}>
@@ -80,12 +83,13 @@ const AdminAppointments: NextPage = ({ initialInquiry, ...props }: any) => {
 								<TableCell align="center">DOCTOR</TableCell>
 								<TableCell align="center">CLINIC</TableCell>
 								<TableCell align="center">STATUS</TableCell>
+								<TableCell align="left">ID</TableCell>
 							</TableRow>
 						</TableHead>
 						<TableBody>
 							{appointments.length === 0 && (
 								<TableRow>
-									<TableCell align="center" colSpan={6}>
+									<TableCell align="center" colSpan={7}>
 										<span className={'no-data'}>data not found!</span>
 									</TableCell>
 								</TableRow>
@@ -97,7 +101,14 @@ const AdminAppointments: NextPage = ({ initialInquiry, ...props }: any) => {
 									<TableCell align="center">{getMemberName(appointment.memberData)}</TableCell>
 									<TableCell align="center">{getMemberName(appointment.doctorData?.memberData)}</TableCell>
 									<TableCell align="center">{appointment.clinicData?.clinicName}</TableCell>
-									<TableCell align="center">{formatEnum(appointment.appointmentStatus)}</TableCell>
+									<TableCell align="center">
+										<span className={`pb-admin-status pb-admin-status--${appointment.appointmentStatus.toLowerCase()}`}>
+											{formatEnum(appointment.appointmentStatus)}
+										</span>
+									</TableCell>
+									<TableCell align="left">
+										<CopyId id={appointment._id} />
+									</TableCell>
 								</TableRow>
 							))}
 						</TableBody>

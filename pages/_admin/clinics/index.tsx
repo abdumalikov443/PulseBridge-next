@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { NextPage } from 'next';
+import AdminTotal from '../../../libs/components/admin/AdminTotal';
 import withAdminLayout from '../../../libs/components/layout/LayoutAdmin';
 import { Box, List, ListItem, Stack } from '@mui/material';
 import Typography from '@mui/material/Typography';
@@ -103,6 +104,7 @@ const AdminClinics: NextPage = ({ initialInquiry, ...props }: any) => {
 		<Box component={'div'} className={'content'}>
 			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
 				Clinic List
+				<AdminTotal total={clinicsTotal} noun="clinic" />
 			</Typography>
 			<Box component={'div'} className={'table-wrap'}>
 				<Box component={'div'} sx={{ width: '100%', typography: 'body1' }}>

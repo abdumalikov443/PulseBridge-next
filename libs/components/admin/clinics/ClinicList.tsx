@@ -1,4 +1,5 @@
 import React from 'react';
+import CopyId from '../CopyId';
 import Link from 'next/link';
 import {
 	TableCell,
@@ -78,7 +79,9 @@ export const ClinicPanelList = (props: ClinicPanelListType) => {
 
 								return (
 									<TableRow hover key={clinic?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-										<TableCell align="left">{clinic._id}</TableCell>
+										<TableCell align="left">
+											<CopyId id={clinic._id} />
+										</TableCell>
 										<TableCell align="left" className={'name'}>
 											{clinic.clinicStatus === ClinicStatus.ACTIVE ? (
 												<Stack direction={'row'}>

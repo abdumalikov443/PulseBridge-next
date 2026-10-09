@@ -221,3 +221,84 @@
 		border-top: 1px solid var(--pb-line);
 	}
 }
+
+/* total next to the page title */
+.pb-admin-total {
+	margin-left: 12px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	background: var(--pb-soft-1);
+	color: var(--pb-deep);
+	font-size: 13px;
+	font-weight: 700;
+	vertical-align: middle;
+	font-variant-numeric: tabular-nums;
+}
+
+/* appointment status: blue upcoming, green done, red cancelled */
+.pb-admin-status {
+	display: inline-block;
+	padding: 4px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+	&--confirmed {
+		background: var(--pb-soft-1);
+		color: var(--pb-deep);
+	}
+	&--completed {
+		background: var(--pb-success-soft);
+		color: var(--pb-success);
+	}
+	&--cancelled {
+		background: var(--pb-danger-soft);
+		color: var(--pb-danger);
+	}
+}
+
+/* id with a copy button that shows on row hover or focus */
+.pb-copy-id {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-variant-numeric: tabular-nums;
+	&__btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 24px;
+		height: 24px;
+		padding: 0;
+		border: 0;
+		border-radius: 6px;
+		background: var(--pb-soft-1);
+		color: var(--pb-deep);
+		cursor: pointer;
+		opacity: 0;
+		transition: opacity 0.15s ease, background-color 0.15s ease;
+		&:hover {
+			background: var(--pb-deep);
+			color: #fff;
+		}
+		&:focus-visible {
+			opacity: 1;
+			outline: 2px solid var(--pb-deep);
+			outline-offset: 1px;
+		}
+		&.is-copied {
+			opacity: 1;
+			background: var(--pb-success-soft);
+			color: var(--pb-success);
+		}
+	}
+	tr:hover &__btn,
+	&:hover &__btn {
+		opacity: 1;
+	}
+	@media (hover: none) {
+		&__btn {
+			opacity: 1;
+		}
+	}
+}

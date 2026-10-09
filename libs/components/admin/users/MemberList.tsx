@@ -1,4 +1,5 @@
 import React from 'react';
+import CopyId from '../CopyId';
 import Link from 'next/link';
 import {
 	TableCell,
@@ -162,7 +163,9 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 									: '/img/profile/defaultUser.svg';
 								return (
 									<TableRow hover key={member?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-										<TableCell align="left">{member._id}</TableCell>
+										<TableCell align="left">
+											<CopyId id={member._id} />
+										</TableCell>
 
 										<TableCell align="left" className={'name'}>
 											<Stack direction={'row'}>

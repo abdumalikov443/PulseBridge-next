@@ -1,4 +1,5 @@
 import React from 'react';
+import CopyId from '../CopyId';
 import Link from 'next/link';
 import {
 	Box,
@@ -144,7 +145,9 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 						{articles.length !== 0 &&
 							articles.map((article: Article, index: number) => (
 								<TableRow hover key={article._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-									<TableCell align="left">{article._id}</TableCell>
+									<TableCell align="left">
+											<CopyId id={article._id} />
+										</TableCell>
 									<TableCell align="left">
 										<Box component={'div'}>
 											{article.articleTitle}
