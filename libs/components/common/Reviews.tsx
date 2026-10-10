@@ -138,11 +138,12 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 					{t(title)}
 				</h2>
 				<span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+					{/* same chip as the like / view / comment counters under the post */}
 					<span
-						className="pb-count-chip"
+						className="pb-chip pb-chip--static"
 						title={isReview ? t('{{count}} reviews', { count: total }) : t('{{count}} comments', { count: total })}
 					>
-						<Icon name="comment" size={14} />
+						<Icon name="comment" size={18} />
 						{total}
 					</span>
 					{!isOwner &&
@@ -227,7 +228,7 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 						style={{ display: 'flex', gap: 12, paddingTop: 14, borderTop: '1px solid var(--pb-line)' }}
 					>
 						<Avatar name={author.name} image={author.image} size={40} radius={author.square ? 12 : '50%'} />
-						<div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flex: 1 }}>
 							<span style={{ fontSize: 14 }}>
 								{author.href ? (
 									<Link href={author.href} style={{ fontWeight: 700 }}>
@@ -262,27 +263,30 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 									{comment.commentContent}
 								</p>
 							)}
-							{comment.memberId === user?._id && editing?.id !== comment._id && (
-								<span style={{ display: 'flex', gap: 12, fontSize: 13 }}>
-									<button
-										type="button"
-										className="pb-link"
-										style={{ border: 0, background: 'none', padding: 0, cursor: 'pointer' }}
-										onClick={() => setEditing({ id: comment._id, text: comment.commentContent })}
-									>
-										{t('Edit')}
-									</button>
-									<button
-										type="button"
-										className="pb-link"
-										style={{ border: 0, background: 'none', padding: 0, cursor: 'pointer', color: 'var(--pb-danger)' }}
-										onClick={() => deleteComment(comment._id)}
-									>
-										{t('Delete')}
-									</button>
-								</span>
-							)}
 						</div>
+						{/* the author edits or deletes with small icon buttons on the right */}
+						{comment.memberId === user?._id && editing?.id !== comment._id && (
+							<span className="pb-comment-actions">
+								<button
+									type="button"
+									className="pb-icon-action"
+									aria-label={t('Edit')}
+									title={t('Edit')}
+									onClick={() => setEditing({ id: comment._id, text: comment.commentContent })}
+								>
+									<Icon name="edit" size={16} />
+								</button>
+								<button
+									type="button"
+									className="pb-icon-action pb-icon-action--danger"
+									aria-label={t('Delete')}
+									title={t('Delete')}
+									onClick={() => deleteComment(comment._id)}
+								>
+									<Icon name="trash" size={16} />
+								</button>
+							</span>
+						)}
 					</article>
 				);
 			})}

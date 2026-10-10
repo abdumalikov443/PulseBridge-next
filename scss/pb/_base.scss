@@ -1002,19 +1002,6 @@
 		box-shadow: none;
 	}
 }
-/* small count with an icon next to a section title (reviews, comments) */
-.pb-count-chip {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	padding: 6px 12px;
-	border-radius: 999px;
-	background: var(--pb-soft-1);
-	color: var(--pb-deep);
-	font-size: 14px;
-	font-weight: 700;
-	font-variant-numeric: tabular-nums;
-}
 
 /* sort dropdown */
 .pb-sort {
@@ -1215,5 +1202,37 @@
 	}
 	.pb-map__links .pb-btn--light {
 		box-shadow: inset 0 0 0 1.5px var(--pb-line);
+	}
+}
+
+/* comment author actions: edit / delete as small icon buttons */
+.pb-comment-actions {
+	display: flex;
+	gap: 4px;
+	align-self: flex-start;
+	flex: none;
+}
+.pb-icon-action {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 0;
+	border-radius: 10px;
+	background: transparent;
+	color: var(--pb-muted);
+	cursor: pointer;
+	transition: background-color 0.2s ease, color 0.2s ease;
+	&:hover,
+	&:focus-visible {
+		background: var(--pb-soft-1);
+		color: var(--pb-deep);
+	}
+	&--danger:hover,
+	&--danger:focus-visible {
+		background: var(--pb-danger-soft);
+		color: var(--pb-danger);
 	}
 }
