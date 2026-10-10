@@ -17,7 +17,7 @@ import Icon from '../ui/Icon';
 const useNextSlot = (doctorId: string) => {
 	const [next, setNext] = useState<{ date: string; time: string } | null | undefined>(undefined);
 	useQuery(GET_DOCTOR_AVAILABILITY, {
-		fetchPolicy: 'cache-first',
+		fetchPolicy: 'network-only',
 		variables: { doctorId },
 		onCompleted: (data: T) => {
 			const days: DayAvailability[] = data?.getDoctorAvailability ?? [];

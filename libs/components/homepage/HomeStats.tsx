@@ -14,17 +14,17 @@ const HomeStats = () => {
 
 	/** APOLLO REQUESTS **/
 	useQuery(GET_DOCTORS, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		variables: { input: first },
 		onCompleted: (data: T) => setCounts((prev) => ({ ...prev, doctors: data?.getDoctors?.metaCounter?.[0]?.total ?? 0 })),
 	});
 	useQuery(GET_CLINICS, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		variables: { input: first },
 		onCompleted: (data: T) => setCounts((prev) => ({ ...prev, clinics: data?.getClinics?.metaCounter?.[0]?.total ?? 0 })),
 	});
 	useQuery(GET_ARTICLES, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		variables: { input: first },
 		onCompleted: (data: T) => setCounts((prev) => ({ ...prev, articles: data?.getArticles?.metaCounter?.[0]?.total ?? 0 })),
 	});

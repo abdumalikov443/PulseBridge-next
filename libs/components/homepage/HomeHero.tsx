@@ -43,7 +43,7 @@ const HomeHero = () => {
 	/** APOLLO REQUESTS **/
 	// read from data: onCompleted does not always fire for cached results
 	const { data: topData } = useQuery(GET_DOCTORS, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		variables: { input: { page: 1, limit: 1, sort: 'doctorRank', direction: 'DESC', search: {} } },
 	});
 	const topDoctor: Doctor | null = topData?.getDoctors?.list?.[0] ?? null;

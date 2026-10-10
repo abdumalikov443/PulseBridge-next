@@ -48,7 +48,7 @@ const ClinicList: NextPage = () => {
 
 	/** APOLLO REQUESTS **/
 	const { loading } = useQuery(GET_CLINICS, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		variables: { input },
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => {

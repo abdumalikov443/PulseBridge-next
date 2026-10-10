@@ -21,7 +21,7 @@ export const useArticleAccess = (): ArticleAccess => {
 	const [access, setAccess] = useState<ArticleAccess>({ allowed: isDoctor || isClinic ? null : false });
 
 	useQuery(GET_MY_DOCTOR_PROFILE, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		skip: !isDoctor,
 		onCompleted: (data: T) =>
 			setAccess(
@@ -36,7 +36,7 @@ export const useArticleAccess = (): ArticleAccess => {
 		onError: () => setAccess({ allowed: false, reason: 'Your doctor profile could not be loaded.' }),
 	});
 	useQuery(GET_MY_CLINIC, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		skip: !isClinic,
 		onCompleted: (data: T) =>
 			setAccess(

@@ -56,7 +56,7 @@ const DoctorDetail: NextPage = () => {
 	});
 
 	useQuery(GET_ARTICLES, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		skip: !doctor?.memberId,
 		variables: {
 			input: { page: 1, limit: 3, sort: 'createdAt', direction: 'DESC', search: { memberId: doctor?.memberId } },

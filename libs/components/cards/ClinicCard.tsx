@@ -33,7 +33,7 @@ const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCa
 	/** APOLLO REQUESTS **/
 	// tags = unique specialties of the doctors who work in this clinic
 	useQuery(GET_DOCTORS, {
-		fetchPolicy: 'cache-first',
+		fetchPolicy: 'network-only',
 		skip: !clinic.clinicDoctors,
 		variables: { input: { page: 1, limit: 30, search: { clinicId: clinic._id } } },
 		onCompleted: (data: T) => {

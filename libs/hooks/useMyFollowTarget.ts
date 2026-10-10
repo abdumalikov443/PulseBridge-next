@@ -17,11 +17,11 @@ export const useMyFollowTarget = (): MyFollowTarget | null => {
 
 	// read from data (fresh on every visit), not from onCompleted
 	const { data: doctorData } = useQuery(GET_MY_DOCTOR_PROFILE, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		skip: user?.memberType !== MemberType.DOCTOR,
 	});
 	const { data: clinicData } = useQuery(GET_MY_CLINIC, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		skip: user?.memberType !== MemberType.CLINIC,
 	});
 

@@ -80,6 +80,7 @@ const Booking: NextPage = () => {
 	});
 
 	useQuery(GET_DOCTOR, {
+		fetchPolicy: 'network-only',
 		skip: !doctorId,
 		variables: { input: doctorId },
 		onCompleted: (data: T) => setDoctor(data?.getDoctor ?? null),

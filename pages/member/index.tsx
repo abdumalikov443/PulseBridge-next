@@ -65,7 +65,7 @@ const MemberPage: NextPage = () => {
 	const member: Member | null = memberResult?.getMember ?? null;
 
 	const { data: articleResult, error: articleError } = useQuery(GET_ARTICLES, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		skip: !memberId || tab !== 'articles',
 		variables: { input: { page, limit: LIMIT, sort: 'createdAt', direction: 'DESC', search: { memberId } } },
 	});

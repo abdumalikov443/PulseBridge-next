@@ -50,7 +50,7 @@ const DoctorList: NextPage = () => {
 
 	/** APOLLO REQUESTS **/
 	const { loading } = useQuery(GET_DOCTORS, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		variables: { input },
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => {

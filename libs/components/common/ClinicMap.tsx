@@ -50,6 +50,9 @@ const ClinicMap = ({ address, name }: ClinicMapProps) => {
 	const { t } = useTranslation('common');
 	const mapRef = useRef<HTMLDivElement>(null);
 	const [mode, setMode] = useState<'loading' | 'sdk' | 'iframe'>(KAKAO_MAP_KEY ? 'loading' : 'iframe');
+	// the Kakao page focuses its search box when it loads, which scrolls the clinic page down to the map;
+	// so the frame loads only after the visitor asks for it
+	const [frameOpen, setFrameOpen] = useState(false);
 
 	useEffect(() => {
 		if (!KAKAO_MAP_KEY || !address) return;
@@ -74,7 +77,7 @@ const ClinicMap = ({ address, name }: ClinicMapProps) => {
 		<div className="pb-map">
 			<div className={`pb-map__frame ${mode === 'iframe' ? 'is-iframe' : ''}`}>
 				{KAKAO_MAP_KEY && <div ref={mapRef} className="pb-map__canvas" hidden={mode !== 'sdk'} />}
-				{mode === 'iframe' && (
+				{mode === 'iframe' && frameOpen && (
 					<iframe
 						className="pb-map__iframe"
 						src={kakaoMapUrl(address)}
@@ -82,6 +85,16 @@ const ClinicMap = ({ address, name }: ClinicMapProps) => {
 						loading="lazy"
 						referrerPolicy="no-referrer"
 					/>
+				)}
+				{mode === 'iframe' && !frameOpen && (
+					<button type="button" className="pb-map__placeholder is-launch" onClick={() => setFrameOpen(true)}>
+						<Icon name="pin" size={30} />
+						<strong>{address}</strong>
+						<span className="pb-map__launch">
+							<Icon name="navigate" size={14} />
+							{t('Show map')}
+						</span>
+					</button>
 				)}
 				{/* phones: the Kakao page is too cramped in a frame, so a simple pin card is shown instead */}
 				{mode !== 'sdk' && (

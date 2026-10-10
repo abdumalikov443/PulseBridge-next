@@ -1236,3 +1236,77 @@
 		color: var(--pb-danger);
 	}
 }
+
+/* clinic contact: the phone number as a call button (asks before dialing) */
+.pb-contact-phone {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	padding: 10px 12px;
+	border: 0;
+	border-radius: 14px;
+	background: var(--pb-bg);
+	box-shadow: inset 0 0 0 1px var(--pb-line);
+	color: var(--pb-ink);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	transition: box-shadow 0.2s ease, background-color 0.2s ease;
+	&:hover,
+	&:focus-visible {
+		background: var(--pb-soft-1);
+		box-shadow: inset 0 0 0 1.5px var(--pb-deep);
+	}
+	&__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex: none;
+		width: 40px;
+		height: 40px;
+		border-radius: 12px;
+		background: var(--pb-soft-4);
+		color: var(--pb-success);
+	}
+	small {
+		display: block;
+		font-size: 12px;
+		color: var(--pb-muted);
+	}
+	strong {
+		font-size: 15px;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.02em;
+	}
+}
+
+/* desktop map card that loads the Kakao frame on click (phones use the Kakao link card) */
+.pb-map__placeholder.is-launch {
+	border: 0;
+	width: 100%;
+	background: transparent;
+	font: inherit;
+	cursor: pointer;
+	&:hover .pb-map__launch {
+		background: var(--pb-deep);
+		color: #fff;
+	}
+	@media (max-width: $pb-phone) {
+		display: none;
+	}
+}
+.pb-map__placeholder .pb-map__launch {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 6px;
+	padding: 8px 14px;
+	border-radius: 999px;
+	background: var(--pb-surface);
+	box-shadow: inset 0 0 0 1.5px var(--pb-deep);
+	color: var(--pb-deep);
+	font-size: 13px;
+	font-weight: 700;
+	transition: background-color 0.2s ease, color 0.2s ease;
+}

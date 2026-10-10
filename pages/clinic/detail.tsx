@@ -9,8 +9,8 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import Reviews from '../../libs/components/common/Reviews';
 import DoctorCard from '../../libs/components/cards/DoctorCard';
-import Avatar from '../../libs/components/ui/Avatar';
 import ActionChips from '../../libs/components/ui/ActionChips';
+import { sweetActionConfirmAlert } from '../../libs/sweetAlert';
 import Icon from '../../libs/components/ui/Icon';
 import ClinicMap from '../../libs/components/common/ClinicMap';
 import FollowButton from '../../libs/components/ui/FollowButton';
@@ -27,7 +27,7 @@ import { Clinic } from '../../libs/types/clinic/clinic';
 import { Doctor } from '../../libs/types/doctor/doctor';
 import { CommentGroup } from '../../libs/enums/comment.enum';
 import { T } from '../../libs/types/common';
-import { getMemberName, REACT_APP_API_URL } from '../../libs/config';
+import { REACT_APP_API_URL } from '../../libs/config';
 import { formatEnum } from '../../libs/utils';
 
 export const getStaticProps = async ({ locale }: any) => ({
@@ -61,7 +61,7 @@ const ClinicDetail: NextPage = () => {
 	});
 
 	useQuery(GET_DOCTORS, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		skip: !clinicId,
 		variables: { input: { page: 1, limit: 30, sort: 'doctorRank', direction: 'DESC', search: { clinicId } } },
 		onCompleted: (data: T) => setDoctors(data?.getDoctors?.list ?? []),
@@ -81,6 +81,13 @@ const ClinicDetail: NextPage = () => {
 	const schedule = withScheduleDefaults(clinic);
 	const followers = (clinic.clinicFollowers ?? 0) + followDelta;
 	const followings = clinic.memberData?.memberFollowings ?? 0;
+	const callClinic = async (phone: string) => {
+		if (
+			await sweetActionConfirmAlert(t('Call {{name}} at {{phone}}?', { name: clinic.clinicName, phone }), t('Call'))
+		) {
+			window.location.href = `tel:${phone}`;
+		}
+	};
 	const tabs: { id: Tab; label: string }[] = [
 		{ id: 'overview', label: t('Overview') },
 		{ id: 'doctors', label: `${t('Doctors')} (${clinic.clinicDoctors})` },
@@ -311,24 +318,25 @@ const ClinicDetail: NextPage = () => {
 						</dl>
 						<small>{t('Seoul time · 30-minute visits')}</small>
 					</section>
-					<section className="pb-card pb-card--flat">
-						<strong style={{ fontSize: 15 }}>{t('Contact')}</strong>
-						<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-							<Avatar
-								name={getMemberName(clinic.memberData) || clinic.clinicName}
-								image={clinic.memberData?.memberImage}
-								size={44}
-							/>
-							<span style={{ display: 'flex', flexDirection: 'column' }}>
-								<strong style={{ fontSize: 14 }}>{getMemberName(clinic.memberData)}</strong>
-								{clinic.memberData?.memberPhone && (
-									<a href={`tel:${clinic.memberData.memberPhone}`} style={{ fontSize: 13, color: 'var(--pb-muted)' }}>
-										{clinic.memberData.memberPhone}
-									</a>
-								)}
-							</span>
-						</span>
-					</section>
+					{/* the clinic phone; calling asks first, like the 119 button */}
+					{clinic.memberData?.memberPhone && (
+						<section className="pb-card pb-card--flat">
+							<strong style={{ fontSize: 15 }}>{t('Contact')}</strong>
+							<button
+								type="button"
+								className="pb-contact-phone"
+								onClick={() => callClinic(clinic.memberData!.memberPhone)}
+							>
+								<span className="pb-contact-phone__icon">
+									<Icon name="phone" size={18} />
+								</span>
+								<span>
+									<small>{t('Phone')}</small>
+									<strong>{clinic.memberData.memberPhone}</strong>
+								</span>
+							</button>
+						</section>
+					)}
 				</aside>
 			</div>
 		</div>

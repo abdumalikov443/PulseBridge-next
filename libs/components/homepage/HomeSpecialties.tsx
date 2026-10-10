@@ -16,7 +16,7 @@ const SpecialtyTile = ({ specialty, icon, tone, desc, copy }: { specialty: Docto
 	const { t } = useTranslation('common');
 	// read from data: onCompleted does not always fire for cached results
 	const { data, error } = useQuery(GET_DOCTORS, {
-		fetchPolicy: 'cache-first',
+		fetchPolicy: 'network-only',
 		variables: { input: { page: 1, limit: 1, search: { specialtyList: [specialty] } } },
 	});
 	const count: number | null = error ? 0 : data ? data.getDoctors?.metaCounter?.[0]?.total ?? 0 : null;

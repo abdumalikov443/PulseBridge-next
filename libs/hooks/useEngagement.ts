@@ -16,7 +16,7 @@ export const useFollowing = () => {
 	const [unsubscribe] = useMutation(UNSUBSCRIBE);
 
 	useQuery(GET_MEMBER_FOLLOWINGS, {
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 		skip: !user?._id,
 		variables: { input: { page: 1, limit: 200, search: { followerId: user?._id } } },
 		onCompleted: (data: T) => {
