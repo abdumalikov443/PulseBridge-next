@@ -9,6 +9,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import Avatar from '../../libs/components/ui/Avatar';
 import { kakaoMapUrl } from '../../libs/maps';
+import ErrorView from '../../libs/components/common/ErrorView';
 import Icon from '../../libs/components/ui/Icon';
 import { EcgLine } from '../../libs/components/ui/Loaders';
 import { userVar } from '../../apollo/store';
@@ -65,31 +66,10 @@ const AppointmentPage: NextPage = () => {
 		}
 	};
 
-	if (!user?._id) {
-		return (
-			<div className="pb-container" style={{ padding: '48px 0' }}>
-				<p className="pb-empty">
-					{t('Log in to see this appointment.')}{' '}
-					<Link href={{ pathname: '/account/join', query: { referrer: router.asPath } }} className="pb-link">
-						{t('Log in')}
-					</Link>
-				</p>
-			</div>
-		);
-	}
+	// not logged in: 401, someone else's appointment: 403
+	if (!user?._id) return <ErrorView code={401} />;
 
-	if (failed) {
-		return (
-			<div className="pb-container" style={{ padding: '48px 0' }}>
-				<p className="pb-empty">
-					{t('This appointment is not available to you.')}{' '}
-					<Link href="/mypage?category=myAppointments" className="pb-link">
-						{t('My appointments')}
-					</Link>
-				</p>
-			</div>
-		);
-	}
+	if (failed) return <ErrorView code={403} />;
 
 	if (!appointment) {
 		return (

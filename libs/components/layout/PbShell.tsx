@@ -26,6 +26,8 @@ const pageTitles: Record<string, string> = {
 	'/cs': 'Help center',
 	'/about': 'About',
 	'/account/join': 'Login or sign up',
+	'/404': 'Page not found',
+	'/500': 'The server did not respond',
 };
 
 const PbShell = ({ children }: PbShellProps) => {
