@@ -26,7 +26,6 @@ const sections: { title: string; links: MenuLink[] }[] = [
 		links: [
 			{ href: '/_admin/cs/faq', label: 'FAQ', icon: 'search' },
 			{ href: '/_admin/cs/notice', label: 'Notices', icon: 'bell' },
-			{ href: '/_admin/cs/inquiry', label: 'Inquiries', icon: 'phone' },
 		],
 	},
 ];

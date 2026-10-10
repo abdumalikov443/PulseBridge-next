@@ -146,6 +146,14 @@ const paths: Record<string, React.ReactNode> = {
 		</>
 	),
 	check: <path d="M20 6 9 17l-5-5" />,
+	plus: <path d="M12 5v14M5 12h14" />,
+	refresh: (
+		<>
+			<path d="M20 11a8 8 0 0 0-14.8-4.2L4 9" />
+			<path d="M4 4v5h5M4 13a8 8 0 0 0 14.8 4.2L20 15" />
+			<path d="M20 20v-5h-5" />
+		</>
+	),
 	copy: (
 		<>
 			<rect x="9" y="9" width="12" height="12" rx="2" />

@@ -1,28 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'next-i18next';
+import moment from 'moment';
+import { useQuery } from '@apollo/client';
+import { GET_NOTICES } from '../../../apollo/user/query';
+import { NoticeCategory } from '../../enums/notice.enum';
+import { Notice as NoticeItem } from '../../types/notice/notice';
+import Icon from '../ui/Icon';
+import { SkeletonCards } from '../ui/Loaders';
+import PbPagination from '../ui/PbPagination';
 
-// platform notices (static until the backend has a notice module)
-const notices = [
-	{ title: 'Online booking is open for all clinics', date: '2026-10-01', tag: 'New' },
-	{ title: 'Doctors can now join clinics through join requests', date: '2026-09-20', tag: 'Update' },
-	{ title: 'Community posts are limited to 250 characters', date: '2026-09-12', tag: 'Info' },
-];
+const LIMIT = 10;
 
+// published platform notices (pinned first, then newest); a notice opens to show its text
 const Notice = () => {
 	const { t } = useTranslation('common');
+	const [page, setPage] = useState(1);
+
+	const { data, loading, error } = useQuery(GET_NOTICES, {
+		fetchPolicy: 'network-only',
+		variables: { input: { page, limit: LIMIT, search: { noticeCategory: NoticeCategory.NOTICE } } },
+	});
+	const notices: NoticeItem[] = data?.getNotices?.list ?? [];
+	const total: number = data?.getNotices?.metaCounter?.[0]?.total ?? 0;
+
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+			{loading && !data && <SkeletonCards count={3} />}
+			{!loading && (error || notices.length === 0) && <p className="pb-empty">{t('No notices yet.')}</p>}
 			{notices.map((notice, index) => (
-				<article key={notice.title} className="pb-row" style={{ animationDelay: `${index * 0.06}s` }}>
-					<span className="pb-row__main" style={{ cursor: 'default' }}>
-						<span className="pb-badge pb-badge--soft">{t(notice.tag)}</span>
-						<strong style={{ fontSize: 15 }}>{t(notice.title)}</strong>
-					</span>
-					<span className="pb-row__cell" style={{ color: 'var(--pb-muted)' }}>
-						{notice.date}
-					</span>
-				</article>
+				<details key={notice._id} className="pb-faq pb-notice pb-in" style={{ animationDelay: `${index * 0.06}s` }}>
+					<summary>
+						<span className="pb-notice__main">
+							{notice.noticePinned && (
+								<span className="pb-badge pb-badge--warning">
+									<Icon name="pin" size={12} /> {t('Pinned')}
+								</span>
+							)}
+							<span className="pb-notice__title">{notice.noticeTitle}</span>
+						</span>
+						<time className="pb-notice__date" dateTime={moment(notice.createdAt).toISOString()}>
+							{moment(notice.createdAt).format('YYYY-MM-DD')}
+						</time>
+						<Icon name="arrow" size={16} />
+					</summary>
+					<p style={{ whiteSpace: 'pre-line' }}>{notice.noticeContent}</p>
+				</details>
 			))}
+			<PbPagination page={page} total={total} limit={LIMIT} onChange={setPage} scrollTop={false} />
 		</div>
 	);
 };

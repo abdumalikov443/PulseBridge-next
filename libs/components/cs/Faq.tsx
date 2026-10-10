@@ -1,119 +1,66 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'next-i18next';
+import { useQuery } from '@apollo/client';
+import { GET_NOTICES } from '../../../apollo/user/query';
+import { FaqTopic, NoticeCategory } from '../../enums/notice.enum';
+import { Notice } from '../../types/notice/notice';
+import { formatEnum } from '../../utils';
 import Icon from '../ui/Icon';
+import { SkeletonCards } from '../ui/Loaders';
 
-interface FaqItem {
-	q: string;
-	a: string;
-}
+// one page is enough: FAQ lists stay short
+const LIMIT = 50;
 
-const categories: { id: string; label: string; items: FaqItem[] }[] = [
-	{
-		id: 'clinics',
-		label: 'Clinics',
-		items: [
-			{
-				q: 'How do I find a clinic?',
-				a: 'Open the Clinics page and search by name or filter by clinic type (private or public).',
-			},
-			{
-				q: 'Are the clinics on PulseBridge verified?',
-				a: 'Every clinic is registered by its owner and can be paused or removed by our admins.',
-			},
-			{
-				q: 'How can I register my clinic?',
-				a: 'Sign up with the Clinic role and fill in the clinic name, type, address and description.',
-			},
-		],
-	},
-	{
-		id: 'doctors',
-		label: 'Doctors',
-		items: [
-			{
-				q: 'How do I find the right doctor?',
-				a: 'Open the Doctors page and filter by specialty, or search by the doctor name.',
-			},
-			{
-				q: 'How does a doctor join a clinic?',
-				a: 'A doctor sends a join request from My Page; the clinic owner approves or rejects it.',
-			},
-			{ q: 'Why can I not book some doctors?', a: 'Only doctors who work in an active clinic can be booked.' },
-		],
-	},
-	{
-		id: 'appointments',
-		label: 'Appointments',
-		items: [
-			{
-				q: 'How do I book an appointment?',
-				a: 'Log in as a patient, open a doctor page and choose a free date and time.',
-			},
-			{ q: 'Can I cancel my appointment?', a: 'Yes, open My Page > Appointments and cancel a confirmed appointment.' },
-			{
-				q: 'Who completes an appointment?',
-				a: 'The doctor or the clinic owner marks the appointment as completed after the visit.',
-			},
-		],
-	},
-	{
-		id: 'community',
-		label: 'Community',
-		items: [
-			{
-				q: 'What can I post in the community?',
-				a: 'Short health articles, tips and questions. Please be respectful and avoid medical misinformation.',
-			},
-			{ q: 'Is community content medical advice?', a: 'No. Always consult a doctor for diagnosis and treatment.' },
-		],
-	},
-	{
-		id: 'other',
-		label: 'Other',
-		items: [
-			{
-				q: 'How do notifications work?',
-				a: 'You get notifications for likes, comments, follows, appointments and join requests.',
-			},
-			{ q: 'Is PulseBridge for emergencies?', a: 'No. In an emergency call 119 or go to the nearest emergency room.' },
-		],
-	},
-];
-
+// published FAQ answers from the admin, grouped by topic (pinned first)
 const Faq = () => {
 	const { t } = useTranslation('common');
-	const [category, setCategory] = useState(categories[0].id);
-	const current = categories.find((item) => item.id === category) ?? categories[0];
+	const [topic, setTopic] = useState<FaqTopic | ''>('');
+
+	const { data, loading, error } = useQuery(GET_NOTICES, {
+		fetchPolicy: 'network-only',
+		variables: {
+			input: {
+				page: 1,
+				limit: LIMIT,
+				search: { noticeCategory: NoticeCategory.FAQ, ...(topic && { faqTopic: topic }) },
+			},
+		},
+	});
+	const items: Notice[] = data?.getNotices?.list ?? [];
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 			<div className="pb-pills" role="tablist" aria-label={t('FAQ topics')}>
-				{categories.map((item) => (
+				{(['', ...Object.values(FaqTopic)] as (FaqTopic | '')[]).map((value) => (
 					<button
-						key={item.id}
+						key={value || 'all'}
 						type="button"
 						role="tab"
-						aria-selected={category === item.id}
-						className={`pb-pill ${category === item.id ? 'pb-pill--active' : ''}`}
-						onClick={() => setCategory(item.id)}
+						aria-selected={topic === value}
+						className={`pb-pill ${topic === value ? 'pb-pill--active' : ''}`}
+						onClick={() => setTopic(value)}
 					>
-						{t(item.label)}
+						{value ? formatEnum(value) : t('All')}
 					</button>
 				))}
 			</div>
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-				{current.items.map((item, index) => (
+				{loading && !data && <SkeletonCards count={3} />}
+				{!loading && (error || items.length === 0) && (
+					<p className="pb-empty">{t('No questions in this topic yet.')}</p>
+				)}
+				{items.map((item, index) => (
 					<details
-						key={item.q}
+						key={item._id}
 						className="pb-faq pb-in"
 						open={index === 0}
 						style={{ animationDelay: `${index * 0.06}s` }}
 					>
 						<summary>
-							{t(item.q)}
+							{item.noticeTitle}
 							<Icon name="arrow" size={16} />
 						</summary>
-						<p>{t(item.a)}</p>
+						<p style={{ whiteSpace: 'pre-line' }}>{item.noticeContent}</p>
 					</details>
 				))}
 			</div>

@@ -302,3 +302,120 @@
 		}
 	}
 }
+
+/* FAQ and notices (admin) */
+.pb-admin-status {
+	&--active {
+		background: var(--pb-success-soft);
+		color: var(--pb-success);
+	}
+	&--hold {
+		background: var(--pb-warning-soft);
+		color: var(--pb-warning);
+	}
+	&--delete {
+		background: var(--pb-danger-soft);
+		color: var(--pb-danger);
+	}
+}
+.pb-notice-admin {
+	&__head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-bottom: 24px;
+		.tit {
+			margin: 0 !important;
+		}
+	}
+	&__filters {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		padding: 16px 24px;
+		.pb-search {
+			background: var(--pb-bg);
+		}
+	}
+	&__title {
+		max-width: 420px;
+		strong {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			font-size: 14px;
+			color: var(--pb-ink);
+			svg {
+				flex: none;
+				color: var(--pb-accent);
+			}
+		}
+		span {
+			display: block;
+			margin-top: 2px;
+			font-size: 13px;
+			color: var(--pb-muted);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	}
+	&__actions {
+		display: inline-flex;
+		gap: 2px;
+		.pb-icon-action.is-on {
+			background: var(--pb-soft-2);
+			color: var(--pb-accent);
+		}
+	}
+}
+.MuiDialog-paper.pb-notice-dialog {
+	border-radius: var(--pb-radius);
+	background: var(--pb-surface);
+	color: var(--pb-ink);
+	font-family: var(--pb-font);
+	box-shadow: var(--pb-shadow-lg);
+}
+.pb-notice-dialog {
+	&__form {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		padding: 24px;
+	}
+	&__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		h2 {
+			margin: 0;
+			font-family: var(--pb-font-display);
+			font-size: 22px;
+		}
+	}
+	&__count {
+		align-self: flex-end;
+		font-size: 12px;
+		color: var(--pb-muted);
+	}
+	&__options {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+	}
+	&__foot {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 12px;
+		padding-top: 16px;
+		border-top: 1px solid var(--pb-line);
+		.pb-form-hint {
+			margin: 0;
+		}
+	}
+}

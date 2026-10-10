@@ -111,3 +111,48 @@ export const REMOVE_COMMENT_BY_ADMIN = gql`
 		}
 	}
 `;
+
+/**************************
+ *     FAQ AND NOTICE     *
+ *************************/
+
+export const CREATE_NOTICE = gql`
+	mutation CreateNotice($input: NoticeInput!) {
+		createNotice(input: $input) {
+			_id
+			noticeCategory
+			noticeStatus
+			faqTopic
+			noticeTitle
+			noticeContent
+			noticePinned
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
+export const UPDATE_NOTICE = gql`
+	mutation UpdateNotice($input: NoticeUpdate!) {
+		updateNotice(input: $input) {
+			_id
+			noticeCategory
+			noticeStatus
+			faqTopic
+			noticeTitle
+			noticeContent
+			noticePinned
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
+// permanent delete, only after the status is DELETE
+export const REMOVE_NOTICE = gql`
+	mutation RemoveNotice($input: String!) {
+		removeNotice(noticeId: $input) {
+			_id
+		}
+	}
+`;

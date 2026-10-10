@@ -849,3 +849,27 @@ export const GET_INTAKE_RECOMMENDATIONS = gql`
 		}
 	}
 `;
+
+/**************************
+ *     FAQ AND NOTICE     *
+ *************************/
+// active FAQ answers or notices, pinned first then newest
+export const GET_NOTICES = gql`
+	query GetNotices($input: NoticesInquiry!) {
+		getNotices(input: $input) {
+			list {
+				_id
+				noticeCategory
+				faqTopic
+				noticeTitle
+				noticeContent
+				noticePinned
+				createdAt
+				updatedAt
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;

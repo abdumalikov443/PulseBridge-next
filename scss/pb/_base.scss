@@ -1310,3 +1310,40 @@
 	font-weight: 700;
 	transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* help center notices: title with a pinned badge, date on the right */
+.pb-notice {
+	&__main {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px;
+		flex: 1;
+		min-width: 0;
+	}
+	&__title {
+		font-size: 15px;
+	}
+	&__date {
+		flex: none;
+		font-size: 13px;
+		font-weight: 500;
+		color: var(--pb-muted);
+		font-variant-numeric: tabular-nums;
+	}
+	// the pin in the badge keeps still while the arrow turns
+	.pb-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		svg {
+			color: inherit;
+			transform: none !important;
+		}
+	}
+}
+
+// pills rendered as links (help center tabs): the link color must not override the active white text
+a.pb-pill--active {
+	color: #fff !important;
+}
