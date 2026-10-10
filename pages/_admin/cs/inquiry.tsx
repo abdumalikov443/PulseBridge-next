@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 import type { NextPage } from 'next';
 import withAdminLayout from '../../../libs/components/layout/LayoutAdmin';
 import { Box, InputAdornment, Stack } from '@mui/material';
@@ -14,6 +16,7 @@ import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import { InquiryList } from '../../../libs/components/admin/cs/InquiryList';
 
 const InquiryArticles: NextPage = (props: any) => {
+	const { t } = useTranslation('common');
 	const [anchorEl, setAnchorEl] = useState<[] | HTMLElement[]>([]);
 
 	/** APOLLO REQUESTS **/
@@ -23,7 +26,7 @@ const InquiryArticles: NextPage = (props: any) => {
 	return (
 		<Box component={'div'} className={'content'}>
 			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
-				1:1 Inquiry Management
+				{t('1:1 Inquiry Management')}
 			</Typography>
 			<Box component={'div'} className={'table-wrap'}>
 				<Box component={'div'} sx={{ width: '100%', typography: 'body1' }}>
@@ -35,28 +38,28 @@ const InquiryArticles: NextPage = (props: any) => {
 									value="all"
 									className={'all' === 'all' ? 'li on' : 'li'}
 								>
-									All (0)
+									{t('All')} (0)
 								</ListItem>
 								<ListItem
 									// onClick={(e) => handleTabChange(e, 'active')}
 									value="active"
 									className={'all' === 'all' ? 'li on' : 'li'}
 								>
-									Active (0)
+									{t('Active')} (0)
 								</ListItem>
 								<ListItem
 									// onClick={(e) => handleTabChange(e, 'blocked')}
 									value="blocked"
 									className={'all' === 'all' ? 'li on' : 'li'}
 								>
-									Blocked (0)
+									{t('Blocked')} (0)
 								</ListItem>
 								<ListItem
 									// onClick={(e) => handleTabChange(e, 'deleted')}
 									value="deleted"
 									className={'all' === 'all' ? 'li on' : 'li'}
 								>
-									Deleted (0)
+									{t('Deleted')} (0)
 								</ListItem>
 							</List>
 							<Divider />
@@ -71,7 +74,7 @@ const InquiryArticles: NextPage = (props: any) => {
 									// onChange={(e) => handleInput(e.target.value)}
 									sx={{ width: '100%' }}
 									className={'search'}
-									placeholder="Search user name"
+									placeholder={t('Search user name')}
 									onKeyDown={(event) => {
 										// if (event.key == 'Enter') searchTargetHandler().then();
 									}}
@@ -98,6 +101,8 @@ const InquiryArticles: NextPage = (props: any) => {
 						/>
 
 						<TablePagination
+							labelRowsPerPage={t('Rows per page:')}
+							labelDisplayedRows={({ from, to, count }) => t('{{from}}–{{to}} of {{count}}', { from, to, count })}
 							rowsPerPageOptions={[20, 40, 60]}
 							component="div"
 							count={4}
@@ -112,5 +117,11 @@ const InquiryArticles: NextPage = (props: any) => {
 		</Box>
 	);
 };
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 export default withAdminLayout(InquiryArticles);

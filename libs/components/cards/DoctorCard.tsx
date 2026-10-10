@@ -3,7 +3,7 @@ import { useQuery } from '@apollo/client';
 import { GET_DOCTOR_AVAILABILITY } from '../../../apollo/user/query';
 import { DayAvailability } from '../../types/appointment/availability';
 import { T } from '../../types/common';
-import { dayLabel } from '../../schedule';
+import { dayLabel, isTomorrow } from '../../schedule';
 import Link from 'next/link';
 import { useTranslation } from 'next-i18next';
 import { Doctor } from '../../types/doctor/doctor';
@@ -63,7 +63,7 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 				{next === undefined ? (
 					<b className="is-loading">…</b>
 				) : next ? (
-					<b className={dayLabel(next.date) === 'Tomorrow' ? '' : 'is-later'}>
+					<b className={isTomorrow(next.date) ? '' : 'is-later'}>
 						{dayLabel(next.date)}, {next.time}
 					</b>
 				) : (

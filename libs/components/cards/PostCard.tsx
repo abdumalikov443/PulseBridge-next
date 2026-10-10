@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import moment from 'moment';
 import { Article } from '../../types/article/article';
@@ -19,7 +20,8 @@ export const plainText = (markdown: string = '') =>
 		.trim();
 
 // about 200 words a minute, at least one minute
-export const readMinutes = (markdown: string = '') => Math.max(1, Math.round(plainText(markdown).split(' ').filter(Boolean).length / 200));
+export const readMinutes = (markdown: string = '') =>
+	Math.max(1, Math.round(plainText(markdown).split(' ').filter(Boolean).length / 200));
 
 interface PostCardProps {
 	article: Article;
@@ -30,6 +32,7 @@ interface PostCardProps {
 
 // community post: author with date and read time, title, text, then like / view / comment (images only on the detail page)
 const PostCard = ({ article, liked, likes, onLike }: PostCardProps) => {
+	const { t } = useTranslation('common');
 	const author = getMemberName(article.memberData);
 	const detail = `/community/detail?id=${article._id}`;
 
@@ -42,10 +45,15 @@ const PostCard = ({ article, liked, likes, onLike }: PostCardProps) => {
 						<Link href={`/member?memberId=${article.memberData?._id}`} className="pb-post__author">
 							{author}
 						</Link>
-						{article.memberData?.memberType === MemberType.DOCTOR && <span className="pb-badge pb-badge--soft">Doctor</span>}
+						{article.memberData?.memberType === MemberType.DOCTOR && (
+							<span className="pb-badge pb-badge--soft">{t('Doctor')}</span>
+						)}
 					</span>
 					<span className="pb-post__meta">
-						<time dateTime={moment(article.createdAt).toISOString()}>{moment(article.createdAt).format('MMM D, YYYY')}</time> · {readMinutes(article.articleContent)} min read
+						<time dateTime={moment(article.createdAt).toISOString()}>
+							{moment(article.createdAt).format('MMM D, YYYY')}
+						</time>{' '}
+						· {t('{{count}} min read', { count: readMinutes(article.articleContent) })}
 					</span>
 				</span>
 			</div>
@@ -55,9 +63,15 @@ const PostCard = ({ article, liked, likes, onLike }: PostCardProps) => {
 			<p className="pb-post__text">{plainText(article.articleContent)}</p>
 			<hr className="pb-post__rule" />
 			<div className="pb-post__foot">
-				<ActionChips likes={likes} views={article.articleViews} comments={article.articleComments} liked={liked} onLike={onLike} />
+				<ActionChips
+					likes={likes}
+					views={article.articleViews}
+					comments={article.articleComments}
+					liked={liked}
+					onLike={onLike}
+				/>
 				<Link href={detail} className="pb-more">
-					Read article <Icon name="arrow" size={16} className="pb-arrow" />
+					{t('Read article')} <Icon name="arrow" size={16} className="pb-arrow" />
 				</Link>
 			</div>
 		</article>

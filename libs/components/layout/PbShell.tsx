@@ -1,6 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 import PbHeader from './PbHeader';
 import PbFooter from './PbFooter';
 import Chat from '../Chat';
@@ -29,8 +30,9 @@ const pageTitles: Record<string, string> = {
 
 const PbShell = ({ children }: PbShellProps) => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const page = pageTitles[router.pathname];
-	const title = page ? `${page} · PulseBridge` : 'PulseBridge';
+	const title = page ? `${t(page)} · PulseBridge` : 'PulseBridge';
 
 	return (
 		<>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { updateStorage, updateUserInfo } from '../../auth';
@@ -18,6 +19,7 @@ import ImagePicker from '../ui/ImagePicker';
 import { EcgLine } from '../ui/Loaders';
 
 const MyProfile = () => {
+	const { t } = useTranslation('common');
 	const user = useReactiveVar(userVar);
 	const [form, setForm] = useState<MemberUpdate>({ _id: '' });
 	// new photo waits here until Save
@@ -104,14 +106,19 @@ const MyProfile = () => {
 	const problems: string[] = [];
 	const nick = (form.memberNick ?? '').trim();
 	const fullName = (form.memberFullName ?? '').trim();
-	if (nick.length < 3 || nick.length > 12) problems.push('nickname must be 3–12 characters');
-	if (!(form.memberPhone ?? '').trim()) problems.push('phone is required');
-	if (fullName && fullName.length < 3) problems.push('full name must be at least 3 characters (or leave it empty)');
+	if (nick.length < 3 || nick.length > 12) problems.push(t('nickname must be 3–12 characters'));
+	if (!(form.memberPhone ?? '').trim()) problems.push(t('phone is required'));
+	if (fullName && fullName.length < 3) problems.push(t('full name must be at least 3 characters (or leave it empty)'));
 
 	const field = (key: keyof MemberUpdate, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (
 		<label className="pb-field">
-			<span>{label}</span>
-			<input className="pb-input" value={(form[key] as string) ?? ''} onChange={(e) => setForm({ ...form, [key]: e.target.value })} {...props} />
+			<span>{t(label)}</span>
+			<input
+				className="pb-input"
+				value={(form[key] as string) ?? ''}
+				onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+				{...props}
+			/>
 		</label>
 	);
 
@@ -133,19 +140,30 @@ const MyProfile = () => {
 					{field('memberAddress', 'Address')}
 				</div>
 				<label className="pb-field">
-					<span>About me</span>
-					<textarea className="pb-textarea" rows={3} value={form.memberDesc ?? ''} onChange={(e) => setForm({ ...form, memberDesc: e.target.value })} />
+					<span>{t('About me')}</span>
+					<textarea
+						className="pb-textarea"
+						rows={3}
+						value={form.memberDesc ?? ''}
+						onChange={(e) => setForm({ ...form, memberDesc: e.target.value })}
+					/>
 				</label>
 				{doctor && (
 					<fieldset className="pb-profile-doctor">
 						<legend>
-							Doctor profile
-							<span className={`pb-badge ${clinicName ? 'pb-badge--success' : 'pb-badge--warning'}`}>{clinicName || 'No clinic yet'}</span>
+							{t('Doctor profile')}
+							<span className={`pb-badge ${clinicName ? 'pb-badge--success' : 'pb-badge--warning'}`}>
+								{clinicName || t('No clinic yet')}
+							</span>
 						</legend>
 						<div className="pb-form-grid">
 							<label className="pb-field">
-								<span>Specialty</span>
-								<select className="pb-select" value={doctor.specialty} onChange={(e) => setDoctor({ ...doctor, specialty: e.target.value as DoctorSpecialty })}>
+								<span>{t('Specialty')}</span>
+								<select
+									className="pb-select"
+									value={doctor.specialty}
+									onChange={(e) => setDoctor({ ...doctor, specialty: e.target.value as DoctorSpecialty })}
+								>
 									{Object.values(DoctorSpecialty).map((specialty) => (
 										<option key={specialty} value={specialty}>
 											{formatEnum(specialty)}
@@ -154,7 +172,7 @@ const MyProfile = () => {
 								</select>
 							</label>
 							<label className="pb-field">
-								<span>Experience (years)</span>
+								<span>{t('Experience (years)')}</span>
 								<input
 									className="pb-input"
 									type="number"
@@ -162,17 +180,27 @@ const MyProfile = () => {
 									max={80}
 									placeholder="0"
 									value={doctor.experience || ''}
-									onChange={(e) => setDoctor({ ...doctor, experience: Math.min(80, Math.max(0, parseInt(e.target.value, 10) || 0)) })}
+									onChange={(e) =>
+										setDoctor({ ...doctor, experience: Math.min(80, Math.max(0, parseInt(e.target.value, 10) || 0)) })
+									}
 								/>
 							</label>
 						</div>
 					</fieldset>
 				)}
 				<div className="pb-form-actions">
-					<button type="submit" className="pb-btn pb-btn--primary" disabled={saving || savingDoctor || uploading || problems.length > 0}>
-						{saving || savingDoctor || uploading ? <EcgLine small /> : 'Save profile'}
+					<button
+						type="submit"
+						className="pb-btn pb-btn--primary"
+						disabled={saving || savingDoctor || uploading || problems.length > 0}
+					>
+						{saving || savingDoctor || uploading ? <EcgLine small /> : t('Save profile')}
 					</button>
-					{problems.length > 0 && <p className="pb-form-hint">To save: {problems.join('; ')}.</p>}
+					{problems.length > 0 && (
+						<p className="pb-form-hint">
+							{t('To save:')} {problems.join('; ')}.
+						</p>
+					)}
 				</div>
 			</form>
 		</MySection>

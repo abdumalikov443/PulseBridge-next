@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import moment from 'moment';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
@@ -32,6 +33,7 @@ const LIMIT = 5;
 
 const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Reviews' }: ReviewsProps) => {
 	const user = useReactiveVar(userVar);
+	const { t } = useTranslation('common');
 	const [page, setPage] = useState(1);
 	const [text, setText] = useState('');
 	const [comments, setComments] = useState<Comment[]>([]);
@@ -50,8 +52,19 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 			const member = comment.memberData;
 			const doctor = member?.memberType === MemberType.DOCTOR ? doctorByMember.get(member._id) : undefined;
 			const clinic = member?.memberType === MemberType.CLINIC ? clinicByMember.get(member._id) : undefined;
-			if (clinic) return { name: clinic.clinicName, image: clinic.clinicImage, href: `/clinic/detail?id=${clinic._id}`, square: true };
-			if (doctor) return { name: getMemberName(doctor.memberData ?? member), image: member?.memberImage, href: `/doctor/detail?id=${doctor._id}` };
+			if (clinic)
+				return {
+					name: clinic.clinicName,
+					image: clinic.clinicImage,
+					href: `/clinic/detail?id=${clinic._id}`,
+					square: true,
+				};
+			if (doctor)
+				return {
+					name: getMemberName(doctor.memberData ?? member),
+					image: member?.memberImage,
+					href: `/doctor/detail?id=${doctor._id}`,
+				};
 			return { name: getMemberName(member), image: member?.memberImage, href: null };
 		};
 	}, [doctors, clinics]);
@@ -81,7 +94,9 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 		try {
 			if (!user?._id) throw new Error(Messages.error2);
 			if (!text.trim()) return;
-			await createComment({ variables: { input: { commentGroup: group, commentRefId: refId, commentContent: text.trim() } } });
+			await createComment({
+				variables: { input: { commentGroup: group, commentRefId: refId, commentContent: text.trim() } },
+			});
 			setText('');
 			setWriting(false);
 			setPage(1);
@@ -120,24 +135,32 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 		<section className="pb-card pb-card--flat" style={{ gap: 16 }}>
 			<div className="pb-section-head" style={{ marginBottom: 0 }}>
 				<h2 className="pb-title" style={{ fontSize: 22 }}>
-					{title}
+					{t(title)}
 				</h2>
 				<span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-					<span className="pb-count-chip" title={`${total} ${isReview ? 'reviews' : 'comments'}`}>
+					<span
+						className="pb-count-chip"
+						title={isReview ? t('{{count}} reviews', { count: total }) : t('{{count}} comments', { count: total })}
+					>
 						<Icon name="comment" size={14} />
 						{total}
 					</span>
 					{!isOwner &&
 						!writing &&
 						(user?._id ? (
-							<button type="button" className="pb-btn pb-btn--light pb-btn--sm pb-write-btn" aria-expanded={false} onClick={() => setWriting(true)}>
+							<button
+								type="button"
+								className="pb-btn pb-btn--light pb-btn--sm pb-write-btn"
+								aria-expanded={false}
+								onClick={() => setWriting(true)}
+							>
 								<Icon name="edit" size={14} />
-								{isReview ? 'Write a review' : 'Write a comment'}
+								{isReview ? t('Write a review') : t('Write a comment')}
 							</button>
 						) : (
 							<Link href="/account/join" className="pb-btn pb-btn--light pb-btn--sm pb-write-btn">
 								<Icon name="edit" size={14} />
-								Log in to write
+								{t('Log in to write')}
 							</Link>
 						))}
 				</span>
@@ -150,10 +173,17 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 						e.preventDefault();
 						submitHandler();
 					}}
-					style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, borderRadius: 16, background: 'var(--pb-bg)' }}
+					style={{
+						display: 'flex',
+						flexDirection: 'column',
+						gap: 8,
+						padding: 16,
+						borderRadius: 16,
+						background: 'var(--pb-bg)',
+					}}
 				>
 					<label htmlFor={`review-${refId}`} style={{ fontSize: 13, fontWeight: 700 }}>
-						{isReview ? 'Your review' : 'Your comment'}
+						{isReview ? t('Your review') : t('Your comment')}
 					</label>
 					<textarea
 						id={`review-${refId}`}
@@ -161,7 +191,7 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 						rows={3}
 						autoFocus
 						maxLength={COMMENT_CONTENT_MAX}
-						placeholder={isReview ? 'Share your experience' : 'Write your comment'}
+						placeholder={isReview ? t('Share your experience') : t('Write your comment')}
 						value={text}
 						onChange={(e) => setText(e.target.value)}
 					/>
@@ -178,21 +208,24 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 									setText('');
 								}}
 							>
-								Cancel
+								{t('Cancel')}
 							</button>
 							<button type="submit" className="pb-btn pb-btn--primary pb-btn--sm" disabled={!text.trim() || posting}>
-								{posting ? <EcgLine small width={44} /> : isReview ? 'Post review' : 'Post comment'}
+								{posting ? <EcgLine small width={44} /> : isReview ? t('Post review') : t('Post comment')}
 							</button>
 						</span>
 					</div>
 				</form>
 			)}
 
-			{comments.length === 0 && <p style={{ margin: 0, color: 'var(--pb-muted)' }}>Nothing here yet.</p>}
+			{comments.length === 0 && <p style={{ margin: 0, color: 'var(--pb-muted)' }}>{t('Nothing here yet.')}</p>}
 			{comments.map((comment) => {
 				const author = authorOf(comment);
 				return (
-					<article key={comment._id} style={{ display: 'flex', gap: 12, paddingTop: 14, borderTop: '1px solid var(--pb-line)' }}>
+					<article
+						key={comment._id}
+						style={{ display: 'flex', gap: 12, paddingTop: 14, borderTop: '1px solid var(--pb-line)' }}
+					>
 						<Avatar name={author.name} image={author.image} size={40} radius={author.square ? 12 : '50%'} />
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
 							<span style={{ fontSize: 14 }}>
@@ -212,28 +245,40 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 										rows={2}
 										maxLength={COMMENT_CONTENT_MAX}
 										value={editing.text}
-										aria-label="Edit comment"
+										aria-label={t('Edit comment')}
 										onChange={(e) => setEditing({ id: comment._id, text: e.target.value })}
 									/>
 									<div style={{ display: 'flex', gap: 6 }}>
 										<button type="button" className="pb-btn pb-btn--primary pb-btn--sm" onClick={saveEdit}>
-											Save
+											{t('Save')}
 										</button>
 										<button type="button" className="pb-btn pb-btn--light pb-btn--sm" onClick={() => setEditing(null)}>
-											Cancel
+											{t('Cancel')}
 										</button>
 									</div>
 								</div>
 							) : (
-								<p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: 'var(--pb-muted)' }}>{comment.commentContent}</p>
+								<p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: 'var(--pb-muted)' }}>
+									{comment.commentContent}
+								</p>
 							)}
 							{comment.memberId === user?._id && editing?.id !== comment._id && (
 								<span style={{ display: 'flex', gap: 12, fontSize: 13 }}>
-									<button type="button" className="pb-link" style={{ border: 0, background: 'none', padding: 0, cursor: 'pointer' }} onClick={() => setEditing({ id: comment._id, text: comment.commentContent })}>
-										Edit
+									<button
+										type="button"
+										className="pb-link"
+										style={{ border: 0, background: 'none', padding: 0, cursor: 'pointer' }}
+										onClick={() => setEditing({ id: comment._id, text: comment.commentContent })}
+									>
+										{t('Edit')}
 									</button>
-									<button type="button" className="pb-link" style={{ border: 0, background: 'none', padding: 0, cursor: 'pointer', color: 'var(--pb-danger)' }} onClick={() => deleteComment(comment._id)}>
-										Delete
+									<button
+										type="button"
+										className="pb-link"
+										style={{ border: 0, background: 'none', padding: 0, cursor: 'pointer', color: 'var(--pb-danger)' }}
+										onClick={() => deleteComment(comment._id)}
+									>
+										{t('Delete')}
 									</button>
 								</span>
 							)}

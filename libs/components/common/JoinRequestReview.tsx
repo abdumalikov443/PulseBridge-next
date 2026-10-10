@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import moment from 'moment';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
@@ -23,6 +24,7 @@ const tones: Record<JoinRequestStatus, string> = {
 // The doctor page (getDoctor) only lists doctors who already have a clinic, so the review happens here.
 const JoinRequestReview = ({ memberId }: { memberId: string }) => {
 	const user = useReactiveVar(userVar);
+	const { t } = useTranslation('common');
 	const isClinic = user?.memberType === MemberType.CLINIC;
 	const [request, setRequest] = useState<ClinicJoinRequest | null>(null);
 	const [busy, setBusy] = useState(false);
@@ -62,29 +64,31 @@ const JoinRequestReview = ({ memberId }: { memberId: string }) => {
 	const pending = request.requestStatus === JoinRequestStatus.PENDING;
 
 	return (
-		<section className="pb-card pb-card--flat pb-in pb-review-request" aria-label="Join request">
+		<section className="pb-card pb-card--flat pb-in pb-review-request" aria-label={t('Join request')}>
 			<div className="pb-review-request__head">
 				<span className="pb-review-request__icon">
 					<Icon name="clinic" size={20} />
 				</span>
 				<div style={{ flex: 1, minWidth: 0 }}>
-					<strong>Join request to your clinic</strong>
-					<small>Sent {moment(request.createdAt).format('MMM D, YYYY')}</small>
+					<strong>{t('Join request to your clinic')}</strong>
+					<small>{t('Sent {{date}}', { date: moment(request.createdAt).format('MMM D, YYYY') })}</small>
 				</div>
-				<span className={`pb-badge pb-badge--${tones[request.requestStatus]}`}>{formatEnum(request.requestStatus)}</span>
+				<span className={`pb-badge pb-badge--${tones[request.requestStatus]}`}>
+					{formatEnum(request.requestStatus)}
+				</span>
 			</div>
 			<dl className="pb-review-request__facts">
 				<div>
-					<dt>Specialty</dt>
+					<dt>{t('Specialty')}</dt>
 					<dd>{formatEnum(doctor?.specialty)}</dd>
 				</div>
 				<div>
-					<dt>Experience</dt>
-					<dd>{doctor?.experience ?? 0} years</dd>
+					<dt>{t('Experience')}</dt>
+					<dd>{t('{{count}} years', { count: doctor?.experience ?? 0 })}</dd>
 				</div>
 				{doctor?.memberData?.memberPhone && (
 					<div>
-						<dt>Phone</dt>
+						<dt>{t('Phone')}</dt>
 						<dd>
 							<a href={`tel:${doctor.memberData.memberPhone}`}>{doctor.memberData.memberPhone}</a>
 						</dd>
@@ -93,11 +97,27 @@ const JoinRequestReview = ({ memberId }: { memberId: string }) => {
 			</dl>
 			{pending && (
 				<div className="pb-review-request__actions">
-					<button type="button" className="pb-btn pb-btn--primary" disabled={busy} onClick={() => respond(JoinRequestStatus.APPROVED)}>
-						{busy ? <EcgLine small width={44} /> : <><Icon name="check" size={16} /> Approve</>}
+					<button
+						type="button"
+						className="pb-btn pb-btn--primary"
+						disabled={busy}
+						onClick={() => respond(JoinRequestStatus.APPROVED)}
+					>
+						{busy ? (
+							<EcgLine small width={44} />
+						) : (
+							<>
+								<Icon name="check" size={16} /> {t('Approve')}
+							</>
+						)}
 					</button>
-					<button type="button" className="pb-btn pb-btn--danger" disabled={busy} onClick={() => respond(JoinRequestStatus.REJECTED)}>
-						<Icon name="close" size={16} /> Reject
+					<button
+						type="button"
+						className="pb-btn pb-btn--danger"
+						disabled={busy}
+						onClick={() => respond(JoinRequestStatus.REJECTED)}
+					>
+						<Icon name="close" size={16} /> {t('Reject')}
 					</button>
 				</div>
 			)}

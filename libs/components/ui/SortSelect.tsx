@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import Icon from './Icon';
 
 export interface SortOption {
@@ -16,6 +17,7 @@ interface SortSelectProps {
 // sort dropdown in the Soft Care look (the native select list cannot be styled)
 const SortSelect = ({ value, options, onChange, label = 'Sort by' }: SortSelectProps) => {
 	const id = useId();
+	const { t } = useTranslation('common');
 	const boxRef = useRef<HTMLDivElement>(null);
 	const [open, setOpen] = useState(false);
 	const [active, setActive] = useState(0);
@@ -37,7 +39,12 @@ const SortSelect = ({ value, options, onChange, label = 'Sort by' }: SortSelectP
 	};
 
 	const openList = () => {
-		setActive(Math.max(0, options.findIndex((option) => option.value === value)));
+		setActive(
+			Math.max(
+				0,
+				options.findIndex((option) => option.value === value),
+			),
+		);
 		setOpen(true);
 	};
 
@@ -73,12 +80,12 @@ const SortSelect = ({ value, options, onChange, label = 'Sort by' }: SortSelectP
 				onKeyDown={keyHandler}
 			>
 				<Icon name="menu" size={16} />
-				<span className="pb-sort__label">{label}:</span>
-				<strong>{current?.label}</strong>
+				<span className="pb-sort__label">{t(label)}:</span>
+				<strong>{current ? t(current.label) : null}</strong>
 				<Icon name="arrow" size={14} className="pb-sort__chevron" />
 			</button>
 			{open && (
-				<ul className="pb-sort__list" role="listbox" id={`${id}-list`} aria-label={label}>
+				<ul className="pb-sort__list" role="listbox" id={`${id}-list`} aria-label={t(label)}>
 					{options.map((option, index) => {
 						const selected = option.value === current?.value;
 						return (
@@ -91,7 +98,7 @@ const SortSelect = ({ value, options, onChange, label = 'Sort by' }: SortSelectP
 								onMouseDown={(e) => e.preventDefault()}
 								onClick={() => choose(option)}
 							>
-								{option.label}
+								{t(option.label)}
 								{selected && <Icon name="check" size={16} />}
 							</li>
 						);

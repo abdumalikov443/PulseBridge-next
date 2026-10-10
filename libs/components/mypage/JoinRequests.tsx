@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { Pagination } from '@mui/material';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
@@ -11,7 +12,12 @@ import { MemberType } from '../../enums/member.enum';
 import { getMemberName } from '../../config';
 import { formatEnum } from '../../utils';
 import { CANCEL_JOIN_REQUEST, REQUEST_JOIN_CLINIC, RESPOND_JOIN_REQUEST } from '../../../apollo/user/mutation';
-import { GET_CLINIC_JOIN_REQUESTS, GET_CLINICS, GET_MY_DOCTOR_PROFILE, GET_MY_JOIN_REQUESTS } from '../../../apollo/user/query';
+import {
+	GET_CLINIC_JOIN_REQUESTS,
+	GET_CLINICS,
+	GET_MY_DOCTOR_PROFILE,
+	GET_MY_JOIN_REQUESTS,
+} from '../../../apollo/user/query';
 import { sweetConfirmAlert, sweetErrorHandling, sweetTopSmallSuccessAlert } from '../../sweetAlert';
 import ListRow, { Tone } from './ListRow';
 import MySection from './MySection';
@@ -27,13 +33,17 @@ const tones: Record<JoinRequestStatus, Tone> = {
 };
 
 const clinicIcon = (
-	<span className="pb-avatar" style={{ width: 46, height: 46, background: 'var(--pb-soft-1)', color: 'var(--pb-deep)', borderRadius: 14 }}>
+	<span
+		className="pb-avatar"
+		style={{ width: 46, height: 46, background: 'var(--pb-soft-1)', color: 'var(--pb-deep)', borderRadius: 14 }}
+	>
 		<Icon name="clinic" size={22} />
 	</span>
 );
 
 // DOCTOR: ask a clinic to join (one pending request at a time); CLINIC: approve or reject pending requests
 const JoinRequests = () => {
+	const { t } = useTranslation('common');
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
 	const isDoctor = user.memberType === MemberType.DOCTOR;
@@ -98,7 +108,7 @@ const JoinRequests = () => {
 
 	const subTitle = isDoctor
 		? doctorProfile?.clinicData
-			? `You work at ${doctorProfile.clinicData.clinicName}`
+			? t('You work at {{name}}', { name: doctorProfile.clinicData.clinicName })
 			: 'You do not work in a clinic yet. Find a clinic and send a join request.'
 		: 'Doctors waiting for your approval';
 
@@ -116,14 +126,21 @@ const JoinRequests = () => {
 					>
 						<Icon name="search" />
 						<label htmlFor="join-clinic-search" className="pb-sr">
-							Search clinic by name
+							{t('Search clinic by name')}
 						</label>
-						<input id="join-clinic-search" value={searchText} placeholder="Search clinic by name" onChange={(e) => setSearchText(e.target.value)} />
+						<input
+							id="join-clinic-search"
+							value={searchText}
+							placeholder={t('Search clinic by name')}
+							onChange={(e) => setSearchText(e.target.value)}
+						/>
 						<button type="submit" className="pb-btn pb-btn--primary pb-btn--sm">
-							Search
+							{t('Search')}
 						</button>
 					</form>
-					{clinicSearch && clinics.length === 0 && <p style={{ margin: 0, color: 'var(--pb-muted)' }}>No clinic found.</p>}
+					{clinicSearch && clinics.length === 0 && (
+						<p style={{ margin: 0, color: 'var(--pb-muted)' }}>{t('No clinic found.')}</p>
+					)}
 					{clinicSearch &&
 						clinics.map((clinic) => (
 							<ListRow
@@ -131,15 +148,21 @@ const JoinRequests = () => {
 								avatar={clinicIcon}
 								title={clinic.clinicName}
 								subTitle={`${formatEnum(clinic.clinicType)} · ${clinic.clinicAddress}`}
-								count={`${clinic.clinicDoctors} doctors`}
+								count={t('{{count}} doctors', { count: clinic.clinicDoctors })}
 								date={clinic.createdAt}
 								actions={
 									<button
 										type="button"
 										className="pb-btn pb-btn--primary pb-btn--sm"
-										onClick={() => run(`Send a join request to ${clinic.clinicName}?`, () => requestJoinClinic({ variables: { input: clinic._id } }), 'Request sent')}
+										onClick={() =>
+											run(
+												t('Send a join request to {{name}}?', { name: clinic.clinicName }),
+												() => requestJoinClinic({ variables: { input: clinic._id } }),
+												'Request sent',
+											)
+										}
 									>
-										Request
+										{t('Request')}
 									</button>
 								}
 							/>
@@ -148,7 +171,7 @@ const JoinRequests = () => {
 			)}
 
 			{requests === null && <SkeletonCards count={2} />}
-			{requests?.length === 0 && <p className="pb-empty">No join requests.</p>}
+			{requests?.length === 0 && <p className="pb-empty">{t('No join requests.')}</p>}
 			{requests?.map((request) =>
 				isDoctor ? (
 					<ListRow
@@ -162,8 +185,14 @@ const JoinRequests = () => {
 						onClick={() => request.clinicData && router.push(`/clinic/detail?id=${request.clinicData._id}`)}
 						actions={
 							request.requestStatus === JoinRequestStatus.PENDING ? (
-								<button type="button" className="pb-btn pb-btn--danger pb-btn--sm" onClick={() => run('Cancel this join request?', () => cancelJoinRequest({ variables: { input: request._id } }))}>
-									Cancel
+								<button
+									type="button"
+									className="pb-btn pb-btn--danger pb-btn--sm"
+									onClick={() =>
+										run('Cancel this join request?', () => cancelJoinRequest({ variables: { input: request._id } }))
+									}
+								>
+									{t('Cancel')}
 								</button>
 							) : undefined
 						}
@@ -171,37 +200,65 @@ const JoinRequests = () => {
 				) : (
 					<ListRow
 						key={request._id}
-						avatar={<Avatar name={getMemberName(request.doctorData?.memberData)} image={request.doctorData?.memberData?.memberImage} size={46} />}
+						avatar={
+							<Avatar
+								name={getMemberName(request.doctorData?.memberData)}
+								image={request.doctorData?.memberData?.memberImage}
+								size={46}
+							/>
+						}
 						title={getMemberName(request.doctorData?.memberData)}
-						subTitle={`${formatEnum(request.doctorData?.specialty)} · ${request.doctorData?.experience ?? 0} years experience`}
+						subTitle={`${formatEnum(request.doctorData?.specialty)} · ${t('{{count}} years experience', {
+							count: request.doctorData?.experience ?? 0,
+						})}`}
 						extra={request.doctorData?.memberData?.memberPhone}
 						date={request.createdAt}
 						status={formatEnum(request.requestStatus)}
 						tone={tones[request.requestStatus]}
 						// the doctor has no clinic yet, so the review page is the member profile
-						onClick={() => request.doctorData?.memberData && router.push(`/member?memberId=${request.doctorData.memberData._id}`)}
+						onClick={() =>
+							request.doctorData?.memberData && router.push(`/member?memberId=${request.doctorData.memberData._id}`)
+						}
 						actions={
 							<>
 								<button
 									type="button"
 									className="pb-btn pb-btn--outline pb-btn--sm"
-									onClick={() => request.doctorData?.memberData && router.push(`/member?memberId=${request.doctorData.memberData._id}`)}
+									onClick={() =>
+										request.doctorData?.memberData &&
+										router.push(`/member?memberId=${request.doctorData.memberData._id}`)
+									}
 								>
-									<Icon name="eye" size={14} /> Profile
+									<Icon name="eye" size={14} /> {t('Profile')}
 								</button>
 								<button
 									type="button"
 									className="pb-btn pb-btn--primary pb-btn--sm"
-									onClick={() => run('Approve this doctor?', () => respondJoinRequest({ variables: { input: { _id: request._id, requestStatus: JoinRequestStatus.APPROVED } } }), 'Approved')}
+									onClick={() =>
+										run(
+											'Approve this doctor?',
+											() =>
+												respondJoinRequest({
+													variables: { input: { _id: request._id, requestStatus: JoinRequestStatus.APPROVED } },
+												}),
+											'Approved',
+										)
+									}
 								>
-									Approve
+									{t('Approve')}
 								</button>
 								<button
 									type="button"
 									className="pb-btn pb-btn--danger pb-btn--sm"
-									onClick={() => run('Reject this doctor?', () => respondJoinRequest({ variables: { input: { _id: request._id, requestStatus: JoinRequestStatus.REJECTED } } }))}
+									onClick={() =>
+										run('Reject this doctor?', () =>
+											respondJoinRequest({
+												variables: { input: { _id: request._id, requestStatus: JoinRequestStatus.REJECTED } },
+											}),
+										)
+									}
 								>
-									Reject
+									{t('Reject')}
 								</button>
 							</>
 						}
@@ -209,7 +266,12 @@ const JoinRequests = () => {
 				),
 			)}
 
-			<PbPagination page={inquiry.page} total={total} limit={inquiry.limit} onChange={(page) => setInquiry({ ...inquiry, page })} />
+			<PbPagination
+				page={inquiry.page}
+				total={total}
+				limit={inquiry.limit}
+				onChange={(page) => setInquiry({ ...inquiry, page })}
+			/>
 		</MySection>
 	);
 };

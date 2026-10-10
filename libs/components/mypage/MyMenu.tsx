@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useReactiveVar } from '@apollo/client';
@@ -58,6 +59,7 @@ export const getMenuItems = (memberType: string): MenuItemType[] => {
 
 const MyMenu = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const user = useReactiveVar(userVar);
 	const category = (router.query.category as string) ?? 'overview';
 	const name = user.memberFullName || user.memberNick;
@@ -67,12 +69,19 @@ const MyMenu = () => {
 	};
 
 	return (
-		<aside className="pb-card pb-card--flat pb-side-menu" aria-label="My page">
+		<aside className="pb-card pb-card--flat pb-side-menu" aria-label={t('My Page')}>
 			<div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-				<Avatar name={name} image={user.memberImage && !user.memberImage.startsWith('/img') ? user.memberImage : null} size={52} />
+				<Avatar
+					name={name}
+					image={user.memberImage && !user.memberImage.startsWith('/img') ? user.memberImage : null}
+					size={52}
+				/>
 				<div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
 					<strong style={{ fontSize: 16 }}>{name}</strong>
-					<span className="pb-badge pb-badge--success" style={{ alignSelf: 'flex-start', marginTop: 4, padding: '3px 8px', fontSize: 11 }}>
+					<span
+						className="pb-badge pb-badge--success"
+						style={{ alignSelf: 'flex-start', marginTop: 4, padding: '3px 8px', fontSize: 11 }}
+					>
 						{formatEnum(user.memberType)}
 					</span>
 				</div>
@@ -87,18 +96,18 @@ const MyMenu = () => {
 						aria-current={category === item.category ? 'page' : undefined}
 					>
 						<Icon name={item.icon} size={17} />
-						{item.title}
+						{t(item.title)}
 					</Link>
 				))}
 				{user.memberType === MemberType.ADMIN && (
 					<Link href="/_admin/users">
 						<Icon name="arrow" size={17} />
-						Admin panel
+						{t('Admin panel')}
 					</Link>
 				)}
 				<button type="button" className="pb-side-menu__item" onClick={logoutHandler}>
 					<Icon name="logout" size={17} />
-					Logout
+					{t('Logout')}
 				</button>
 			</nav>
 		</aside>

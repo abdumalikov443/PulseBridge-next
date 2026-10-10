@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import moment from 'moment';
@@ -46,7 +47,14 @@ interface MyAppointmentsProps {
 	compact?: boolean;
 }
 
+const EMPTY_TEXT: Partial<Record<AppointmentStatus, string>> = {
+	[AppointmentStatus.CONFIRMED]: 'No confirmed appointments.',
+	[AppointmentStatus.COMPLETED]: 'No completed appointments.',
+	[AppointmentStatus.CANCELLED]: 'No cancelled appointments.',
+};
+
 const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
+	const { t } = useTranslation('common');
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
 	const isPatient = user.memberType === MemberType.PATIENT;
@@ -88,8 +96,11 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 	/** HANDLERS **/
 	const updateStatusHandler = async (id: string, status: AppointmentStatus.COMPLETED | AppointmentStatus.CANCELLED) => {
 		try {
-			const action = status === AppointmentStatus.COMPLETED ? 'complete' : 'cancel';
-			if (!(await sweetConfirmAlert(`Do you want to ${action} this appointment?`))) return;
+			const question =
+				status === AppointmentStatus.COMPLETED
+					? 'Do you want to complete this appointment?'
+					: 'Do you want to cancel this appointment?';
+			if (!(await sweetConfirmAlert(question))) return;
 			await updateAppointment({ variables: { input: { _id: id, appointmentStatus: status } } });
 			await refetch({ input });
 			await sweetTopSmallSuccessAlert('Done', 800);
@@ -113,9 +124,9 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 		return (
 			<MySection title={title}>
 				<p className="pb-empty">
-					Join a clinic first: patients can book you after a clinic approves your request.{' '}
+					{t('Join a clinic first: patients can book you after a clinic approves your request.')}{' '}
 					<Link href="/mypage?category=joinRequests" className="pb-link">
-						Join requests
+						{t('Join requests')}
 					</Link>
 				</p>
 			</MySection>
@@ -129,13 +140,13 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 			actions={
 				compact ? (
 					<Link href="/mypage?category=myAppointments" className="pb-btn pb-btn--light pb-btn--sm">
-						All appointments
+						{t('All appointments')}
 					</Link>
 				) : undefined
 			}
 		>
 			{!compact && (
-				<div className="pb-pills" role="tablist" aria-label="Status">
+				<div className="pb-pills" role="tablist" aria-label={t('Status')}>
 					{statusTabs.map((tab) => (
 						<button
 							key={tab}
@@ -154,10 +165,10 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 			{appointments === null && <SkeletonCards count={compact ? 2 : 3} />}
 			{appointments?.length === 0 && (
 				<p className="pb-empty">
-					No {formatEnum(status).toLowerCase()} appointments.{' '}
+					{t(EMPTY_TEXT[status] ?? 'No appointments.')}{' '}
 					{isPatient && (
 						<Link href="/doctor" className="pb-link">
-							Find a doctor
+							{t('Find a doctor')}
 						</Link>
 					)}
 				</p>
@@ -166,7 +177,7 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 				const person = isPatient ? appointment.doctorData?.memberData : appointment.memberData;
 				const doctorLine = isPatient
 					? formatEnum(appointment.doctorData?.specialty)
-					: `Dr. ${getMemberName(appointment.doctorData?.memberData)}`;
+					: `${t('Dr.')} ${getMemberName(appointment.doctorData?.memberData)}`;
 				const confirmed = appointment.appointmentStatus === AppointmentStatus.CONFIRMED;
 				return (
 					<ListRow
@@ -188,7 +199,7 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 										type="button"
 										className="pb-btn pb-btn--light pb-btn--sm"
 										onClick={() => pdfHandler(appointment._id)}
-										aria-label="Download PDF"
+										aria-label={t('Download PDF')}
 									>
 										PDF
 									</button>
@@ -201,7 +212,7 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 												className="pb-btn pb-btn--primary pb-btn--sm"
 												onClick={() => updateStatusHandler(appointment._id, AppointmentStatus.COMPLETED)}
 											>
-												Complete
+												{t('Complete')}
 											</button>
 										)}
 										<button
@@ -209,7 +220,7 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 											className="pb-btn pb-btn--danger pb-btn--sm"
 											onClick={() => updateStatusHandler(appointment._id, AppointmentStatus.CANCELLED)}
 										>
-											Cancel
+											{t('Cancel')}
 										</button>
 									</>
 								)}

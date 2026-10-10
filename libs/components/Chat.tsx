@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useReactiveVar } from '@apollo/client';
 import { chatMessagesVar, chatNewVar, chatOnlineVar, socketVar, userVar } from '../../apollo/store';
@@ -23,6 +24,7 @@ const HINT_KEY = 'pb_chat_hint_closed';
 
 // floating chat: live community chat (WebSocket, the server keeps the last 5 messages) and the AI assistant
 const Chat = () => {
+	const { t } = useTranslation('common');
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
 	const socket = useReactiveVar(socketVar);
@@ -96,10 +98,10 @@ const Chat = () => {
 			{mounted && hint && !open && (
 				<div className="pb-chat__hint" role="note">
 					<button type="button" className="pb-chat__hint-text" onClick={() => openChat('ai')}>
-						<strong>Not sure which doctor you need?</strong>
-						<span>Describe your symptoms to the AI assistant</span>
+						<strong>{t('Not sure which doctor you need?')}</strong>
+						<span>{t('Describe your symptoms to the AI assistant')}</span>
 					</button>
-					<button type="button" className="pb-chat__hint-close" aria-label="Hide this tip" onClick={closeHint}>
+					<button type="button" className="pb-chat__hint-close" aria-label={t('Hide this tip')} onClick={closeHint}>
 						<Icon name="close" size={14} />
 					</button>
 				</div>
@@ -108,7 +110,7 @@ const Chat = () => {
 			<button
 				type="button"
 				className={`pb-chat__launcher ${open ? 'is-open' : ''}`}
-				aria-label={open ? 'Close chat' : 'Open chat'}
+				aria-label={open ? t('Close chat') : t('Open chat')}
 				aria-expanded={open}
 				onClick={() => (open ? setOpen(false) : openChat(tab))}
 			>
@@ -116,33 +118,45 @@ const Chat = () => {
 				{!open && unread > 0 && <span className="pb-chat__unread">{unread > 9 ? '9+' : unread}</span>}
 			</button>
 
-			<section className={`pb-chat__panel ${open ? 'is-open' : ''}`} aria-label="Chat" aria-hidden={!open}>
+			<section className={`pb-chat__panel ${open ? 'is-open' : ''}`} aria-label={t('Chat')} aria-hidden={!open}>
 				<header className="pb-chat__head">
 					<span className="pb-chat__mark">
 						<Icon name={tab === 'ai' ? 'pulse' : 'chat'} size={20} />
 					</span>
 					<div style={{ flex: 1, minWidth: 0 }}>
-						<strong>{tab === 'ai' ? 'AI assistant' : 'Live chat'}</strong>
+						<strong>{tab === 'ai' ? t('AI assistant') : t('Live chat')}</strong>
 						{tab === 'ai' ? (
-							<span className="pb-chat__online">Finds the right type of doctor</span>
+							<span className="pb-chat__online">{t('Finds the right type of doctor')}</span>
 						) : (
 							<span className="pb-chat__online">
 								<i aria-hidden="true" />
-								{onlineUsers} online
+								{t('{{count}} online', { count: onlineUsers })}
 							</span>
 						)}
 					</div>
-					<button type="button" className="pb-chat__close" aria-label="Close chat" onClick={() => setOpen(false)}>
+					<button type="button" className="pb-chat__close" aria-label={t('Close chat')} onClick={() => setOpen(false)}>
 						<Icon name="close" size={18} />
 					</button>
 				</header>
 
-				<div className="pb-chat__tabs" role="tablist" aria-label="Chat type">
-					<button type="button" role="tab" aria-selected={tab === 'community'} className={tab === 'community' ? 'is-active' : ''} onClick={() => setTab('community')}>
-						<Icon name="users" size={15} /> Community
+				<div className="pb-chat__tabs" role="tablist" aria-label={t('Chat type')}>
+					<button
+						type="button"
+						role="tab"
+						aria-selected={tab === 'community'}
+						className={tab === 'community' ? 'is-active' : ''}
+						onClick={() => setTab('community')}
+					>
+						<Icon name="users" size={15} /> {t('Community')}
 					</button>
-					<button type="button" role="tab" aria-selected={tab === 'ai'} className={tab === 'ai' ? 'is-active' : ''} onClick={() => setTab('ai')}>
-						<Icon name="pulse" size={15} /> AI assistant
+					<button
+						type="button"
+						role="tab"
+						aria-selected={tab === 'ai'}
+						className={tab === 'ai' ? 'is-active' : ''}
+						onClick={() => setTab('ai')}
+					>
+						<Icon name="pulse" size={15} /> {t('AI assistant')}
 					</button>
 				</div>
 
@@ -153,20 +167,32 @@ const Chat = () => {
 						<div className="pb-chat__body">
 							<div className="pb-chat__scroll">
 								<div className="pb-chat__list">
-									<p className="pb-chat__note">Ask the community about clinics, doctors and healthy habits. Please do not share private medical data.</p>
-									{messagesList.length === 0 && <p className="pb-chat__empty">No messages yet. Say hello!</p>}
+									<p className="pb-chat__note">
+										{t(
+											'Ask the community about clinics, doctors and healthy habits. Please do not share private medical data.',
+										)}
+									</p>
+									{messagesList.length === 0 && <p className="pb-chat__empty">{t('No messages yet. Say hello!')}</p>}
 									{messagesList.map((ele: MessagePayload, index: number) => {
 										const { text, memberData } = ele;
 										const mine = !!user?._id && memberData?._id === user._id;
 										const prev = messagesList[index - 1];
 										const grouped = !!prev && (prev.memberData?._id ?? 'guest') === (memberData?._id ?? 'guest');
-										const name = getMemberName(memberData) || 'Guest';
-										const role = memberData?.memberType && memberData.memberType !== MemberType.PATIENT ? formatEnum(memberData.memberType) : '';
+										const name = getMemberName(memberData) || t('Guest');
+										const role =
+											memberData?.memberType && memberData.memberType !== MemberType.PATIENT
+												? formatEnum(memberData.memberType)
+												: '';
 
 										return (
-											<div key={index} className={`pb-msg ${mine ? 'pb-msg--mine' : ''} ${grouped ? 'pb-msg--grouped' : ''}`}>
+											<div
+												key={index}
+												className={`pb-msg ${mine ? 'pb-msg--mine' : ''} ${grouped ? 'pb-msg--grouped' : ''}`}
+											>
 												{!mine && (
-													<span className="pb-msg__avatar">{!grouped && <Avatar name={name} image={memberData?.memberImage} size={32} />}</span>
+													<span className="pb-msg__avatar">
+														{!grouped && <Avatar name={name} image={memberData?.memberImage} size={32} />}
+													</span>
 												)}
 												<div className="pb-msg__col">
 													{!mine && !grouped && (
@@ -196,13 +222,13 @@ const Chat = () => {
 								ref={inputRef}
 								type="text"
 								name="message"
-								aria-label="Message"
-								placeholder={user?._id ? 'Write a message…' : 'Write as guest…'}
+								aria-label={t('Message')}
+								placeholder={user?._id ? t('Write a message…') : t('Write as guest…')}
 								maxLength={MESSAGE_MAX}
 								value={messageInput}
 								onChange={(e) => setMessageInput(e.target.value)}
 							/>
-							<button type="submit" className="pb-chat__send" aria-label="Send" disabled={!messageInput.trim()}>
+							<button type="submit" className="pb-chat__send" aria-label={t('Send')} disabled={!messageInput.trim()}>
 								<Icon name="send" size={18} />
 							</button>
 						</form>

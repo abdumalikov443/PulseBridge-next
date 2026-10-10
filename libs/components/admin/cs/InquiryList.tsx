@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import {
@@ -79,6 +80,7 @@ interface EnhancedTableProps {
 }
 
 function EnhancedTableHead(props: EnhancedTableProps) {
+	const { t } = useTranslation('common');
 	const { onSelectAllClick } = props;
 
 	return (
@@ -90,7 +92,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 						align={headCell.numeric ? 'left' : 'center'}
 						padding={headCell.disablePadding ? 'none' : 'normal'}
 					>
-						{headCell.label}
+						{t(headCell.label)}
 					</TableCell>
 				))}
 			</TableRow>
@@ -109,6 +111,7 @@ interface InquiryPanelListType {
 }
 
 export const InquiryList = (props: InquiryPanelListType) => {
+	const { t } = useTranslation('common');
 	const {
 		dense,
 		membersData,
@@ -171,12 +174,12 @@ export const InquiryList = (props: InquiryPanelListType) => {
 										>
 											<MenuItem onClick={(e) => generateMentorTypeHandle('member._id', 'mentor', 'originate')}>
 												<Typography variant={'subtitle1'} component={'span'}>
-													MENTOR
+													{t('Mentor')}
 												</Typography>
 											</MenuItem>
 											<MenuItem onClick={(e) => generateMentorTypeHandle('member._id', 'user', 'remove')}>
 												<Typography variant={'subtitle1'} component={'span'}>
-													USER
+													{t('User')}
 												</Typography>
 											</MenuItem>
 										</Menu>

@@ -1,3 +1,5 @@
+import { tr } from './i18n';
+
 // small toast messages (top right, under the header); they close by themselves
 // and live on document.body, so they stay visible while the page changes
 
@@ -24,8 +26,10 @@ const getStack = (): HTMLElement => {
 	return stack;
 };
 
-export const showToast = (kind: ToastKind, text: string, detail?: string, duration: number = 3000) => {
-	if (typeof window === 'undefined' || !text) return;
+export const showToast = (kind: ToastKind, message: string, detail?: string, duration: number = 3000) => {
+	if (typeof window === 'undefined' || !message) return;
+	// messages are English keys (ours and the API's); they show in the current language
+	const text = tr(message);
 	const stack = getStack();
 	// the same message twice in a row only resets the timer
 	const last = stack.lastElementChild as HTMLElement | null;
@@ -45,13 +49,13 @@ export const showToast = (kind: ToastKind, text: string, detail?: string, durati
 	body.textContent = text;
 	if (detail) {
 		const small = document.createElement('small');
-		small.textContent = detail;
+		small.textContent = tr(detail);
 		body.appendChild(small);
 	}
 
 	const close = document.createElement('button');
 	close.type = 'button';
-	close.setAttribute('aria-label', 'Dismiss');
+	close.setAttribute('aria-label', tr('Dismiss'));
 	close.innerHTML = svg(ICONS.error, 14);
 
 	toast.append(icon, body, close);

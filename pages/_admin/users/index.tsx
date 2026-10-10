@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 import type { NextPage } from 'next';
 import AdminTotal from '../../../libs/components/admin/AdminTotal';
 import withAdminLayout from '../../../libs/components/layout/LayoutAdmin';
@@ -26,6 +28,7 @@ import { useDebouncedValue } from '../../../libs/hooks/useDebouncedValue';
 import { T } from '../../../libs/types/common';
 
 const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
+	const { t } = useTranslation('common');
 	const [anchorEl, setAnchorEl] = useState<[] | HTMLElement[]>([]);
 	const [membersInquiry, setMembersInquiry] = useState<MembersInquiry>(initialInquiry);
 	const [members, setMembers] = useState<Member[]>([]);
@@ -37,18 +40,18 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 	const [searchType, setSearchType] = useState('ALL');
 
 	/** APOLLO REQUESTS **/
-	const [ updateMemberByAdmin ] = useMutation(UPDATE_MEMBER_BY_ADMIN);
+	const [updateMemberByAdmin] = useMutation(UPDATE_MEMBER_BY_ADMIN);
 
 	const {
 		loading: getAllMembersByAdminLoading,
-		data: getAllMembersByAdminData, 
-		error: getAllMembersByAdminError, 
-		refetch: getAllMembersRefetch 
+		data: getAllMembersByAdminData,
+		error: getAllMembersByAdminError,
+		refetch: getAllMembersRefetch,
 	} = useQuery(GET_ALL_MEMBERS_BY_ADMIN, {
-		fetchPolicy: "network-only",
+		fetchPolicy: 'network-only',
 		variables: { input: membersInquiry },
 		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => { 
+		onCompleted: (data: T) => {
 			setMembers(data?.getAllMembersByAdmin?.list);
 			setMembersTotal(data?.getAllMembersByAdmin?.metaCounter[0]?.total ?? 0);
 		},
@@ -67,7 +70,12 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 		const search: T = { ...membersInquiry.search };
 		if (typed) search.text = typed;
 		else delete search.text;
-		setMembersInquiry({ ...membersInquiry, page: 1, ...(typed ? {} : { sort: 'createdAt', direction: Direction.DESC }), search });
+		setMembersInquiry({
+			...membersInquiry,
+			page: 1,
+			...(typed ? {} : { sort: 'createdAt', direction: Direction.DESC }),
+			search,
+		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [debouncedSearch]);
 
@@ -121,7 +129,7 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 	const updateMemberHandler = async (updateData: AdminMemberUpdate) => {
 		try {
 			await updateMemberByAdmin({
-				variables: {input: updateData}
+				variables: { input: updateData },
 			});
 
 			menuIconCloseHandler();
@@ -175,7 +183,7 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 	return (
 		<Box component={'div'} className={'content'}>
 			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
-				Member List
+				{t('Member List')}
 				<AdminTotal total={membersTotal} noun="member" />
 			</Typography>
 			<Box component={'div'} className={'table-wrap'}>
@@ -184,32 +192,32 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 						<Box component={'div'}>
 							<List className={'tab-menu'}>
 								<ListItem
-									onClick={(e:any) => tabChangeHandler(e, 'ALL')}
+									onClick={(e: any) => tabChangeHandler(e, 'ALL')}
 									value="ALL"
 									className={value === 'ALL' ? 'li on' : 'li'}
 								>
-									All
+									{t('All')}
 								</ListItem>
 								<ListItem
-									onClick={(e:any) => tabChangeHandler(e, 'ACTIVE')}
+									onClick={(e: any) => tabChangeHandler(e, 'ACTIVE')}
 									value="ACTIVE"
 									className={value === 'ACTIVE' ? 'li on' : 'li'}
 								>
-									Active
+									{t('Active')}
 								</ListItem>
 								<ListItem
-									onClick={(e:any) => tabChangeHandler(e, 'BLOCK')}
+									onClick={(e: any) => tabChangeHandler(e, 'BLOCK')}
 									value="BLOCK"
 									className={value === 'BLOCK' ? 'li on' : 'li'}
 								>
-									Blocked
+									{t('Blocked')}
 								</ListItem>
 								<ListItem
-									onClick={(e:any) => tabChangeHandler(e, 'DELETE')}
+									onClick={(e: any) => tabChangeHandler(e, 'DELETE')}
 									value="DELETE"
 									className={value === 'DELETE' ? 'li on' : 'li'}
 								>
-									Deleted
+									{t('Deleted')}
 								</ListItem>
 							</List>
 							<Divider />
@@ -219,17 +227,14 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 									onChange={(e: any) => textHandler(e.target.value)}
 									sx={{ width: '100%' }}
 									className={'search'}
-									placeholder="Search user name"
+									placeholder={t('Search user name')}
 									onKeyDown={(event) => {
 										if (event.key == 'Enter') searchTextHandler();
 									}}
 									endAdornment={
 										<>
 											{searchText && (
-												<CancelRoundedIcon
-													style={{ cursor: 'pointer' }}
-													onClick={() => setSearchText('')}
-												/>
+												<CancelRoundedIcon style={{ cursor: 'pointer' }} onClick={() => setSearchText('')} />
 											)}
 											<InputAdornment position="end" onClick={() => searchTextHandler()}>
 												<img src="/img/icons/search_icon.png" alt={'searchIcon'} />
@@ -239,7 +244,7 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 								/>
 								<Select sx={{ width: '160px', ml: '20px' }} value={searchType}>
 									<MenuItem value={'ALL'} onClick={() => searchTypeHandler('ALL')}>
-										All
+										{t('All')}
 									</MenuItem>
 									{[MemberType.PATIENT, MemberType.DOCTOR, MemberType.CLINIC].map((type: MemberType) => (
 										<MenuItem value={type} key={type} onClick={() => searchTypeHandler(type)}>
@@ -247,7 +252,7 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 										</MenuItem>
 									))}
 									<MenuItem value={'ADMIN'} onClick={() => searchTypeHandler('ADMIN')}>
-										Admin
+										{t('Admin')}
 									</MenuItem>
 								</Select>
 							</Stack>
@@ -262,6 +267,8 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 						/>
 
 						<TablePagination
+							labelRowsPerPage={t('Rows per page:')}
+							labelDisplayedRows={({ from, to, count }) => t('{{from}}–{{to}} of {{count}}', { from, to, count })}
 							rowsPerPageOptions={[10, 20, 40, 60]}
 							component="div"
 							count={membersTotal}
@@ -285,5 +292,11 @@ AdminUsers.defaultProps = {
 		search: {},
 	},
 };
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 export default withAdminLayout(AdminUsers);

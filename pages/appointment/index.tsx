@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import moment from 'moment';
@@ -35,6 +36,7 @@ const tones: Record<AppointmentStatus, string> = {
 // confirmation page of one appointment: for its patient, doctor, clinic owner or ADMIN, with a PDF copy
 const AppointmentPage: NextPage = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const user = useReactiveVar(userVar);
 	const appointmentId = router.query.id as string | undefined;
 	const [appointment, setAppointment] = useState<Appointment | null>(null);
@@ -67,9 +69,9 @@ const AppointmentPage: NextPage = () => {
 		return (
 			<div className="pb-container" style={{ padding: '48px 0' }}>
 				<p className="pb-empty">
-					Log in to see this appointment.{' '}
+					{t('Log in to see this appointment.')}{' '}
 					<Link href={{ pathname: '/account/join', query: { referrer: router.asPath } }} className="pb-link">
-						Log in
+						{t('Log in')}
 					</Link>
 				</p>
 			</div>
@@ -80,9 +82,9 @@ const AppointmentPage: NextPage = () => {
 		return (
 			<div className="pb-container" style={{ padding: '48px 0' }}>
 				<p className="pb-empty">
-					This appointment is not available to you.{' '}
+					{t('This appointment is not available to you.')}{' '}
 					<Link href="/mypage?category=myAppointments" className="pb-link">
-						My appointments
+						{t('My appointments')}
 					</Link>
 				</p>
 			</div>
@@ -101,9 +103,7 @@ const AppointmentPage: NextPage = () => {
 	const patientName = getMemberName(appointment.memberData);
 	const day = moment.utc(appointment.appointmentDate);
 	const cancelled = appointment.appointmentStatus === AppointmentStatus.CANCELLED;
-	const mapsUrl = appointment.clinicData?.clinicAddress
-		? kakaoMapUrl(appointment.clinicData.clinicAddress)
-		: null;
+	const mapsUrl = appointment.clinicData?.clinicAddress ? kakaoMapUrl(appointment.clinicData.clinicAddress) : null;
 
 	return (
 		<div className="pb-container" style={{ maxWidth: 760 }}>
@@ -113,7 +113,7 @@ const AppointmentPage: NextPage = () => {
 					className="pb-link"
 					style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
 				>
-					<Icon name="arrowLeft" size={16} /> My appointments
+					<Icon name="arrowLeft" size={16} /> {t('My appointments')}
 				</Link>
 			</div>
 
@@ -127,7 +127,9 @@ const AppointmentPage: NextPage = () => {
 						<strong>{appointment.appointmentTime}</strong>
 					</h1>
 					<small>
-						Seoul time · 30-minute visit · Booked {moment(appointment.createdAt).format('MMM D, YYYY HH:mm')}
+						{t('Seoul time · 30-minute visit · Booked {{date}}', {
+							date: moment(appointment.createdAt).format('MMM D, YYYY HH:mm'),
+						})}
 					</small>
 				</header>
 
@@ -135,12 +137,13 @@ const AppointmentPage: NextPage = () => {
 					<div className="pb-ticket__row">
 						<Avatar name={doctorName} image={appointment.doctorData?.memberData?.memberImage} size={48} />
 						<span>
-							<small>Doctor</small>
+							<small>{t('Doctor')}</small>
 							<Link href={`/doctor/detail?id=${appointment.doctorId}`} className="pb-link">
 								{doctorName}
 							</Link>
 							<em>
-								{formatEnum(appointment.doctorData?.specialty)} · {appointment.doctorData?.experience ?? 0} years
+								{formatEnum(appointment.doctorData?.specialty)} ·{' '}
+								{t('{{count}} years', { count: appointment.doctorData?.experience ?? 0 })}
 							</em>
 						</span>
 					</div>
@@ -149,7 +152,7 @@ const AppointmentPage: NextPage = () => {
 							<Icon name="clinic" size={22} />
 						</span>
 						<span>
-							<small>Clinic</small>
+							<small>{t('Clinic')}</small>
 							<Link href={`/clinic/detail?id=${appointment.clinicId}`} className="pb-link">
 								{appointment.clinicData?.clinicName}
 							</Link>
@@ -163,30 +166,32 @@ const AppointmentPage: NextPage = () => {
 					<div className="pb-ticket__row">
 						<Avatar name={patientName} image={appointment.memberData?.memberImage} size={48} />
 						<span>
-							<small>Patient</small>
+							<small>{t('Patient')}</small>
 							<strong>{patientName}</strong>
 							{appointment.memberData?.memberPhone && <em>{appointment.memberData.memberPhone}</em>}
 						</span>
 					</div>
 					{appointment.appointmentReason && (
 						<div className="pb-ticket__reason">
-							<small>Reason for visit</small>
+							<small>{t('Reason for visit')}</small>
 							<p>{appointment.appointmentReason}</p>
 						</div>
 					)}
 				</div>
 
 				<footer className="pb-ticket__foot">
-					<small>Appointment no. {appointment._id}</small>
+					<small>
+						{t('Appointment no.')} {appointment._id}
+					</small>
 					{cancelled ? (
-						<span className="pb-ticket__note">A cancelled appointment has no document.</span>
+						<span className="pb-ticket__note">{t('A cancelled appointment has no document.')}</span>
 					) : (
 						<button type="button" className="pb-btn pb-btn--primary" onClick={downloadHandler} disabled={downloading}>
 							{downloading ? (
 								<EcgLine small width={44} />
 							) : (
 								<>
-									<Icon name="arrow" size={16} className="pb-ticket__down" /> Download PDF
+									<Icon name="arrow" size={16} className="pb-ticket__down" /> {t('Download PDF')}
 								</>
 							)}
 						</button>

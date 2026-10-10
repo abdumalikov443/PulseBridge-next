@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useReactiveVar } from '@apollo/client';
 import { pendingRequestsVar, serverReadyVar } from '../../../apollo/store';
@@ -22,6 +23,7 @@ export const EcgLine = ({ small = false, width }: { small?: boolean; width?: num
 // full screen loader while the API answers its first request (cold start)
 export const ServerLoader = () => {
 	const ready = useReactiveVar(serverReadyVar);
+	const { t } = useTranslation('common');
 	const pending = useReactiveVar(pendingRequestsVar);
 	const [slow, setSlow] = useState(false);
 
@@ -39,8 +41,8 @@ export const ServerLoader = () => {
 	return (
 		<div className="pb-server-loader" role="status" aria-live="polite">
 			<EcgLine />
-			<strong>Connecting to PulseBridge…</strong>
-			<span>Waking up the server, this takes a few seconds</span>
+			<strong>{t('Connecting to PulseBridge…')}</strong>
+			<span>{t('Waking up the server, this takes a few seconds')}</span>
 		</div>
 	);
 };
@@ -48,6 +50,7 @@ export const ServerLoader = () => {
 // thin bar on top while a route is changing
 export const NavProgress = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const [active, setActive] = useState(false);
 
 	useEffect(() => {
@@ -65,26 +68,29 @@ export const NavProgress = () => {
 
 	if (!active) return null;
 	return (
-		<div className="pb-nav-progress" role="progressbar" aria-label="Loading page">
+		<div className="pb-nav-progress" role="progressbar" aria-label={t('Loading page')}>
 			<span />
 		</div>
 	);
 };
 
 // placeholder cards while a list loads
-export const SkeletonCards = ({ count = 3 }: { count?: number }) => (
-	<>
-		{Array.from({ length: count }, (_, i) => (
-			<div className="pb-skeleton-card" key={i} role="status" aria-label="Loading">
-				<div className="pb-skeleton-card__row">
-					<span className="pb-skeleton" style={{ width: 52, height: 52, borderRadius: 26, flex: 'none' }} />
-					<div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-						<span className="pb-skeleton" style={{ height: 14, width: '60%' }} />
-						<span className="pb-skeleton" style={{ height: 12, width: '40%' }} />
+export const SkeletonCards = ({ count = 3 }: { count?: number }) => {
+	const { t } = useTranslation('common');
+	return (
+		<>
+			{Array.from({ length: count }, (_, i) => (
+				<div className="pb-skeleton-card" key={i} role="status" aria-label={t('Loading')}>
+					<div className="pb-skeleton-card__row">
+						<span className="pb-skeleton" style={{ width: 52, height: 52, borderRadius: 26, flex: 'none' }} />
+						<div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+							<span className="pb-skeleton" style={{ height: 14, width: '60%' }} />
+							<span className="pb-skeleton" style={{ height: 12, width: '40%' }} />
+						</div>
 					</div>
+					<span className="pb-skeleton" style={{ height: 36, width: '70%', borderRadius: 999 }} />
 				</div>
-				<span className="pb-skeleton" style={{ height: 36, width: '70%', borderRadius: 999 }} />
-			</div>
-		))}
-	</>
-);
+			))}
+		</>
+	);
+};

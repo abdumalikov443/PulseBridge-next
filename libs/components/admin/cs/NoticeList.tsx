@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import {
@@ -46,7 +47,7 @@ const headCells: readonly HeadCell[] = [
 		id: 'category',
 		numeric: true,
 		disablePadding: false,
-		label: 'Category',
+		label: 'CATEGORY',
 	},
 	{
 		id: 'title',
@@ -106,6 +107,7 @@ interface EnhancedTableToolbarProps {
 
 const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
 	const [select, setSelect] = useState('');
+	const { t } = useTranslation('common');
 	const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
 
 	return (
@@ -121,15 +123,15 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
 									checked={rowCount > 0 && numSelected === rowCount}
 									onChange={onSelectAllClick}
 									inputProps={{
-										'aria-label': 'select all',
+										'aria-label': t('Select all'),
 									}}
 								/>
 								<Typography sx={{ flex: '1 1 100%' }} color="inherit" variant="h6" component="div">
-									{numSelected} selected
+									{t('{{count}} selected', { count: numSelected })}
 								</Typography>
 							</Box>
 							<Button variant={'text'} size={'large'}>
-								Delete
+								{t('Delete')}
 							</Button>
 						</Box>
 					</Toolbar>
@@ -144,7 +146,7 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
 								checked={rowCount > 0 && numSelected === rowCount}
 								onChange={onSelectAllClick}
 								inputProps={{
-									'aria-label': 'select all',
+									'aria-label': t('Select all'),
 								}}
 							/>
 						</TableCell>
@@ -154,7 +156,7 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
 								align={headCell.numeric ? 'left' : 'right'}
 								padding={headCell.disablePadding ? 'none' : 'normal'}
 							>
-								{headCell.label}
+								{t(headCell.label)}
 							</TableCell>
 						))}
 					</TableRow>

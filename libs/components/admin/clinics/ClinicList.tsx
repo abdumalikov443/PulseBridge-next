@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 import CopyId from '../CopyId';
 import Link from 'next/link';
 import {
@@ -32,12 +33,13 @@ const headCells: { id: string; label: string; numeric: boolean }[] = [
 ];
 
 function EnhancedTableHead() {
+	const { t } = useTranslation('common');
 	return (
 		<TableHead>
 			<TableRow>
 				{headCells.map((headCell) => (
 					<TableCell key={headCell.id} align={headCell.numeric ? 'left' : 'center'} padding={'normal'}>
-						{headCell.label}
+						{t(headCell.label)}
 					</TableCell>
 				))}
 			</TableRow>
@@ -58,6 +60,7 @@ interface ClinicPanelListType {
 export const ClinicPanelList = (props: ClinicPanelListType) => {
 	const { clinics, anchorEl, menuIconClickHandler, menuIconCloseHandler, updateClinicHandler, removeClinicHandler } =
 		props;
+	const { t } = useTranslation('common');
 
 	return (
 		<Stack>
@@ -68,7 +71,7 @@ export const ClinicPanelList = (props: ClinicPanelListType) => {
 						{clinics.length === 0 && (
 							<TableRow>
 								<TableCell align="center" colSpan={6}>
-									<span className={'no-data'}>data not found!</span>
+									<span className={'no-data'}>{t('No data found')}</span>
 								</TableCell>
 							</TableRow>
 						)}
@@ -121,7 +124,7 @@ export const ClinicPanelList = (props: ClinicPanelListType) => {
 												onClick={(e: any) => menuIconClickHandler(e, index)}
 												className={clinic.clinicStatus === ClinicStatus.ACTIVE ? 'badge success' : 'badge warning'}
 											>
-												{clinic.clinicStatus}
+												{formatEnum(clinic.clinicStatus)}
 											</Button>
 
 											<Menu
@@ -143,7 +146,7 @@ export const ClinicPanelList = (props: ClinicPanelListType) => {
 															key={status}
 														>
 															<Typography variant={'subtitle1'} component={'span'}>
-																{status}
+																{formatEnum(status)}
 															</Typography>
 														</MenuItem>
 													))}

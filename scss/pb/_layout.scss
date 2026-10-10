@@ -1138,3 +1138,25 @@ button.pb-emergency {
 		}
 	}
 }
+
+/* language switch: flag + code */
+.pb-flag {
+	display: block;
+	flex: none;
+	border-radius: 3px;
+	box-shadow: 0 0 0 1px rgba(16, 42, 67, 0.12);
+}
+.pb-lang-btn {
+	gap: 6px;
+	padding: 0 10px !important;
+	span {
+		font-size: 13px;
+		font-weight: 700;
+	}
+	@media (max-width: $pb-phone) {
+		padding: 0 8px !important;
+		span {
+			display: none;
+		}
+	}
+}

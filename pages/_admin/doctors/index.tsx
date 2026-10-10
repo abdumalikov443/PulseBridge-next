@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 import type { NextPage } from 'next';
 import Link from 'next/link';
 import AdminTotal from '../../../libs/components/admin/AdminTotal';
@@ -33,6 +35,7 @@ import { sweetConfirmAlert, sweetErrorHandling } from '../../../libs/sweetAlert'
 
 // getDoctors lists doctors working in an active clinic; removing detaches the doctor from the clinic
 const AdminDoctors: NextPage = ({ initialInquiry, ...props }: any) => {
+	const { t } = useTranslation('common');
 	const [doctorsInquiry, setDoctorsInquiry] = useState<DoctorsInquiry>(initialInquiry);
 	const [doctors, setDoctors] = useState<Doctor[]>([]);
 	const [total, setTotal] = useState<number>(0);
@@ -62,7 +65,14 @@ const AdminDoctors: NextPage = ({ initialInquiry, ...props }: any) => {
 
 	const removeDoctorHandler = async (doctor: Doctor) => {
 		try {
-			if (await sweetConfirmAlert(`Remove ${getMemberName(doctor.memberData)} from ${doctor.clinicData?.clinicName}?`)) {
+			if (
+				await sweetConfirmAlert(
+					t('Remove {{name}} from {{clinic}}?', {
+						name: getMemberName(doctor.memberData),
+						clinic: doctor.clinicData?.clinicName,
+					}),
+				)
+			) {
 				await removeDoctorByAdmin({ variables: { input: doctor._id } });
 				await getDoctorsRefetch({ input: doctorsInquiry });
 			}
@@ -74,18 +84,18 @@ const AdminDoctors: NextPage = ({ initialInquiry, ...props }: any) => {
 	return (
 		<Box component={'div'} className={'content'}>
 			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
-				Doctor List
+				{t('Doctor List')}
 				<AdminTotal total={total} noun="doctor" />
 			</Typography>
 			<Box component={'div'} className={'table-wrap'}>
 				<Stack className={'search-area'} sx={{ m: '24px' }}>
 					<Select sx={{ width: '200px' }} value={specialty}>
 						<MenuItem value={'ALL'} onClick={() => specialtyHandler('ALL')}>
-							ALL
+							{t('All')}
 						</MenuItem>
 						{Object.values(DoctorSpecialty).map((value: string) => (
 							<MenuItem value={value} key={value} onClick={() => specialtyHandler(value)}>
-								{value}
+								{formatEnum(value)}
 							</MenuItem>
 						))}
 					</Select>
@@ -95,19 +105,19 @@ const AdminDoctors: NextPage = ({ initialInquiry, ...props }: any) => {
 					<Table sx={{ minWidth: 750 }} size={'medium'}>
 						<TableHead>
 							<TableRow>
-								<TableCell align="left">DOCTOR</TableCell>
-								<TableCell align="center">SPECIALTY</TableCell>
-								<TableCell align="center">EXPERIENCE</TableCell>
-								<TableCell align="center">CLINIC</TableCell>
-								<TableCell align="center">LIKES / VIEWS</TableCell>
-								<TableCell align="center">ACTION</TableCell>
+								<TableCell align="left">{t('DOCTOR')}</TableCell>
+								<TableCell align="center">{t('SPECIALTY')}</TableCell>
+								<TableCell align="center">{t('EXPERIENCE')}</TableCell>
+								<TableCell align="center">{t('CLINIC')}</TableCell>
+								<TableCell align="center">{t('LIKES / VIEWS')}</TableCell>
+								<TableCell align="center">{t('ACTION')}</TableCell>
 							</TableRow>
 						</TableHead>
 						<TableBody>
 							{doctors.length === 0 && (
 								<TableRow>
 									<TableCell align="center" colSpan={6}>
-										<span className={'no-data'}>data not found!</span>
+										<span className={'no-data'}>{t('No data found')}</span>
 									</TableCell>
 								</TableRow>
 							)}
@@ -120,14 +130,14 @@ const AdminDoctors: NextPage = ({ initialInquiry, ...props }: any) => {
 										</Stack>
 									</TableCell>
 									<TableCell align="center">{formatEnum(doctor.specialty)}</TableCell>
-									<TableCell align="center">{doctor.experience} years</TableCell>
+									<TableCell align="center">{t('{{count}} years', { count: doctor.experience })}</TableCell>
 									<TableCell align="center">{doctor.clinicData?.clinicName}</TableCell>
 									<TableCell align="center">
 										{doctor.doctorLikes} / {doctor.doctorViews}
 									</TableCell>
 									<TableCell align="center">
 										<Button className={'badge warning'} onClick={() => removeDoctorHandler(doctor)}>
-											Detach
+											{t('Detach')}
 										</Button>
 									</TableCell>
 								</TableRow>
@@ -136,6 +146,8 @@ const AdminDoctors: NextPage = ({ initialInquiry, ...props }: any) => {
 					</Table>
 				</TableContainer>
 				<TablePagination
+					labelRowsPerPage={t('Rows per page:')}
+					labelDisplayedRows={({ from, to, count }) => t('{{from}}–{{to}} of {{count}}', { from, to, count })}
 					rowsPerPageOptions={[10, 20, 40]}
 					component="div"
 					count={total}
@@ -160,5 +172,11 @@ AdminDoctors.defaultProps = {
 		search: {},
 	},
 };
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 export default withAdminLayout(AdminDoctors);

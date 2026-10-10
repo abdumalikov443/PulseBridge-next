@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import { useTranslation } from 'next-i18next';
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -17,6 +18,7 @@ import { EcgLine } from '../ui/Loaders';
 const withAdminLayout = (Component: ComponentType) => {
 	const AdminLayout = (props: object) => {
 		const router = useRouter();
+		const { t } = useTranslation('common');
 		const user = useReactiveVar(userVar);
 		const [checked, setChecked] = useState(false);
 		const [menuOpen, setMenuOpen] = useState(false);
@@ -48,7 +50,7 @@ const withAdminLayout = (Component: ComponentType) => {
 		return (
 			<>
 				<Head>
-					<title>Admin · PulseBridge</title>
+					<title>{`${t('Admin')} · PulseBridge`}</title>
 					<meta name="viewport" content="width=device-width, initial-scale=1" />
 				</Head>
 				<div className="pb-app pb-admin">
@@ -61,25 +63,41 @@ const withAdminLayout = (Component: ComponentType) => {
 							pulsebridge
 						</Link>
 						<span className="pb-badge pb-badge--soft" style={{ alignSelf: 'flex-start' }}>
-							Admin panel
+							{t('Admin panel')}
 						</span>
 						<AdminMenuList />
 					</aside>
 
 					<div className="pb-admin__body">
 						<header className="pb-admin__top">
-							<button type="button" className="pb-icon-btn pb-admin__burger" aria-label="Open menu" aria-expanded={menuOpen} onClick={() => setMenuOpen((prev) => !prev)}>
+							<button
+								type="button"
+								className="pb-icon-btn pb-admin__burger"
+								aria-label={t('Open menu')}
+								aria-expanded={menuOpen}
+								onClick={() => setMenuOpen((prev) => !prev)}
+							>
 								<Icon name={menuOpen ? 'close' : 'menu'} size={20} />
 							</button>
 							<Link href="/" className="pb-btn pb-btn--light pb-btn--sm">
-								<Icon name="arrowLeft" size={16} /> Back to site
+								<Icon name="arrowLeft" size={16} /> {t('Back to site')}
 							</Link>
-							<button type="button" className="pb-header__user" aria-label="Account menu" onClick={(e) => setUserAnchor(e.currentTarget)} style={{ marginLeft: 'auto' }}>
-								<Avatar name={name} image={user.memberImage && !user.memberImage.startsWith('/img') ? user.memberImage : null} size={40} />
+							<button
+								type="button"
+								className="pb-header__user"
+								aria-label={t('Account menu')}
+								onClick={(e) => setUserAnchor(e.currentTarget)}
+								style={{ marginLeft: 'auto' }}
+							>
+								<Avatar
+									name={name}
+									image={user.memberImage && !user.memberImage.startsWith('/img') ? user.memberImage : null}
+									size={40}
+								/>
 							</button>
 							<Menu anchorEl={userAnchor} open={Boolean(userAnchor)} onClose={() => setUserAnchor(null)}>
 								<MenuItem disabled>{user.memberNick}</MenuItem>
-								<MenuItem onClick={() => logOut()}>Logout</MenuItem>
+								<MenuItem onClick={() => logOut()}>{t('Logout')}</MenuItem>
 							</Menu>
 						</header>
 						<main className="pb-admin__content">

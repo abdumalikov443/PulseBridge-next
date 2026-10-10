@@ -2,6 +2,7 @@ import Swal from 'sweetalert2';
 import 'animate.css';
 import { Messages } from './config';
 import { showToast } from './toast';
+import { tr } from './i18n';
 
 // short messages are toasts (top right, close by themselves); questions stay as dialogs
 
@@ -32,17 +33,21 @@ const dialog = Swal.mixin({
 });
 
 export const sweetConfirmAlert = async (msg: string): Promise<boolean> => {
-	const response = await dialog.fire({ text: msg, confirmButtonText: 'Yes', cancelButtonText: 'Cancel' });
+	const response = await dialog.fire({ text: tr(msg), confirmButtonText: tr('Yes'), cancelButtonText: tr('Cancel') });
 	return !!response?.isConfirmed;
 };
 
 export const sweetActionConfirmAlert = async (msg: string, confirmText: string): Promise<boolean> => {
-	const response = await dialog.fire({ text: msg, confirmButtonText: confirmText, cancelButtonText: 'Cancel' });
+	const response = await dialog.fire({
+		text: tr(msg),
+		confirmButtonText: tr(confirmText),
+		cancelButtonText: tr('Cancel'),
+	});
 	return !!response?.isConfirmed;
 };
 
 export const sweetLoginConfirmAlert = async (msg: string): Promise<boolean> => {
-	const response = await dialog.fire({ text: msg, confirmButtonText: 'Login', cancelButtonText: 'Cancel' });
+	const response = await dialog.fire({ text: tr(msg), confirmButtonText: tr('Login'), cancelButtonText: tr('Cancel') });
 	return !!response?.isConfirmed;
 };
 
@@ -66,12 +71,16 @@ export const sweetErrorHandlingForAdmin = async (err: any) => {
 	const errorMessage = err.message ?? Messages.error1;
 	await Swal.fire({
 		icon: 'error',
-		text: errorMessage,
+		text: tr(errorMessage),
 		showConfirmButton: false,
 	});
 };
 
-export const sweetTopSmallSuccessAlert = async (msg: string, duration: number = 2500, enable_forward: boolean = false) => {
+export const sweetTopSmallSuccessAlert = async (
+	msg: string,
+	duration: number = 2500,
+	enable_forward: boolean = false,
+) => {
 	showToast('success', msg, undefined, Math.max(duration, 2500));
 	if (enable_forward) window.setTimeout(() => window.location.reload(), duration);
 };

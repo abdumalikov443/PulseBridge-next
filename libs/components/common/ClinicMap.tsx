@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { KAKAO_MAP_KEY, kakaoMapUrl, naverMapUrl } from '../../maps';
 import Icon from '../ui/Icon';
 
@@ -46,6 +47,7 @@ interface ClinicMapProps {
 // clinic location inside the page: Kakao map with a marker when the SDK key is set,
 // otherwise the Kakao Map search page in an iframe; both open Kakao or Naver Map for directions
 const ClinicMap = ({ address, name }: ClinicMapProps) => {
+	const { t } = useTranslation('common');
 	const mapRef = useRef<HTMLDivElement>(null);
 	const [mode, setMode] = useState<'loading' | 'sdk' | 'iframe'>(KAKAO_MAP_KEY ? 'loading' : 'iframe');
 
@@ -73,14 +75,25 @@ const ClinicMap = ({ address, name }: ClinicMapProps) => {
 			<div className={`pb-map__frame ${mode === 'iframe' ? 'is-iframe' : ''}`}>
 				{KAKAO_MAP_KEY && <div ref={mapRef} className="pb-map__canvas" hidden={mode !== 'sdk'} />}
 				{mode === 'iframe' && (
-					<iframe className="pb-map__iframe" src={kakaoMapUrl(address)} title={`${name} on Kakao Map`} loading="lazy" referrerPolicy="no-referrer" />
+					<iframe
+						className="pb-map__iframe"
+						src={kakaoMapUrl(address)}
+						title={t('{{name}} on Kakao Map', { name })}
+						loading="lazy"
+						referrerPolicy="no-referrer"
+					/>
 				)}
 				{/* phones: the Kakao page is too cramped in a frame, so a simple pin card is shown instead */}
 				{mode !== 'sdk' && (
-					<a href={kakaoMapUrl(address)} target="_blank" rel="noreferrer" className={`pb-map__placeholder ${mode === 'iframe' ? 'is-fallback' : ''}`}>
+					<a
+						href={kakaoMapUrl(address)}
+						target="_blank"
+						rel="noreferrer"
+						className={`pb-map__placeholder ${mode === 'iframe' ? 'is-fallback' : ''}`}
+					>
 						<Icon name="pin" size={30} />
 						<strong>{address}</strong>
-						<span>{mode === 'loading' ? 'Loading map…' : 'Tap to open the map'}</span>
+						<span>{mode === 'loading' ? t('Loading map…') : t('Tap to open the map')}</span>
 					</a>
 				)}
 			</div>
@@ -92,10 +105,10 @@ const ClinicMap = ({ address, name }: ClinicMapProps) => {
 				<span className="pb-map__links">
 					<a href={kakaoMapUrl(address)} target="_blank" rel="noreferrer" className="pb-btn pb-btn--outline pb-btn--sm">
 						<Icon name="navigate" size={14} />
-						Kakao Map
+						{t('Kakao Map')}
 					</a>
 					<a href={naverMapUrl(address)} target="_blank" rel="noreferrer" className="pb-btn pb-btn--light pb-btn--sm">
-						Naver Map
+						{t('Naver Map')}
 					</a>
 				</span>
 			</div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useQuery } from '@apollo/client';
@@ -40,6 +41,7 @@ const sortOptions = [
 
 const DoctorList: NextPage = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const [input, setInput] = useState<DoctorsInquiry>(initialInput);
 	const [text, setText] = useState('');
 	const [doctors, setDoctors] = useState<Doctor[] | null>(null);
@@ -83,7 +85,8 @@ const DoctorList: NextPage = () => {
 	// five specialties first; "More..." shows the rest (always shown when the chosen one is hidden)
 	const specialties = Object.values(DoctorSpecialty);
 	const [showAll, setShowAll] = useState(false);
-	const shownSpecialties = showAll || (specialty && specialties.indexOf(specialty) >= 5) ? specialties : specialties.slice(0, 5);
+	const shownSpecialties =
+		showAll || (specialty && specialties.indexOf(specialty) >= 5) ? specialties : specialties.slice(0, 5);
 
 	// live search: runs after typing stops; an emptied box also resets the sort (page refetches)
 	const debouncedText = useDebouncedValue(text, 400);
@@ -104,42 +107,47 @@ const DoctorList: NextPage = () => {
 	return (
 		<div className="pb-container">
 			<header className="pb-page-head">
-				<h1 className="pb-title">Find a doctor</h1>
-				<p>Only doctors working in an active clinic are listed and can be booked.</p>
+				<h1 className="pb-title">{t('Find a doctor')}</h1>
+				<p>{t('Only doctors working in an active clinic are listed and can be booked.')}</p>
 			</header>
 
 			<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', padding: '16px 0' }}>
-				<form
-					className="pb-search"
-					style={{ flex: '1 1 280px' }}
-					onSubmit={(e) => e.preventDefault()}
-				>
+				<form className="pb-search" style={{ flex: '1 1 280px' }} onSubmit={(e) => e.preventDefault()}>
 					<Icon name="search" />
 					<label htmlFor="doctor-search" className="pb-sr">
-						Doctor name
+						{t('Doctor name')}
 					</label>
-					<input id="doctor-search" value={text} placeholder="Doctor name" onChange={(e) => setText(e.target.value)} />
+					<input
+						id="doctor-search"
+						value={text}
+						placeholder={t('Doctor name')}
+						onChange={(e) => setText(e.target.value)}
+					/>
 				</form>
-				<SortSelect value={input.sort ?? initialInput.sort!} options={sortOptions} onChange={(sort) => pushInput({ ...input, page: 1, sort, direction: Direction.DESC })} />
+				<SortSelect
+					value={input.sort ?? initialInput.sort!}
+					options={sortOptions}
+					onChange={(sort) => pushInput({ ...input, page: 1, sort, direction: Direction.DESC })}
+				/>
 			</div>
 
-			<div className="pb-pills" role="group" aria-label="Specialty">
+			<div className="pb-pills" role="group" aria-label={t('Specialty')}>
 				<button
 					type="button"
 					className={`pb-pill ${!specialty ? 'pb-pill--active' : ''}`}
 					aria-pressed={!specialty}
 					onClick={() => setSearch({ specialtyList: undefined })}
 				>
-					All
+					{t('All')}
 				</button>
 				{shownSpecialties.map((value) => (
 					<button
 						key={value}
 						type="button"
 						className={`pb-pill pb-tip ${specialty === value ? 'pb-pill--active' : ''}`}
-						data-tip={SPECIALTY_INFO[value].desc}
+						data-tip={t(SPECIALTY_INFO[value].desc)}
 						aria-pressed={specialty === value}
-						aria-description={SPECIALTY_INFO[value].desc}
+						aria-description={t(SPECIALTY_INFO[value].desc)}
 						onClick={() => setSearch({ specialtyList: [value] })}
 					>
 						{formatEnum(value)}
@@ -147,14 +155,18 @@ const DoctorList: NextPage = () => {
 				))}
 				{shownSpecialties.length < specialties.length && (
 					<button type="button" className="pb-pill pb-pill--more" onClick={() => setShowAll(true)}>
-						More...
+						{t('More...')}
 					</button>
 				)}
 			</div>
 
 			<p style={{ margin: '20px 0 12px', minHeight: 20, fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
 				{/* the count waits for the first answer, so "0 found" never flashes while loading */}
-				{doctors !== null && !(loading && doctors.length === 0) && `${total} doctor${total === 1 ? '' : 's'} found`}
+				{doctors !== null &&
+					!(loading && doctors.length === 0) &&
+					(total === 1
+						? t('{{count}} doctor found', { count: total })
+						: t('{{count}} doctors found', { count: total }))}
 			</p>
 
 			<div className="pb-grid">
@@ -172,9 +184,14 @@ const DoctorList: NextPage = () => {
 					);
 				})}
 			</div>
-			{doctors?.length === 0 && !loading && <p className="pb-empty">No doctors match these filters.</p>}
+			{doctors?.length === 0 && !loading && <p className="pb-empty">{t('No doctors match these filters.')}</p>}
 
-			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => pushInput({ ...input, page })} />
+			<PbPagination
+				page={input.page}
+				total={total}
+				limit={input.limit}
+				onChange={(page) => pushInput({ ...input, page })}
+			/>
 		</div>
 	);
 };

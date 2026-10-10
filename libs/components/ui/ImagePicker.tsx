@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'next-i18next';
+import { tr } from '../../i18n';
 import { Messages, REACT_APP_API_URL } from '../../config';
 import { sweetMixinErrorAlert } from '../../sweetAlert';
 import Icon from './Icon';
@@ -20,6 +22,7 @@ interface ImagePickerProps {
 // picks an image and shows a local preview; nothing is uploaded until the form is saved
 const ImagePicker = ({ file, onChange, label, hint, current, shape = 'round' }: ImagePickerProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
+	const { t } = useTranslation('common');
 	const [preview, setPreview] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -36,13 +39,19 @@ const ImagePicker = ({ file, onChange, label, hint, current, shape = 'round' }: 
 		e.target.value = '';
 		if (!picked) return;
 		if (!ALLOWED.includes(picked.type)) return sweetMixinErrorAlert(Messages.error5);
-		if (picked.size > MAX_MB * 1024 * 1024) return sweetMixinErrorAlert(`Image must be smaller than ${MAX_MB} MB`);
+		if (picked.size > MAX_MB * 1024 * 1024)
+			return sweetMixinErrorAlert(tr('Image must be smaller than {{size}} MB', { size: MAX_MB }));
 		onChange(picked);
 	};
 
 	return (
 		<div className={`pb-picker pb-picker--${shape}`}>
-			<button type="button" className="pb-picker__frame" onClick={() => inputRef.current?.click()} aria-label={shown ? `Change ${label}` : `Choose ${label}`}>
+			<button
+				type="button"
+				className="pb-picker__frame"
+				onClick={() => inputRef.current?.click()}
+				aria-label={`${shown ? t('Change') : t('Choose photo')}: ${t(label)}`}
+			>
 				{shown ? (
 					<img src={shown} alt="" />
 				) : (
@@ -52,17 +61,17 @@ const ImagePicker = ({ file, onChange, label, hint, current, shape = 'round' }: 
 				)}
 			</button>
 			<div className="pb-picker__info">
-				<strong>{label}</strong>
-				<span>{file ? `${file.name} · not saved yet` : hint ?? 'JPG or PNG, up to 5 MB'}</span>
+				<strong>{t(label)}</strong>
+				<span>{file ? `${file.name} · ${t('not saved yet')}` : t(hint ?? 'JPG or PNG, up to 5 MB')}</span>
 				<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
 					<button type="button" className="pb-btn pb-btn--outline pb-btn--sm" onClick={() => inputRef.current?.click()}>
 						<Icon name={shown ? 'edit' : 'image'} size={14} />
-						{shown ? 'Change' : 'Choose photo'}
+						{shown ? t('Change') : t('Choose photo')}
 					</button>
 					{file && (
 						<button type="button" className="pb-btn pb-btn--danger pb-btn--sm" onClick={() => onChange(null)}>
 							<Icon name="trash" size={14} />
-							Remove
+							{t('Remove')}
 						</button>
 					)}
 				</div>

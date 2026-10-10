@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -34,6 +35,7 @@ export const getStaticProps = async ({ locale }: any) => ({
 
 const DoctorDetail: NextPage = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const user = useReactiveVar(userVar);
 	const doctorId = router.query.id as string | undefined;
 	const [doctor, setDoctor] = useState<Doctor | null>(null);
@@ -56,7 +58,9 @@ const DoctorDetail: NextPage = () => {
 	useQuery(GET_ARTICLES, {
 		fetchPolicy: 'cache-and-network',
 		skip: !doctor?.memberId,
-		variables: { input: { page: 1, limit: 3, sort: 'createdAt', direction: 'DESC', search: { memberId: doctor?.memberId } } },
+		variables: {
+			input: { page: 1, limit: 3, sort: 'createdAt', direction: 'DESC', search: { memberId: doctor?.memberId } },
+		},
 		onCompleted: (data: T) => setArticles(data?.getArticles?.list ?? []),
 	});
 
@@ -79,11 +83,14 @@ const DoctorDetail: NextPage = () => {
 		<div className="pb-container">
 			<div style={{ padding: '24px 0 16px' }}>
 				<Link href="/doctor" className="pb-link" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-					<Icon name="arrowLeft" size={16} /> All doctors
+					<Icon name="arrowLeft" size={16} /> {t('All doctors')}
 				</Link>
 			</div>
 
-			<section className="pb-card pb-card--flat pb-in" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 28, alignItems: 'center', padding: 28 }}>
+			<section
+				className="pb-card pb-card--flat pb-in"
+				style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 28, alignItems: 'center', padding: 28 }}
+			>
 				<Avatar name={name} image={doctor.memberData?.memberImage} size={120} />
 				<div style={{ flex: '999 1 360px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
 					<h1 className="pb-title" style={{ fontSize: 34 }}>
@@ -94,7 +101,7 @@ const DoctorDetail: NextPage = () => {
 						{formatEnum(doctor.specialty)}
 					</span>
 					<span style={{ fontSize: 16, color: 'var(--pb-muted)' }}>
-						{doctor.experience} years of experience
+						{t('{{count}} years of experience', { count: doctor.experience })}
 						{doctor.clinicData && (
 							<>
 								{' · '}
@@ -105,7 +112,9 @@ const DoctorDetail: NextPage = () => {
 						)}
 					</span>
 					{doctor.memberData?.memberPhone && (
-						<span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', fontSize: 14, color: 'var(--pb-muted)' }}>
+						<span
+							style={{ display: 'inline-flex', gap: 8, alignItems: 'center', fontSize: 14, color: 'var(--pb-muted)' }}
+						>
 							<Icon name="phone" size={16} /> {doctor.memberData.memberPhone}
 						</span>
 					)}
@@ -118,10 +127,10 @@ const DoctorDetail: NextPage = () => {
 					/>
 					<div className="pb-follow-counts">
 						<button type="button" onClick={() => setFollowMode('followers')}>
-							<strong>{formatCount(followers)}</strong> {followers === 1 ? 'follower' : 'followers'}
+							<strong>{formatCount(followers)}</strong> {followers === 1 ? t('follower') : t('followers')}
 						</button>
 						<button type="button" onClick={() => setFollowMode('followings')}>
-							<strong>{formatCount(followings)}</strong> following
+							<strong>{formatCount(followings)}</strong> {t('following')}
 						</button>
 					</div>
 					<FollowModal
@@ -136,8 +145,11 @@ const DoctorDetail: NextPage = () => {
 				{(canBook || canFollow(doctor.memberId)) && (
 					<div className="pb-cta">
 						{canBook && (
-							<Link href={`/booking?doctorId=${doctor._id}`} className="pb-btn pb-btn--primary pb-btn--lg pb-btn--block">
-								Book an appointment <Icon name="arrow" className="pb-arrow" />
+							<Link
+								href={`/booking?doctorId=${doctor._id}`}
+								className="pb-btn pb-btn--primary pb-btn--lg pb-btn--block"
+							>
+								{t('Book an appointment')} <Icon name="arrow" className="pb-arrow" />
 							</Link>
 						)}
 						{canFollow(doctor.memberId) && (
@@ -157,10 +169,15 @@ const DoctorDetail: NextPage = () => {
 				<div className="pb-split__main">
 					<section className="pb-card pb-card--flat">
 						<h2 className="pb-title" style={{ fontSize: 22 }}>
-							About
+							{t('About')}
 						</h2>
 						<p style={{ margin: 0, fontSize: 15, lineHeight: 1.65, color: 'var(--pb-muted)' }}>
-							{doctor.memberData?.memberDesc || `${name} is a ${formatEnum(doctor.specialty).toLowerCase()} doctor with ${doctor.experience} years of experience.`}
+							{doctor.memberData?.memberDesc ||
+								t('{{name}} is a {{specialty}} doctor with {{count}} years of experience.', {
+									name,
+									specialty: formatEnum(doctor.specialty).toLowerCase(),
+									count: doctor.experience,
+								})}
 						</p>
 					</section>
 					<Reviews
@@ -175,9 +192,18 @@ const DoctorDetail: NextPage = () => {
 				<aside className="pb-split__side">
 					{doctor.clinicData && (
 						<Link href={`/clinic/detail?id=${doctor.clinicData._id}`} className="pb-card pb-card--flat pb-card--hover">
-							<span style={{ fontSize: 13, fontWeight: 700, color: 'var(--pb-muted)' }}>Works at</span>
+							<span style={{ fontSize: 13, fontWeight: 700, color: 'var(--pb-muted)' }}>{t('Works at')}</span>
 							<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-								<span className="pb-avatar" style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--pb-soft-1)', color: 'var(--pb-deep)' }}>
+								<span
+									className="pb-avatar"
+									style={{
+										width: 48,
+										height: 48,
+										borderRadius: 14,
+										background: 'var(--pb-soft-1)',
+										color: 'var(--pb-deep)',
+									}}
+								>
 									<Icon name="clinic" size={24} />
 								</span>
 								<span style={{ display: 'flex', flexDirection: 'column' }}>
@@ -191,9 +217,14 @@ const DoctorDetail: NextPage = () => {
 					)}
 					{articles.length > 0 && (
 						<section className="pb-card pb-card--flat">
-							<strong style={{ fontSize: 15 }}>Articles by {name}</strong>
+							<strong style={{ fontSize: 15 }}>{t('Articles by {{name}}', { name })}</strong>
 							{articles.map((article) => (
-								<Link key={article._id} href={`/community/detail?id=${article._id}`} className="pb-link" style={{ color: 'var(--pb-ink)' }}>
+								<Link
+									key={article._id}
+									href={`/community/detail?id=${article._id}`}
+									className="pb-link"
+									style={{ color: 'var(--pb-ink)' }}
+								>
 									{article.articleTitle}
 								</Link>
 							))}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 import CopyId from '../CopyId';
 import Link from 'next/link';
 import {
@@ -18,6 +19,7 @@ import Typography from '@mui/material/Typography';
 import { Stack } from '@mui/material';
 import { Member } from '../../../types/member/member';
 import { REACT_APP_API_URL } from '../../../config';
+import { formatEnum } from '../../../utils';
 import { MemberStatus } from '../../../enums/member.enum';
 
 interface Data {
@@ -111,6 +113,7 @@ interface EnhancedTableProps {
 }
 
 function EnhancedTableHead(props: EnhancedTableProps) {
+	const { t } = useTranslation('common');
 	const { onSelectAllClick } = props;
 
 	return (
@@ -122,7 +125,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 						align={headCell.numeric ? 'left' : 'center'}
 						padding={headCell.disablePadding ? 'none' : 'normal'}
 					>
-						{headCell.label}
+						{t(headCell.label)}
 					</TableCell>
 				))}
 			</TableRow>
@@ -140,6 +143,7 @@ interface MemberPanelListType {
 
 export const MemberPanelList = (props: MemberPanelListType) => {
 	const { members, anchorEl, menuIconClickHandler, menuIconCloseHandler, updateMemberHandler } = props;
+	const { t } = useTranslation('common');
 
 	return (
 		<Stack>
@@ -151,7 +155,7 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 						{members.length === 0 && (
 							<TableRow>
 								<TableCell align="center" colSpan={8}>
-									<span className={'no-data'}>data not found!</span>
+									<span className={'no-data'}>{t('No data found')}</span>
 								</TableCell>
 							</TableRow>
 						)}
@@ -171,7 +175,7 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 											<Stack direction={'row'}>
 												<Link href={`/member?memberId=${member._id}`}>
 													<div>
-														<Avatar alt="Remy Sharp" src={member_image} sx={{ ml: '2px', mr: '10px' }} />
+														<Avatar alt={member.memberNick} src={member_image} sx={{ ml: '2px', mr: '10px' }} />
 													</div>
 												</Link>
 												<Link href={`/member?memberId=${member._id}`}>
@@ -185,14 +189,14 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 
 										<TableCell align="center">
 											{/* memberType is fixed at signup */}
-											<Button className={'badge success'}>{member.memberType}</Button>
+											<Button className={'badge success'}>{formatEnum(member.memberType)}</Button>
 										</TableCell>
 
 										<TableCell align="center">{member.memberArticles}</TableCell>
 										<TableCell align="center">{member.memberLikes}</TableCell>
 										<TableCell align="center">
 											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={'badge success'}>
-												{member.memberStatus}
+												{formatEnum(member.memberStatus)}
 											</Button>
 
 											<Menu
@@ -214,7 +218,7 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 															key={status}
 														>
 															<Typography variant={'subtitle1'} component={'span'}>
-																{status}
+																{formatEnum(status)}
 															</Typography>
 														</MenuItem>
 													))}

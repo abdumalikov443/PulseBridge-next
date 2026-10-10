@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 import Icon from './Icon';
 
 export const formatCount = (n: number = 0): string => {
@@ -23,6 +24,7 @@ interface ActionChipsProps {
 // like / view / (comment) / (followers) chips, plus an optional follow button
 const ActionChips = (props: ActionChipsProps) => {
 	const { likes, views, liked, onLike, comments, followers, following, onFollow, children } = props;
+	const { t } = useTranslation('common');
 
 	return (
 		<div className="pb-actions">
@@ -30,7 +32,7 @@ const ActionChips = (props: ActionChipsProps) => {
 				type="button"
 				className={`pb-chip ${liked ? 'pb-chip--liked' : ''}`}
 				aria-pressed={!!liked}
-				aria-label={liked ? 'Unlike' : 'Like'}
+				aria-label={liked ? t('Unlike') : t('Like')}
 				onClick={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
@@ -40,18 +42,18 @@ const ActionChips = (props: ActionChipsProps) => {
 				<Icon name="heart" size={16} fill={!!liked} />
 				{formatCount(likes)}
 			</button>
-			<span className="pb-chip pb-chip--static" aria-label={`${views} views`}>
+			<span className="pb-chip pb-chip--static" aria-label={t('{{count}} views', { count: views })}>
 				<Icon name="eye" size={16} />
 				{formatCount(views)}
 			</span>
 			{comments !== undefined && (
-				<span className="pb-chip pb-chip--static" aria-label={`${comments} comments`}>
+				<span className="pb-chip pb-chip--static" aria-label={t('{{count}} comments', { count: comments })}>
 					<Icon name="comment" size={16} />
 					{formatCount(comments)}
 				</span>
 			)}
 			{followers !== undefined && (
-				<span className="pb-chip pb-chip--static" aria-label={`${followers} followers`}>
+				<span className="pb-chip pb-chip--static" aria-label={t('{{count}} followers', { count: followers })}>
 					<Icon name="users" size={16} />
 					{formatCount(followers)}
 				</span>
@@ -69,7 +71,7 @@ const ActionChips = (props: ActionChipsProps) => {
 					style={{ marginLeft: 'auto' }}
 				>
 					<Icon name={following ? 'userCheck' : 'userPlus'} size={16} />
-					{following ? 'Following' : 'Follow'}
+					{following ? t('Following') : t('Follow')}
 				</button>
 			)}
 			{children}

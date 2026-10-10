@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -31,6 +32,7 @@ export const getStaticProps = async ({ locale }: any) => ({
 
 const CommunityDetail: NextPage = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const articleId = router.query.id as string | undefined;
 	const [article, setArticle] = useState<Article | null>(null);
 	const [commentTotal, setCommentTotal] = useState<number | null>(null);
@@ -59,7 +61,7 @@ const CommunityDetail: NextPage = () => {
 		<div className="pb-container" style={{ maxWidth: 860 }}>
 			<div style={{ padding: '24px 0 16px' }}>
 				<Link href="/community" className="pb-link" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-					<Icon name="arrowLeft" size={16} /> Community
+					<Icon name="arrowLeft" size={16} /> {t('Community')}
 				</Link>
 			</div>
 
@@ -71,9 +73,13 @@ const CommunityDetail: NextPage = () => {
 							<Link href={`/member?memberId=${article.memberData?._id}`} style={{ fontWeight: 700 }}>
 								{author}
 							</Link>
-							{article.memberData?.memberType === MemberType.DOCTOR && <span className="pb-badge pb-badge--soft">Doctor</span>}
+							{article.memberData?.memberType === MemberType.DOCTOR && (
+								<span className="pb-badge pb-badge--soft">{t('Doctor')}</span>
+							)}
 						</span>
-						<span style={{ fontSize: 13, color: 'var(--pb-muted)' }}>{moment(article.createdAt).format('MMMM D, YYYY')}</span>
+						<span style={{ fontSize: 13, color: 'var(--pb-muted)' }}>
+							{moment(article.createdAt).format('MMMM D, YYYY')}
+						</span>
 					</div>
 				</div>
 
@@ -81,11 +87,16 @@ const CommunityDetail: NextPage = () => {
 					{article.articleTitle}
 				</h1>
 
-
 				<ToastViewer markdown={article.articleContent} />
 
 				<div style={{ paddingTop: 14, borderTop: '1px solid var(--pb-line)' }}>
-					<ActionChips likes={like.likes} views={article.articleViews} comments={commentTotal ?? article.articleComments} liked={like.liked} onLike={() => toggleLike(article._id, like)} />
+					<ActionChips
+						likes={like.likes}
+						views={article.articleViews}
+						comments={commentTotal ?? article.articleComments}
+						liked={like.liked}
+						onLike={() => toggleLike(article._id, like)}
+					/>
 				</div>
 			</article>
 

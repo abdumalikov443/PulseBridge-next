@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { Pagination } from '@mui/material';
 import { useMutation, useQuery } from '@apollo/client';
@@ -19,8 +20,15 @@ import PbPagination from '../ui/PbPagination';
 
 // CLINIC members: doctors working in my clinic; removing keeps the doctor profile, it only leaves the clinic
 const ClinicDoctors = () => {
+	const { t } = useTranslation('common');
 	const router = useRouter();
-	const [input, setInput] = useState<DoctorsInquiry>({ page: 1, limit: 6, sort: 'createdAt', direction: Direction.DESC, search: {} });
+	const [input, setInput] = useState<DoctorsInquiry>({
+		page: 1,
+		limit: 6,
+		sort: 'createdAt',
+		direction: Direction.DESC,
+		search: {},
+	});
 	const [doctors, setDoctors] = useState<Doctor[] | null>(null);
 	const [total, setTotal] = useState(0);
 
@@ -52,7 +60,10 @@ const ClinicDoctors = () => {
 	/** HANDLERS **/
 	const removeDoctorHandler = async (doctor: Doctor) => {
 		try {
-			if (!(await sweetConfirmAlert(`Remove ${getMemberName(doctor.memberData)} from your clinic?`))) return;
+			if (
+				!(await sweetConfirmAlert(t('Remove {{name}} from your clinic?', { name: getMemberName(doctor.memberData) })))
+			)
+				return;
 			await removeDoctor({ variables: { input: doctor._id } });
 			await refetch({ input });
 		} catch (err: any) {
@@ -63,24 +74,37 @@ const ClinicDoctors = () => {
 	return (
 		<MySection title="Doctors" subTitle="Doctors join your clinic through join requests">
 			{doctors === null && <SkeletonCards count={3} />}
-			{doctors?.length === 0 && <p className="pb-empty">No doctors yet. Approve join requests to add doctors.</p>}
+			{doctors?.length === 0 && (
+				<p className="pb-empty">{t('No doctors yet. Approve join requests to add doctors.')}</p>
+			)}
 			{doctors?.map((doctor) => (
 				<ListRow
 					key={doctor._id}
 					avatar={<Avatar name={getMemberName(doctor.memberData)} image={doctor.memberData?.memberImage} size={46} />}
 					title={getMemberName(doctor.memberData)}
-					subTitle={`${formatEnum(doctor.specialty)} · ${doctor.experience} years experience`}
+					subTitle={`${formatEnum(doctor.specialty)} · ${t('{{count}} years experience', {
+						count: doctor.experience,
+					})}`}
 					date={doctor.createdAt}
-					count={`${doctor.doctorViews} views`}
+					count={t('{{count}} views', { count: doctor.doctorViews })}
 					onClick={() => router.push(`/doctor/detail?id=${doctor._id}`)}
 					actions={
-						<button type="button" className="pb-btn pb-btn--danger pb-btn--sm" onClick={() => removeDoctorHandler(doctor)}>
-							Remove
+						<button
+							type="button"
+							className="pb-btn pb-btn--danger pb-btn--sm"
+							onClick={() => removeDoctorHandler(doctor)}
+						>
+							{t('Remove')}
 						</button>
 					}
 				/>
 			))}
-			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} />
+			<PbPagination
+				page={input.page}
+				total={total}
+				limit={input.limit}
+				onChange={(page) => setInput({ ...input, page })}
+			/>
 		</MySection>
 	);
 };

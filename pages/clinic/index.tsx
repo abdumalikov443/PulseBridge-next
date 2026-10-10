@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useQuery } from '@apollo/client';
@@ -38,6 +39,7 @@ const sortOptions = [
 
 const ClinicList: NextPage = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const [input, setInput] = useState<ClinicsInquiry>(initialInput);
 	const [text, setText] = useState('');
 	const [clinics, setClinics] = useState<Clinic[] | null>(null);
@@ -98,19 +100,19 @@ const ClinicList: NextPage = () => {
 	return (
 		<div className="pb-container">
 			<header className="pb-page-head">
-				<h1 className="pb-title">Find a clinic</h1>
-				<p>Private and public clinics with their doctors and patient reviews.</p>
+				<h1 className="pb-title">{t('Find a clinic')}</h1>
+				<p>{t('Private and public clinics with their doctors and patient reviews.')}</p>
 			</header>
 
 			<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', padding: '16px 0' }}>
-				<div className="pb-pills" role="group" aria-label="Clinic type" style={{ flex: '1 1 auto' }}>
+				<div className="pb-pills" role="group" aria-label={t('Clinic type')} style={{ flex: '1 1 auto' }}>
 					<button
 						type="button"
 						className={`pb-pill ${!clinicType ? 'pb-pill--active' : ''}`}
 						aria-pressed={!clinicType}
 						onClick={() => setSearch({ clinicType: undefined })}
 					>
-						All clinics
+						{t('All clinics')}
 					</button>
 					{Object.values(ClinicType).map((type) => (
 						<button
@@ -124,23 +126,32 @@ const ClinicList: NextPage = () => {
 						</button>
 					))}
 				</div>
-				<form
-					className="pb-search"
-					style={{ flex: '1 1 260px', maxWidth: 360 }}
-					onSubmit={(e) => e.preventDefault()}
-				>
+				<form className="pb-search" style={{ flex: '1 1 260px', maxWidth: 360 }} onSubmit={(e) => e.preventDefault()}>
 					<Icon name="search" />
 					<label htmlFor="clinic-search" className="pb-sr">
-						Clinic name
+						{t('Clinic name')}
 					</label>
-					<input id="clinic-search" value={text} placeholder="Clinic name" onChange={(e) => setText(e.target.value)} />
+					<input
+						id="clinic-search"
+						value={text}
+						placeholder={t('Clinic name')}
+						onChange={(e) => setText(e.target.value)}
+					/>
 				</form>
-				<SortSelect value={input.sort ?? initialInput.sort!} options={sortOptions} onChange={(sort) => pushInput({ ...input, page: 1, sort, direction: Direction.DESC })} />
+				<SortSelect
+					value={input.sort ?? initialInput.sort!}
+					options={sortOptions}
+					onChange={(sort) => pushInput({ ...input, page: 1, sort, direction: Direction.DESC })}
+				/>
 			</div>
 
 			<p style={{ margin: '4px 0 12px', fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
 				{/* the count waits for the first answer, so "0 found" never flashes while loading */}
-				{clinics !== null && !(loading && clinics.length === 0) && `${total} clinic${total === 1 ? '' : 's'} found`}
+				{clinics !== null &&
+					!(loading && clinics.length === 0) &&
+					(total === 1
+						? t('{{count}} clinic found', { count: total })
+						: t('{{count}} clinics found', { count: total }))}
 			</p>
 
 			<div className="pb-grid pb-grid--wide">
@@ -159,9 +170,14 @@ const ClinicList: NextPage = () => {
 					);
 				})}
 			</div>
-			{clinics?.length === 0 && !loading && <p className="pb-empty">No clinics match these filters.</p>}
+			{clinics?.length === 0 && !loading && <p className="pb-empty">{t('No clinics match these filters.')}</p>}
 
-			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => pushInput({ ...input, page })} />
+			<PbPagination
+				page={input.page}
+				total={total}
+				limit={input.limit}
+				onChange={(page) => pushInput({ ...input, page })}
+			/>
 		</div>
 	);
 };

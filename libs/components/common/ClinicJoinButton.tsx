@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { GET_MY_DOCTOR_PROFILE, GET_MY_JOIN_REQUESTS } from '../../../apollo/user/query';
@@ -20,6 +21,7 @@ interface ClinicJoinButtonProps {
 // main action on a clinic profile: doctors send a join request (one pending at a time), others browse its doctors
 const ClinicJoinButton = ({ clinicId, clinicName, onShowDoctors }: ClinicJoinButtonProps) => {
 	const user = useReactiveVar(userVar);
+	const { t } = useTranslation('common');
 	const isDoctor = user?.memberType === MemberType.DOCTOR;
 	const [profile, setProfile] = useState<Doctor | null | undefined>(undefined);
 	const [requests, setRequests] = useState<ClinicJoinRequest[] | null>(null);
@@ -47,7 +49,7 @@ const ClinicJoinButton = ({ clinicId, clinicName, onShowDoctors }: ClinicJoinBut
 	if (!isDoctor) {
 		return (
 			<button type="button" className="pb-btn pb-btn--primary pb-btn--lg pb-btn--block" onClick={onShowDoctors}>
-				Choose a doctor <Icon name="arrow" className="pb-arrow" />
+				{t('Choose a doctor')} <Icon name="arrow" className="pb-arrow" />
 			</button>
 		);
 	}
@@ -85,7 +87,7 @@ const ClinicJoinButton = ({ clinicId, clinicName, onShowDoctors }: ClinicJoinBut
 		return (
 			<button type="button" className="pb-btn pb-btn--soft pb-btn--lg pb-btn--block" disabled>
 				<Icon name={here ? 'check' : 'clinic'} size={18} />
-				{here ? 'You work here' : 'You already have a clinic'}
+				{here ? t('You work here') : t('You already have a clinic')}
 			</button>
 		);
 	}
@@ -96,9 +98,21 @@ const ClinicJoinButton = ({ clinicId, clinicName, onShowDoctors }: ClinicJoinBut
 				type="button"
 				className="pb-btn pb-btn--danger pb-btn--lg pb-btn--block"
 				disabled={busy}
-				onClick={() => run('Cancel your join request?', () => cancelJoinRequest({ variables: { input: pending._id } }), 'Request cancelled')}
+				onClick={() =>
+					run(
+						'Cancel your join request?',
+						() => cancelJoinRequest({ variables: { input: pending._id } }),
+						'Request cancelled',
+					)
+				}
 			>
-				{busy ? <EcgLine small width={44} /> : <><Icon name="close" size={18} /> Cancel join request</>}
+				{busy ? (
+					<EcgLine small width={44} />
+				) : (
+					<>
+						<Icon name="close" size={18} /> {t('Cancel join request')}
+					</>
+				)}
 			</button>
 		);
 	}
@@ -108,10 +122,24 @@ const ClinicJoinButton = ({ clinicId, clinicName, onShowDoctors }: ClinicJoinBut
 			type="button"
 			className="pb-btn pb-btn--primary pb-btn--lg pb-btn--block"
 			disabled={busy || !!pending}
-			title={pending ? 'You already have a pending request at another clinic' : undefined}
-			onClick={() => run(`Send a join request to ${clinicName}?`, () => requestJoinClinic({ variables: { input: clinicId } }), 'Request sent')}
+			title={pending ? t('You already have a pending request at another clinic') : undefined}
+			onClick={() =>
+				run(
+					t('Send a join request to {{name}}?', { name: clinicName }),
+					() => requestJoinClinic({ variables: { input: clinicId } }),
+					'Request sent',
+				)
+			}
 		>
-			{busy ? <EcgLine small width={44} /> : pending ? 'Request pending elsewhere' : <>Request to join <Icon name="arrow" className="pb-arrow" /></>}
+			{busy ? (
+				<EcgLine small width={44} />
+			) : pending ? (
+				t('Request pending elsewhere')
+			) : (
+				<>
+					{t('Request to join')} <Icon name="arrow" className="pb-arrow" />
+				</>
+			)}
 		</button>
 	);
 };

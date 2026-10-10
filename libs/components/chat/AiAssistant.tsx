@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useApolloClient, useMutation, useReactiveVar } from '@apollo/client';
@@ -51,7 +52,13 @@ const write = (value: { sessionKey: string; turns: Turn[]; outcome: Outcome | nu
 };
 
 const specialtyHref = (specialty: string) =>
-	`/doctor?input=${JSON.stringify({ page: 1, limit: 12, sort: 'doctorRank', direction: 'DESC', search: { specialtyList: [specialty] } })}`;
+	`/doctor?input=${JSON.stringify({
+		page: 1,
+		limit: 12,
+		sort: 'doctorRank',
+		direction: 'DESC',
+		search: { specialtyList: [specialty] },
+	})}`;
 
 interface AiAssistantProps {
 	active: boolean;
@@ -59,6 +66,7 @@ interface AiAssistantProps {
 
 // AI intake: the patient describes symptoms, the assistant suggests a doctor type (not a diagnosis)
 const AiAssistant = ({ active }: AiAssistantProps) => {
+	const { t } = useTranslation('common');
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
 	const client = useApolloClient();
@@ -107,8 +115,18 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 			.then((res) => {
 				const session = res?.data?.getIntakeSession;
 				if (!session) return;
-				setTurns(session.messages.map((m: { role: string; content: string }) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })));
-				setOutcome({ ready: session.ready, specialty: session.specialty, urgency: session.urgency, complaintSummary: session.complaintSummary });
+				setTurns(
+					session.messages.map((m: { role: string; content: string }) => ({
+						role: m.role === 'user' ? 'user' : 'assistant',
+						content: m.content,
+					})),
+				);
+				setOutcome({
+					ready: session.ready,
+					specialty: session.specialty,
+					urgency: session.urgency,
+					complaintSummary: session.complaintSummary,
+				});
 			})
 			.catch(() => {
 				// expired or already another patient's: start fresh next time
@@ -145,7 +163,7 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 			});
 			setDoctors(null);
 		} catch (err: any) {
-			const reason: string = err?.graphQLErrors?.[0]?.message ?? err?.message ?? 'Something went wrong.';
+			const reason: string = err?.graphQLErrors?.[0]?.message ?? err?.message ?? 'Something went wrong!';
 			setTurns((prev) => [...prev, { role: 'error', content: reason }]);
 			// an expired conversation starts again with the next message
 			if (/not found or expired/i.test(reason)) setSessionKey('');
@@ -164,7 +182,11 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 	const showDoctors = async () => {
 		try {
 			setLoadingDoctors(true);
-			const res = await client.query({ query: GET_INTAKE_RECOMMENDATIONS, variables: { sessionKey }, fetchPolicy: 'network-only' });
+			const res = await client.query({
+				query: GET_INTAKE_RECOMMENDATIONS,
+				variables: { sessionKey },
+				fetchPolicy: 'network-only',
+			});
 			setDoctors(res.data?.getIntakeRecommendations?.list ?? []);
 		} catch (err: any) {
 			setTurns((prev) => [...prev, { role: 'error', content: err?.graphQLErrors?.[0]?.message ?? err.message }]);
@@ -174,11 +196,14 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 	};
 
 	const callEmergency = async () => {
-		if (await sweetActionConfirmAlert('Call 119 (ambulance and fire) now?', 'Call 119')) window.location.href = 'tel:119';
+		if (await sweetActionConfirmAlert('Call 119 (ambulance and fire) now?', 'Call 119'))
+			window.location.href = 'tel:119';
 	};
 
 	const bookHref = (doctorId: string) =>
-		`/booking?doctorId=${doctorId}${outcome?.complaintSummary ? `&reason=${encodeURIComponent(outcome.complaintSummary.slice(0, 500))}` : ''}`;
+		`/booking?doctorId=${doctorId}${
+			outcome?.complaintSummary ? `&reason=${encodeURIComponent(outcome.complaintSummary.slice(0, 500))}` : ''
+		}`;
 
 	return (
 		<>
@@ -186,11 +211,17 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 				<div className="pb-chat__scroll">
 					<div className="pb-chat__list">
 						<p className="pb-chat__note">
-							Describe how you feel and the assistant suggests which doctor to see. It does not diagnose. In an emergency call 119.
+							{t(
+								'Describe how you feel and the assistant suggests which doctor to see. It does not diagnose. In an emergency call 119.',
+							)}
 						</p>
 						{turns.length === 0 && (
 							<div className="pb-ai__examples">
-								{['I have had a headache for 3 days', 'My child has a fever and a rash', 'Tooth pain when I drink cold water'].map((example) => (
+								{[
+									t('I have had a headache for 3 days'),
+									t('My child has a fever and a rash'),
+									t('Tooth pain when I drink cold water'),
+								].map((example) => (
 									<button key={example} type="button" className="pb-chip" onClick={() => setText(example)}>
 										{example}
 									</button>
@@ -198,7 +229,12 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 							</div>
 						)}
 						{turns.map((turn, index) => (
-							<div key={index} className={`pb-msg ${turn.role === 'user' ? 'pb-msg--mine' : ''} ${turn.role === 'error' ? 'pb-msg--error' : ''}`}>
+							<div
+								key={index}
+								className={`pb-msg ${turn.role === 'user' ? 'pb-msg--mine' : ''} ${
+									turn.role === 'error' ? 'pb-msg--error' : ''
+								}`}
+							>
 								{turn.role !== 'user' && (
 									<span className="pb-msg__avatar">
 										<span className="pb-ai__badge">
@@ -207,7 +243,7 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 									</span>
 								)}
 								<div className="pb-msg__col">
-									<p className="pb-msg__bubble">{turn.content}</p>
+									<p className="pb-msg__bubble">{turn.role === 'error' ? t(turn.content) : turn.content}</p>
 								</div>
 							</div>
 						))}
@@ -228,41 +264,50 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 
 						{outcome?.urgency === IntakeUrgency.EMERGENCY && (
 							<div className="pb-ai__emergency" role="alert">
-								<strong>This may be an emergency.</strong>
-								<span>Do not wait for an appointment.</span>
+								<strong>{t('This may be an emergency.')}</strong>
+								<span>{t('Do not wait for an appointment.')}</span>
 								<button type="button" className="pb-btn pb-btn--sm pb-ai__call" onClick={callEmergency}>
-									<Icon name="phone" size={14} /> Call 119
+									<Icon name="phone" size={14} /> {t('Call 119')}
 								</button>
 							</div>
 						)}
 
 						{outcome?.ready && outcome.specialty && (
 							<div className="pb-ai__result">
-								<small>Suggested doctor</small>
+								<small>{t('Suggested doctor')}</small>
 								<strong>{formatEnum(outcome.specialty)}</strong>
 								{outcome.complaintSummary && <p>{outcome.complaintSummary}</p>}
 								{isPatient ? (
 									doctors === null ? (
-										<button type="button" className="pb-btn pb-btn--primary pb-btn--sm" onClick={showDoctors} disabled={loadingDoctors}>
-											{loadingDoctors ? <EcgLine small width={44} /> : 'Show matching doctors'}
+										<button
+											type="button"
+											className="pb-btn pb-btn--primary pb-btn--sm"
+											onClick={showDoctors}
+											disabled={loadingDoctors}
+										>
+											{loadingDoctors ? <EcgLine small width={44} /> : t('Show matching doctors')}
 										</button>
 									) : doctors.length === 0 ? (
 										<Link href={specialtyHref(outcome.specialty)} className="pb-btn pb-btn--outline pb-btn--sm">
-											Browse {formatEnum(outcome.specialty)} doctors
+											{t('Browse {{specialty}} doctors', { specialty: formatEnum(outcome.specialty) })}
 										</Link>
 									) : (
 										<div className="pb-ai__doctors">
 											{doctors.map((doctor) => (
 												<div key={doctor._id} className="pb-ai__doctor">
-													<Avatar name={getMemberName(doctor.memberData)} image={doctor.memberData?.memberImage} size={36} />
+													<Avatar
+														name={getMemberName(doctor.memberData)}
+														image={doctor.memberData?.memberImage}
+														size={36}
+													/>
 													<Link href={`/doctor/detail?id=${doctor._id}`} className="pb-ai__doctor-name">
 														<strong>{getMemberName(doctor.memberData)}</strong>
 														<small>
-															{doctor.clinicData?.clinicName} · {doctor.experience} yrs
+															{doctor.clinicData?.clinicName} · {doctor.experience} {t('yrs of exp')}
 														</small>
 													</Link>
 													<Link href={bookHref(doctor._id)} className="pb-btn pb-btn--primary pb-btn--sm">
-														Book
+														{t('Book')}
 													</Link>
 												</div>
 											))}
@@ -271,11 +316,14 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 								) : (
 									<div className="pb-ai__actions">
 										<Link href={specialtyHref(outcome.specialty)} className="pb-btn pb-btn--outline pb-btn--sm">
-											Browse doctors
+											{t('Browse doctors')}
 										</Link>
 										{!user?._id && (
-											<Link href={{ pathname: '/account/join', query: { referrer: router.asPath } }} className="pb-btn pb-btn--primary pb-btn--sm">
-												Log in to book
+											<Link
+												href={{ pathname: '/account/join', query: { referrer: router.asPath } }}
+												className="pb-btn pb-btn--primary pb-btn--sm"
+											>
+												{t('Log in to book')}
 											</Link>
 										)}
 									</div>
@@ -297,8 +345,8 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 				<textarea
 					ref={inputRef}
 					rows={1}
-					aria-label="Describe your symptoms"
-					placeholder="Describe your symptoms…"
+					aria-label={t('Describe your symptoms')}
+					placeholder={t('Describe your symptoms…')}
 					maxLength={MESSAGE_MAX}
 					value={text}
 					onChange={(e) => setText(e.target.value)}
@@ -309,15 +357,17 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 						}
 					}}
 				/>
-				<button type="submit" className="pb-chat__send" aria-label="Send" disabled={!text.trim() || sending}>
+				<button type="submit" className="pb-chat__send" aria-label={t('Send')} disabled={!text.trim() || sending}>
 					<Icon name="send" size={18} />
 				</button>
 			</form>
 			<div className="pb-ai__foot">
-				{typeof outcome?.remainingMessages === 'number' && <span>{outcome.remainingMessages} messages left</span>}
+				{typeof outcome?.remainingMessages === 'number' && (
+					<span>{t('{{count}} messages left', { count: outcome.remainingMessages })}</span>
+				)}
 				{turns.length > 0 && (
 					<button type="button" onClick={resetHandler}>
-						New conversation
+						{t('New conversation')}
 					</button>
 				)}
 			</div>

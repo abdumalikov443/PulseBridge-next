@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
+import { tr } from '../../i18n';
 import { useRouter } from 'next/router';
 import { Drawer } from '@mui/material';
 import Moment from 'react-moment';
@@ -23,6 +25,22 @@ const icons: Record<NotificationType, { icon: IconName; tone: string }> = {
 };
 
 // where a notification came from; doctor and clinic likes/comments have no ref id, so they open the owner's page
+// the API writes notification texts in English; known sentences are shown in the current language
+const DESC_PATTERNS: [RegExp, string, string[]][] = [
+	[/^Your article (.+) got a new like$/, 'Your article {{title}} got a new like', ['title']],
+	[/^Your clinic (.+) got a new like$/, 'Your clinic {{name}} got a new like', ['name']],
+	[/^A doctor wants to join (.+)$/, 'A doctor wants to join {{name}}', ['name']],
+	[/^(.+) approved your request$/, '{{name}} approved your request', ['name']],
+	[/^(.+) rejected your request$/, '{{name}} rejected your request', ['name']],
+];
+const noteText = (text: string): string => {
+	for (const [pattern, key, names] of DESC_PATTERNS) {
+		const match = text.match(pattern);
+		if (match) return tr(key, Object.fromEntries(names.map((name, i) => [name, match[i + 1]])));
+	}
+	return tr(text);
+};
+
 const sourceOf = (item: Notification): { href: string; label: string } => {
 	if (item.articleId) return { href: `/community/detail?id=${item.articleId}`, label: 'Open article' };
 	switch (item.notificationType) {
@@ -34,11 +52,16 @@ const sourceOf = (item: Notification): { href: string; label: string } => {
 		case NotificationType.FOLLOW:
 			return { href: '/mypage?category=followers', label: 'Your followers' };
 	}
-	if (item.notificationGroup === NotificationGroup.CLINIC) return { href: '/mypage?category=myClinic', label: 'My clinic' };
-	return { href: `/member?memberId=${item.authorId}`, label: `${item.authorData?.memberNick ?? 'Member'}'s profile` };
+	if (item.notificationGroup === NotificationGroup.CLINIC)
+		return { href: '/mypage?category=myClinic', label: 'My clinic' };
+	return {
+		href: `/member?memberId=${item.authorId}`,
+		label: tr("{{name}}'s profile", { name: item.authorData?.memberNick ?? tr('Member') }),
+	};
 };
 
 const NotificationMenu = () => {
+	const { t } = useTranslation('common');
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const [onlyUnread, setOnlyUnread] = useState(false);
@@ -99,7 +122,7 @@ const NotificationMenu = () => {
 			<button
 				type="button"
 				className="pb-icon-btn pb-bell"
-				aria-label={unreadCount ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+				aria-label={unreadCount ? t('Notifications, {{count}} unread', { count: unreadCount }) : t('Notifications')}
 				onClick={() => {
 					setOpen(true);
 					refreshAll().then();
@@ -111,40 +134,70 @@ const NotificationMenu = () => {
 
 			<Drawer anchor="right" open={open} onClose={() => setOpen(false)} PaperProps={{ className: 'pb-drawer' }}>
 				<div className="pb-drawer__head">
-					<h2>Notifications</h2>
-					<button type="button" className="pb-btn pb-btn--light pb-btn--sm" disabled={unreadCount === 0} onClick={readAllHandler}>
-						Mark all read
+					<h2>{t('Notifications')}</h2>
+					<button
+						type="button"
+						className="pb-btn pb-btn--light pb-btn--sm"
+						disabled={unreadCount === 0}
+						onClick={readAllHandler}
+					>
+						{t('Mark all read')}
 					</button>
-					<button type="button" className="pb-drawer__close" aria-label="Close" onClick={() => setOpen(false)}>
+					<button type="button" className="pb-drawer__close" aria-label={t('Close')} onClick={() => setOpen(false)}>
 						<Icon name="close" size={18} />
 					</button>
 				</div>
-				<div className="pb-drawer__tabs" role="tablist" aria-label="Filter">
-					<button type="button" role="tab" aria-selected={!onlyUnread} className={`pb-pill ${!onlyUnread ? 'pb-pill--active' : ''}`} onClick={() => setOnlyUnread(false)}>
-						All
+				<div className="pb-drawer__tabs" role="tablist" aria-label={t('Filter')}>
+					<button
+						type="button"
+						role="tab"
+						aria-selected={!onlyUnread}
+						className={`pb-pill ${!onlyUnread ? 'pb-pill--active' : ''}`}
+						onClick={() => setOnlyUnread(false)}
+					>
+						{t('All')}
 					</button>
-					<button type="button" role="tab" aria-selected={onlyUnread} className={`pb-pill ${onlyUnread ? 'pb-pill--active' : ''}`} onClick={() => setOnlyUnread(true)}>
-						Unread · {unreadCount}
+					<button
+						type="button"
+						role="tab"
+						aria-selected={onlyUnread}
+						className={`pb-pill ${onlyUnread ? 'pb-pill--active' : ''}`}
+						onClick={() => setOnlyUnread(true)}
+					>
+						{t('Unread')} · {unreadCount}
 					</button>
 				</div>
 				<div className="pb-drawer__list">
-					{notifications.length === 0 && <p className="pb-drawer__empty">{onlyUnread ? 'You have read everything.' : 'No notifications yet.'}</p>}
+					{notifications.length === 0 && (
+						<p className="pb-drawer__empty">
+							{onlyUnread ? t('You have read everything.') : t('No notifications yet.')}
+						</p>
+					)}
 					{notifications.map((item) => {
 						const look = icons[item.notificationType] ?? icons[NotificationType.LIKE];
 						const source = sourceOf(item);
 						const unread = item.notificationStatus === NotificationStatus.WAIT;
 						return (
-							<button key={item._id} type="button" className={`pb-note-item ${unread ? 'is-unread' : ''}`} onClick={() => openHandler(item)}>
+							<button
+								key={item._id}
+								type="button"
+								className={`pb-note-item ${unread ? 'is-unread' : ''}`}
+								onClick={() => openHandler(item)}
+							>
 								<span className={`pb-note-item__icon pb-tone--${look.tone}`}>
 									<Icon name={look.icon} size={18} />
 								</span>
 								<span className="pb-note-item__body">
-									<strong>{item.notificationTitle}</strong>
-									{item.notificationDesc && <span className="pb-note-item__desc">{item.notificationDesc}</span>}
+									<strong>{noteText(item.notificationTitle)}</strong>
+									{item.notificationDesc && (
+										<span className="pb-note-item__desc">{noteText(item.notificationDesc)}</span>
+									)}
 									<span className="pb-note-item__src">
 										<Icon name="arrow" size={12} />
-										{source.label}
-										{item.authorData?.memberNick && <em> · by {item.authorData.memberNick}</em>}
+										{t(source.label)}
+										{item.authorData?.memberNick && (
+											<em> · {t('by {{name}}', { name: item.authorData.memberNick })}</em>
+										)}
 									</span>
 								</span>
 								<span className="pb-note-item__time">

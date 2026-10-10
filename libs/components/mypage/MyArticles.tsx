@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { Pagination } from '@mui/material';
 import { useQuery, useReactiveVar } from '@apollo/client';
@@ -17,9 +18,16 @@ import { SkeletonCards } from '../ui/Loaders';
 import PbPagination from '../ui/PbPagination';
 
 const MyArticles = () => {
+	const { t } = useTranslation('common');
 	const access = useArticleAccess();
 	const user = useReactiveVar(userVar);
-	const [input, setInput] = useState<ArticlesInquiry>({ page: 1, limit: 6, sort: 'createdAt', direction: Direction.DESC, search: { memberId: user._id } });
+	const [input, setInput] = useState<ArticlesInquiry>({
+		page: 1,
+		limit: 6,
+		sort: 'createdAt',
+		direction: Direction.DESC,
+		search: { memberId: user._id },
+	});
 	const [articles, setArticles] = useState<Article[] | null>(null);
 	const [total, setTotal] = useState(0);
 	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_ARTICLE);
@@ -39,11 +47,11 @@ const MyArticles = () => {
 	return (
 		<MySection
 			title="My articles"
-			subTitle={`${total} published`}
+			subTitle={t('{{count}} published', { count: total })}
 			actions={
 				access.allowed ? (
 					<Link href="/mypage?category=writeArticle" className="pb-btn pb-btn--primary pb-btn--sm">
-						Write article
+						{t('Write article')}
 					</Link>
 				) : undefined
 			}
@@ -52,11 +60,24 @@ const MyArticles = () => {
 				{articles === null && <SkeletonCards count={2} />}
 				{articles?.map((article) => {
 					const state = likeState(article._id, !!article.meLiked?.[0]?.myFavorite, article.articleLikes);
-					return <PostCard key={article._id} article={article} liked={state.liked} likes={state.likes} onLike={() => toggleLike(article._id, state)} />;
+					return (
+						<PostCard
+							key={article._id}
+							article={article}
+							liked={state.liked}
+							likes={state.likes}
+							onLike={() => toggleLike(article._id, state)}
+						/>
+					);
 				})}
 			</div>
-			{articles?.length === 0 && <p className="pb-empty">You have not written any article yet.</p>}
-			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} />
+			{articles?.length === 0 && <p className="pb-empty">{t('You have not written any article yet.')}</p>}
+			<PbPagination
+				page={input.page}
+				total={total}
+				limit={input.limit}
+				onChange={(page) => setInput({ ...input, page })}
+			/>
 		</MySection>
 	);
 };

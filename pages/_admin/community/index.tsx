@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 import type { NextPage } from 'next';
 import AdminTotal from '../../../libs/components/admin/AdminTotal';
 import withAdminLayout from '../../../libs/components/layout/LayoutAdmin';
@@ -21,6 +23,7 @@ import { GET_ALL_ARTICLES_BY_ADMIN } from '../../../apollo/admin/query';
 import { T } from '../../../libs/types/common';
 
 const AdminCommunity: NextPage = ({ initialInquiry, ...props }: any) => {
+	const { t } = useTranslation('common');
 	const [anchorEl, setAnchorEl] = useState<any>([]);
 	const [communityInquiry, setCommunityInquiry] = useState<AllArticlesInquiry>(initialInquiry);
 	const [articles, setArticles] = useState<Article[]>([]);
@@ -30,19 +33,19 @@ const AdminCommunity: NextPage = ({ initialInquiry, ...props }: any) => {
 	);
 
 	/** APOLLO REQUESTS **/
-	const [ updateArticleByAdmin ] = useMutation(UPDATE_ARTICLE_BY_ADMIN);
-	const [ removeArticleByAdmin ] = useMutation(REMOVE_ARTICLE_BY_ADMIN);
+	const [updateArticleByAdmin] = useMutation(UPDATE_ARTICLE_BY_ADMIN);
+	const [removeArticleByAdmin] = useMutation(REMOVE_ARTICLE_BY_ADMIN);
 
 	const {
 		loading: getAllArticlesByAdminLoading,
-		data: getAllArticlesByAdminData, 
-		error: getAllArticlesByAdminError, 
-		refetch: getAllArticlesByAdminRefetch 
+		data: getAllArticlesByAdminData,
+		error: getAllArticlesByAdminError,
+		refetch: getAllArticlesByAdminRefetch,
 	} = useQuery(GET_ALL_ARTICLES_BY_ADMIN, {
-		fetchPolicy: "network-only",
+		fetchPolicy: 'network-only',
 		variables: { input: communityInquiry },
 		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => { 
+		onCompleted: (data: T) => {
 			setArticles(data?.getAllArticlesByAdmin?.list);
 			setArticleTotal(data?.getAllArticlesByAdmin?.metaCounter[0]?.total ?? 0);
 		},
@@ -99,7 +102,7 @@ const AdminCommunity: NextPage = ({ initialInquiry, ...props }: any) => {
 	const updateArticleHandler = async (updateData: ArticleUpdate) => {
 		try {
 			await updateArticleByAdmin({
-				variables: { input: updateData }
+				variables: { input: updateData },
 			});
 
 			menuIconCloseHandler();
@@ -112,9 +115,9 @@ const AdminCommunity: NextPage = ({ initialInquiry, ...props }: any) => {
 
 	const removeArticleHandler = async (id: string) => {
 		try {
-			if (await sweetConfirmAlert('are you sure to remove?')) {
+			if (await sweetConfirmAlert('Are you sure to remove?')) {
 				await removeArticleByAdmin({
-					variables: { input: id }
+					variables: { input: id },
 				});
 
 				await getAllArticlesByAdminRefetch({ input: communityInquiry });
@@ -124,11 +127,10 @@ const AdminCommunity: NextPage = ({ initialInquiry, ...props }: any) => {
 		}
 	};
 
-
 	return (
 		<Box component={'div'} className={'content'}>
 			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
-				Article List
+				{t('Article List')}
 				<AdminTotal total={articleTotal} noun="article" />
 			</Typography>
 			<Box component={'div'} className={'table-wrap'}>
@@ -137,25 +139,25 @@ const AdminCommunity: NextPage = ({ initialInquiry, ...props }: any) => {
 						<Box component={'div'}>
 							<List className={'tab-menu'}>
 								<ListItem
-									onClick={(e:any) => tabChangeHandler(e, 'ALL')}
+									onClick={(e: any) => tabChangeHandler(e, 'ALL')}
 									value="ALL"
 									className={value === 'ALL' ? 'li on' : 'li'}
 								>
-									All
+									{t('All')}
 								</ListItem>
 								<ListItem
-									onClick={(e:any) => tabChangeHandler(e, 'ACTIVE')}
+									onClick={(e: any) => tabChangeHandler(e, 'ACTIVE')}
 									value="ACTIVE"
 									className={value === 'ACTIVE' ? 'li on' : 'li'}
 								>
-									Active
+									{t('Active')}
 								</ListItem>
 								<ListItem
-									onClick={(e:any) => tabChangeHandler(e, 'DELETE')}
+									onClick={(e: any) => tabChangeHandler(e, 'DELETE')}
 									value="DELETE"
 									className={value === 'DELETE' ? 'li on' : 'li'}
 								>
-									Delete
+									{t('Deleted')}
 								</ListItem>
 							</List>
 							<Divider />
@@ -171,6 +173,8 @@ const AdminCommunity: NextPage = ({ initialInquiry, ...props }: any) => {
 						/>
 
 						<TablePagination
+							labelRowsPerPage={t('Rows per page:')}
+							labelDisplayedRows={({ from, to, count }) => t('{{from}}–{{to}} of {{count}}', { from, to, count })}
 							rowsPerPageOptions={[10, 20, 40, 60]}
 							component="div"
 							count={articleTotal}
@@ -195,5 +199,11 @@ AdminCommunity.defaultProps = {
 		search: {},
 	},
 };
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 export default withAdminLayout(AdminCommunity);

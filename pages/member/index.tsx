@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -35,6 +36,7 @@ const LIMIT = 6;
 
 const MemberPage: NextPage = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const user = useReactiveVar(userVar);
 	const memberId = router.query.memberId as string | undefined;
 	// followers and following open in a popup; ?category=followers still opens it from old links
@@ -79,7 +81,7 @@ const MemberPage: NextPage = () => {
 	}
 
 	const name = getMemberName(member);
-	const tabs: { id: Tab; label: string }[] = [{ id: 'articles', label: `Articles (${member.memberArticles})` }];
+	const tabs: { id: Tab; label: string }[] = [{ id: 'articles', label: `${t('Articles')} (${member.memberArticles})` }];
 	const followCounts = { followings: member.memberFollowings ?? 0 };
 	const stats = [
 		{ label: 'Articles', value: member.memberArticles },
@@ -88,7 +90,10 @@ const MemberPage: NextPage = () => {
 
 	return (
 		<div className="pb-container">
-			<section className="pb-card pb-card--flat pb-in" style={{ marginTop: 32, flexDirection: 'row', flexWrap: 'wrap', gap: 24, alignItems: 'center', padding: 28 }}>
+			<section
+				className="pb-card pb-card--flat pb-in"
+				style={{ marginTop: 32, flexDirection: 'row', flexWrap: 'wrap', gap: 24, alignItems: 'center', padding: 28 }}
+			>
 				<Avatar name={name} image={member.memberImage} size={104} />
 				<div style={{ flex: '999 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
 					<div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -97,16 +102,19 @@ const MemberPage: NextPage = () => {
 						</h1>
 						<span className="pb-badge pb-badge--soft">{formatEnum(member.memberType)}</span>
 					</div>
-					{member.memberDesc && <p style={{ margin: 0, color: 'var(--pb-muted)', lineHeight: 1.6 }}>{member.memberDesc}</p>}
+					{member.memberDesc && (
+						<p style={{ margin: 0, color: 'var(--pb-muted)', lineHeight: 1.6 }}>{member.memberDesc}</p>
+					)}
 					<div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center', marginTop: 4 }}>
 						<div className="pb-follow-counts">
 							<button type="button" onClick={() => setFollowMode('followings')}>
-								<strong>{formatCount(followCounts.followings)}</strong> following
+								<strong>{formatCount(followCounts.followings)}</strong> {t('following')}
 							</button>
 						</div>
 						{stats.map((stat) => (
 							<span key={stat.label} style={{ fontSize: 14, color: 'var(--pb-muted)' }}>
-								<strong style={{ color: 'var(--pb-ink)', fontSize: 18 }}>{formatCount(stat.value)}</strong> {stat.label}
+								<strong style={{ color: 'var(--pb-ink)', fontSize: 18 }}>{formatCount(stat.value)}</strong>{' '}
+								{t(stat.label)}
 							</span>
 						))}
 					</div>
@@ -115,7 +123,7 @@ const MemberPage: NextPage = () => {
 
 			<JoinRequestReview memberId={member._id} />
 
-			<div className="pb-pills" role="tablist" aria-label="Member sections" style={{ padding: '24px 0 16px' }}>
+			<div className="pb-pills" role="tablist" aria-label={t('Member sections')} style={{ padding: '24px 0 16px' }}>
 				{tabs.map((item) => (
 					<Link
 						key={item.id}
@@ -137,14 +145,28 @@ const MemberPage: NextPage = () => {
 						{articles === null && <SkeletonCards count={2} />}
 						{articles?.map((article) => {
 							const state = likeState(article._id, !!article.meLiked?.[0]?.myFavorite, article.articleLikes);
-							return <PostCard key={article._id} article={article} liked={state.liked} likes={state.likes} onLike={() => toggleLike(article._id, state)} />;
+							return (
+								<PostCard
+									key={article._id}
+									article={article}
+									liked={state.liked}
+									likes={state.likes}
+									onLike={() => toggleLike(article._id, state)}
+								/>
+							);
 						})}
 					</div>
-					{articles?.length === 0 && <p className="pb-empty">No articles yet.</p>}
+					{articles?.length === 0 && <p className="pb-empty">{t('No articles yet.')}</p>}
 					<PbPagination page={page} total={total} limit={LIMIT} onChange={setPage} />
 				</>
 			)}
-			<FollowModal memberId={member._id} mode={followMode} counts={followCounts} onMode={setFollowMode} onClose={() => setFollowMode(null)} />
+			<FollowModal
+				memberId={member._id}
+				mode={followMode}
+				counts={followCounts}
+				onMode={setFollowMode}
+				onClose={() => setFollowMode(null)}
+			/>
 		</div>
 	);
 };

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 import type { NextPage } from 'next';
 import moment from 'moment';
 import CopyId from '../../../libs/components/admin/CopyId';
@@ -29,6 +31,7 @@ import { GET_ALL_APPOINTMENTS_BY_ADMIN } from '../../../apollo/admin/query';
 
 // read-only overview: appointments are completed or cancelled by the patient, doctor or clinic owner
 const AdminAppointments: NextPage = ({ initialInquiry, ...props }: any) => {
+	const { t } = useTranslation('common');
 	const [inquiry, setInquiry] = useState<AppointmentsInquiry>(initialInquiry);
 	const [appointments, setAppointments] = useState<Appointment[]>([]);
 	const [total, setTotal] = useState<number>(0);
@@ -57,7 +60,7 @@ const AdminAppointments: NextPage = ({ initialInquiry, ...props }: any) => {
 	return (
 		<Box component={'div'} className={'content'}>
 			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
-				Appointment List
+				{t('Appointment List')}
 				<AdminTotal total={total} noun="appointment" />
 			</Typography>
 			<Box component={'div'} className={'table-wrap'}>
@@ -77,20 +80,20 @@ const AdminAppointments: NextPage = ({ initialInquiry, ...props }: any) => {
 					<Table sx={{ minWidth: 750 }} size={'medium'}>
 						<TableHead>
 							<TableRow>
-								<TableCell align="left">DATE</TableCell>
-								<TableCell align="center">TIME</TableCell>
-								<TableCell align="center">PATIENT</TableCell>
-								<TableCell align="center">DOCTOR</TableCell>
-								<TableCell align="center">CLINIC</TableCell>
-								<TableCell align="center">STATUS</TableCell>
-								<TableCell align="left">ID</TableCell>
+								<TableCell align="left">{t('DATE')}</TableCell>
+								<TableCell align="center">{t('TIME')}</TableCell>
+								<TableCell align="center">{t('PATIENT')}</TableCell>
+								<TableCell align="center">{t('DOCTOR')}</TableCell>
+								<TableCell align="center">{t('CLINIC')}</TableCell>
+								<TableCell align="center">{t('STATUS')}</TableCell>
+								<TableCell align="left">{t('ID')}</TableCell>
 							</TableRow>
 						</TableHead>
 						<TableBody>
 							{appointments.length === 0 && (
 								<TableRow>
 									<TableCell align="center" colSpan={7}>
-										<span className={'no-data'}>data not found!</span>
+										<span className={'no-data'}>{t('No data found')}</span>
 									</TableCell>
 								</TableRow>
 							)}
@@ -115,6 +118,8 @@ const AdminAppointments: NextPage = ({ initialInquiry, ...props }: any) => {
 					</Table>
 				</TableContainer>
 				<TablePagination
+					labelRowsPerPage={t('Rows per page:')}
+					labelDisplayedRows={({ from, to, count }) => t('{{from}}–{{to}} of {{count}}', { from, to, count })}
 					rowsPerPageOptions={[10, 20, 40]}
 					component="div"
 					count={total}
@@ -139,5 +144,11 @@ AdminAppointments.defaultProps = {
 		search: {},
 	},
 };
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 export default withAdminLayout(AdminAppointments);

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 import CopyId from '../CopyId';
 import Link from 'next/link';
 import {
@@ -22,6 +23,7 @@ import OpenInBrowserRoundedIcon from '@mui/icons-material/OpenInBrowserRounded';
 import Moment from 'react-moment';
 import { Article } from '../../../types/article/article';
 import { REACT_APP_API_URL } from '../../../config';
+import { formatEnum } from '../../../utils';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Typography from '@mui/material/Typography';
 import { ArticleStatus } from '../../../enums/article.enum';
@@ -97,6 +99,7 @@ interface EnhancedTableProps {
 }
 
 function EnhancedTableHead(props: EnhancedTableProps) {
+	const { t } = useTranslation('common');
 	return (
 		<TableHead>
 			<TableRow>
@@ -106,7 +109,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 						align={headCell.numeric ? 'left' : 'center'}
 						padding={headCell.disablePadding ? 'none' : 'normal'}
 					>
-						{headCell.label}
+						{t(headCell.label)}
 					</TableCell>
 				))}
 			</TableRow>
@@ -126,6 +129,7 @@ interface CommunityArticleListProps {
 const CommunityArticleList = (props: CommunityArticleListProps) => {
 	const { articles, anchorEl, menuIconClickHandler, menuIconCloseHandler, updateArticleHandler, removeArticleHandler } =
 		props;
+	const { t } = useTranslation('common');
 
 	return (
 		<Stack>
@@ -137,7 +141,7 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 						{articles.length === 0 && (
 							<TableRow>
 								<TableCell align="center" colSpan={8}>
-									<span className={'no-data'}>data not found!</span>
+									<span className={'no-data'}>{t('No data found')}</span>
 								</TableCell>
 							</TableRow>
 						)}
@@ -146,18 +150,15 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 							articles.map((article: Article, index: number) => (
 								<TableRow hover key={article._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
 									<TableCell align="left">
-											<CopyId id={article._id} />
-										</TableCell>
+										<CopyId id={article._id} />
+									</TableCell>
 									<TableCell align="left">
 										<Box component={'div'}>
 											{article.articleTitle}
 											{article.articleStatus === ArticleStatus.ACTIVE && (
-												<Link
-													href={`/community/detail?id=${article._id}`}
-													className={'img_box'}
-												>
+												<Link href={`/community/detail?id=${article._id}`} className={'img_box'}>
 													<IconButton className="btn_window">
-														<Tooltip title={'Open window'}>
+														<Tooltip title={t('Open article')}>
 															<OpenInBrowserRoundedIcon />
 														</Tooltip>
 													</IconButton>
@@ -168,7 +169,7 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 									<TableCell align="left" className={'name'}>
 										<Link href={`/member?memberId=${article?.memberData?._id}`}>
 											<Avatar
-												alt="Remy Sharp"
+												alt={article?.memberData?.memberNick}
 												src={
 													article?.memberData?.memberImage
 														? `${REACT_APP_API_URL}/${article?.memberData?.memberImage}`
@@ -178,8 +179,15 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 											/>
 											{article?.memberData?.memberNick}
 										</Link>
-										<span className={`pb-badge ${article?.memberData?.memberType === 'DOCTOR' || article?.memberData?.memberType === 'CLINIC' ? 'pb-badge--soft' : 'pb-badge--warning'}`} style={{ marginLeft: 8 }}>
-											{article?.memberData?.memberType}
+										<span
+											className={`pb-badge ${
+												article?.memberData?.memberType === 'DOCTOR' || article?.memberData?.memberType === 'CLINIC'
+													? 'pb-badge--soft'
+													: 'pb-badge--warning'
+											}`}
+											style={{ marginLeft: 8 }}
+										>
+											{formatEnum(article?.memberData?.memberType)}
 										</span>
 									</TableCell>
 									<TableCell align="center">{article?.articleViews}</TableCell>
@@ -199,7 +207,7 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 										) : (
 											<>
 												<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={'badge success'}>
-													{article.articleStatus}
+													{formatEnum(article.articleStatus)}
 												</Button>
 
 												<Menu
@@ -221,7 +229,7 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 																key={status}
 															>
 																<Typography variant={'subtitle1'} component={'span'}>
-																	{status}
+																	{formatEnum(status)}
 																</Typography>
 															</MenuItem>
 														))}

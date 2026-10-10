@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { Pagination } from '@mui/material';
 import { DocumentNode, useQuery } from '@apollo/client';
 import { Clinic } from '../../types/clinic/clinic';
@@ -27,7 +28,16 @@ interface SavedTargetsProps {
 }
 
 // clinics and doctors saved by the member: favorites or recently visited
-const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQuery, doctorResultKey, allLiked = false }: SavedTargetsProps) => {
+const SavedTargets = ({
+	title,
+	subTitle,
+	clinicQuery,
+	clinicResultKey,
+	doctorQuery,
+	doctorResultKey,
+	allLiked = false,
+}: SavedTargetsProps) => {
+	const { t } = useTranslation('common');
 	const [target, setTarget] = useState<Target>('doctor');
 	const [inquiry, setInquiry] = useState<OrdinaryInquiry>({ page: 1, limit: 6 });
 	const [clinics, setClinics] = useState<Clinic[] | null>(null);
@@ -65,7 +75,7 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 
 	return (
 		<MySection title={title} subTitle={subTitle}>
-			<div className="pb-pills" role="tablist" aria-label="Saved type">
+			<div className="pb-pills" role="tablist" aria-label={t('Saved type')}>
 				{(['doctor', 'clinic'] as Target[]).map((value) => (
 					<button
 						key={value}
@@ -79,7 +89,7 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 							setInquiry({ ...inquiry, page: 1 });
 						}}
 					>
-						{value === 'doctor' ? 'Doctors' : 'Clinics'}
+						{value === 'doctor' ? t('Doctors') : t('Clinics')}
 					</button>
 				))}
 			</div>
@@ -90,7 +100,11 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 					doctors?.map((saved) => {
 						const listed = doctorById.get(saved._id);
 						const doctor = listed ? { ...saved, clinicData: listed.clinicData, meLiked: listed.meLiked } : saved;
-						const state = doctorLike.likeState(doctor._id, listed ? !!listed.meLiked?.[0]?.myFavorite : allLiked, doctor.doctorLikes);
+						const state = doctorLike.likeState(
+							doctor._id,
+							listed ? !!listed.meLiked?.[0]?.myFavorite : allLiked,
+							doctor.doctorLikes,
+						);
 						return (
 							<DoctorCard
 								key={doctor._id}
@@ -104,7 +118,11 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 				{target === 'clinic' &&
 					clinics?.map((clinic, index) => {
 						const listed = clinicById.get(clinic._id);
-						const state = clinicLike.likeState(clinic._id, listed ? !!listed.meLiked?.[0]?.myFavorite : allLiked, clinic.clinicLikes);
+						const state = clinicLike.likeState(
+							clinic._id,
+							listed ? !!listed.meLiked?.[0]?.myFavorite : allLiked,
+							clinic.clinicLikes,
+						);
 						return (
 							<ClinicCard
 								key={clinic._id}
@@ -117,9 +135,14 @@ const SavedTargets = ({ title, subTitle, clinicQuery, clinicResultKey, doctorQue
 						);
 					})}
 			</div>
-			{list?.length === 0 && <p className="pb-empty">Nothing here yet.</p>}
+			{list?.length === 0 && <p className="pb-empty">{t('Nothing here yet.')}</p>}
 
-			<PbPagination page={inquiry.page} total={total} limit={inquiry.limit} onChange={(page) => setInquiry({ ...inquiry, page })} />
+			<PbPagination
+				page={inquiry.page}
+				total={total}
+				limit={inquiry.limit}
+				onChange={(page) => setInquiry({ ...inquiry, page })}
+			/>
 		</MySection>
 	);
 };

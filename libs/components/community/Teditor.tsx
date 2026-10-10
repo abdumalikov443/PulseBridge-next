@@ -1,4 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'next-i18next';
+import { tr } from '../../i18n';
 import { Editor } from '@toast-ui/react-editor';
 import { getJwtToken } from '../../auth';
 import { ARTICLE_CONTENT_MAX, ARTICLE_TITLE_MAX, REACT_APP_API_URL } from '../../config';
@@ -6,6 +8,7 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import { T } from '../../types/common'; //@ts-ignore
 import '@toast-ui/editor/dist/toastui-editor.css';
+import '@toast-ui/editor/dist/i18n/ko-kr';
 import { useMutation } from '@apollo/client';
 import { CREATE_ARTICLE } from '../../../apollo/user/mutation';
 import { sweetErrorHandling, sweetTopSuccessAlert } from '../../sweetAlert';
@@ -17,6 +20,7 @@ const TuiEditor = () => {
 		token = getJwtToken(),
 		router = useRouter();
 	const [contentLength, setContentLength] = useState<number>(0);
+	const { t } = useTranslation('common');
 
 	/** APOLLO REQUESTS **/
 	const [createArticle] = useMutation(CREATE_ARTICLE);
@@ -89,7 +93,7 @@ const TuiEditor = () => {
 			if (articleTitle.length < 3) throw new Error('Title must be at least 3 characters');
 			if (articleContent.length < 3) throw new Error('Content must be at least 3 characters');
 			if (articleContent.length > ARTICLE_CONTENT_MAX)
-				throw new Error(`Content must be at most ${ARTICLE_CONTENT_MAX} characters`);
+				throw new Error(tr('Content must be at most {{max}} characters', { max: ARTICLE_CONTENT_MAX }));
 
 			await createArticle({
 				variables: {
@@ -115,20 +119,22 @@ const TuiEditor = () => {
 	return (
 		<div className="pb-editor" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 			<label className="pb-field">
-				<span>Title</span>
+				<span>{t('Title')}</span>
 				<input
 					className="pb-input"
-					placeholder="e.g. 5 habits for a healthy heart"
+					placeholder={t('e.g. 5 habits for a healthy heart')}
 					maxLength={ARTICLE_TITLE_MAX}
 					onChange={articleTitleHandler}
 				/>
 			</label>
 
 			<div className="pb-field">
-				<span>Content</span>
+				<span>{t('Content')}</span>
 				<Editor
 					initialValue={''}
-					placeholder={'Type here'}
+					placeholder={t('Type here')}
+					// the editor toolbar has its own Korean texts; other languages use English
+					language={router.locale === 'kr' ? 'ko-KR' : 'en-US'}
 					previewStyle={'vertical'}
 					height={'420px'}
 					// @ts-ignore
@@ -151,11 +157,13 @@ const TuiEditor = () => {
 			</div>
 
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-				<span style={{ fontSize: 13, color: contentLength > ARTICLE_CONTENT_MAX ? 'var(--pb-danger)' : 'var(--pb-muted)' }}>
+				<span
+					style={{ fontSize: 13, color: contentLength > ARTICLE_CONTENT_MAX ? 'var(--pb-danger)' : 'var(--pb-muted)' }}
+				>
 					{contentLength} / {ARTICLE_CONTENT_MAX}
 				</span>
 				<button type="button" className="pb-btn pb-btn--primary" onClick={handleRegisterButton}>
-					Publish
+					{t('Publish')}
 				</button>
 			</div>
 		</div>

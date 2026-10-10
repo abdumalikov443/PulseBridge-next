@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import { ClinicStatus, ClinicType } from '../../enums/clinic.enum';
 import { ClinicUpdate } from '../../types/clinic/clinic.update';
@@ -17,6 +18,7 @@ import { EcgLine, SkeletonCards } from '../ui/Loaders';
 
 // CLINIC members only: the clinic is created at signup, here it is edited
 const MyClinic = () => {
+	const { t } = useTranslation('common');
 	const apollo = useApolloClient();
 	// new photo waits here until Save
 	const [photo, setPhoto] = useState<File | null>(null);
@@ -49,10 +51,15 @@ const MyClinic = () => {
 	/** HANDLERS **/
 	const problems: string[] = [];
 	if (clinic) {
-		if ((clinic.clinicName ?? '').trim().length < 3) problems.push('clinic name must be at least 3 characters');
-		if ((clinic.clinicAddress ?? '').trim().length < 3) problems.push('address must be at least 3 characters');
-		if ((clinic.clinicDesc ?? '').trim().length < 5) problems.push(`description must be at least 5 characters (now ${(clinic.clinicDesc ?? '').trim().length})`);
-		if (scheduleError(withScheduleDefaults(clinic))) problems.push('check the working hours');
+		if ((clinic.clinicName ?? '').trim().length < 3) problems.push(t('clinic name must be at least 3 characters'));
+		if ((clinic.clinicAddress ?? '').trim().length < 3) problems.push(t('address must be at least 3 characters'));
+		if ((clinic.clinicDesc ?? '').trim().length < 5)
+			problems.push(
+				t('description must be at least 5 characters (now {{count}})', {
+					count: (clinic.clinicDesc ?? '').trim().length,
+				}),
+			);
+		if (scheduleError(withScheduleDefaults(clinic))) problems.push(t('check the working hours'));
 	}
 	const invalid = !clinic || problems.length > 0;
 
@@ -83,7 +90,7 @@ const MyClinic = () => {
 	if (missing) {
 		return (
 			<MySection title="My clinic">
-				<p className="pb-empty">No clinic is linked to this account.</p>
+				<p className="pb-empty">{t('No clinic is linked to this account.')}</p>
 			</MySection>
 		);
 	}
@@ -101,20 +108,41 @@ const MyClinic = () => {
 						saveHandler();
 					}}
 				>
-					<ImagePicker file={photo} onChange={setPhoto} current={clinic.clinicImage || null} label="Clinic photo" hint="Shown on your clinic card and as your account photo" shape="wide" />
+					<ImagePicker
+						file={photo}
+						onChange={setPhoto}
+						current={clinic.clinicImage || null}
+						label="Clinic photo"
+						hint="Shown on your clinic card and as your account photo"
+						shape="wide"
+					/>
 
 					<div className="pb-form-grid">
 						<label className="pb-field">
-							<span>Clinic name</span>
-							<input className="pb-input" maxLength={100} value={clinic.clinicName} onChange={(e) => setClinic({ ...clinic, clinicName: e.target.value })} />
+							<span>{t('Clinic name')}</span>
+							<input
+								className="pb-input"
+								maxLength={100}
+								value={clinic.clinicName}
+								onChange={(e) => setClinic({ ...clinic, clinicName: e.target.value })}
+							/>
 						</label>
 						<label className="pb-field">
-							<span>Address</span>
-							<input className="pb-input" maxLength={100} value={clinic.clinicAddress} onChange={(e) => setClinic({ ...clinic, clinicAddress: e.target.value })} />
+							<span>{t('Address')}</span>
+							<input
+								className="pb-input"
+								maxLength={100}
+								value={clinic.clinicAddress}
+								onChange={(e) => setClinic({ ...clinic, clinicAddress: e.target.value })}
+							/>
 						</label>
 						<label className="pb-field">
-							<span>Type</span>
-							<select className="pb-select" value={clinic.clinicType} onChange={(e) => setClinic({ ...clinic, clinicType: e.target.value as ClinicType })}>
+							<span>{t('Type')}</span>
+							<select
+								className="pb-select"
+								value={clinic.clinicType}
+								onChange={(e) => setClinic({ ...clinic, clinicType: e.target.value as ClinicType })}
+							>
 								{Object.values(ClinicType).map((type) => (
 									<option key={type} value={type}>
 										{formatEnum(type)}
@@ -123,23 +151,40 @@ const MyClinic = () => {
 							</select>
 						</label>
 						<label className="pb-field">
-							<span>Status</span>
-							<select className="pb-select" value={clinic.clinicStatus} onChange={(e) => setClinic({ ...clinic, clinicStatus: e.target.value as ClinicStatus })}>
-								<option value={ClinicStatus.ACTIVE}>Active</option>
-								<option value={ClinicStatus.PAUSE}>Paused</option>
+							<span>{t('Status')}</span>
+							<select
+								className="pb-select"
+								value={clinic.clinicStatus}
+								onChange={(e) => setClinic({ ...clinic, clinicStatus: e.target.value as ClinicStatus })}
+							>
+								<option value={ClinicStatus.ACTIVE}>{t('Active')}</option>
+								<option value={ClinicStatus.PAUSE}>{t('Paused')}</option>
 							</select>
 						</label>
 					</div>
 					<label className="pb-field">
-						<span>Description</span>
-						<textarea className="pb-textarea" rows={5} maxLength={500} value={clinic.clinicDesc} onChange={(e) => setClinic({ ...clinic, clinicDesc: e.target.value })} />
+						<span>{t('Description')}</span>
+						<textarea
+							className="pb-textarea"
+							rows={5}
+							maxLength={500}
+							value={clinic.clinicDesc}
+							onChange={(e) => setClinic({ ...clinic, clinicDesc: e.target.value })}
+						/>
 					</label>
-					<ScheduleFields value={withScheduleDefaults(clinic)} onChange={(schedule) => setClinic({ ...clinic, ...schedule })} />
+					<ScheduleFields
+						value={withScheduleDefaults(clinic)}
+						onChange={(schedule) => setClinic({ ...clinic, ...schedule })}
+					/>
 					<div className="pb-form-actions">
 						<button type="submit" className="pb-btn pb-btn--primary" disabled={invalid || saving || uploading}>
-							{saving || uploading ? <EcgLine small /> : 'Save changes'}
+							{saving || uploading ? <EcgLine small /> : t('Save changes')}
 						</button>
-						{problems.length > 0 && <p className="pb-form-hint">To save: {problems.join('; ')}.</p>}
+						{problems.length > 0 && (
+							<p className="pb-form-hint">
+								{t('To save:')} {problems.join('; ')}.
+							</p>
+						)}
 					</div>
 				</form>
 			)}

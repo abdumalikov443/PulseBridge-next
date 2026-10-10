@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../apollo/store';
 import { NextPage } from 'next';
@@ -29,6 +30,7 @@ const roles: { title: string; text: string; icon: IconName }[] = [
 // sign-up call to action: only for visitors who are not logged in (checked after mount, the static HTML has no user)
 const JoinCta = () => {
 	const user = useReactiveVar(userVar);
+	const { t } = useTranslation('common');
 	const [mounted, setMounted] = useState(false);
 	useEffect(() => setMounted(true), []);
 	if (!mounted || user?._id) return null;
@@ -48,108 +50,112 @@ const JoinCta = () => {
 			}}
 		>
 			<div style={{ flex: '1 1 320px' }}>
-				<strong style={{ fontFamily: 'var(--pb-font-display)', fontSize: 26 }}>Ready when you are</strong>
-				<p style={{ margin: '6px 0 0', opacity: 0.85 }}>Create an account as a patient, doctor or clinic.</p>
+				<strong style={{ fontFamily: 'var(--pb-font-display)', fontSize: 26 }}>{t('Ready when you are')}</strong>
+				<p style={{ margin: '6px 0 0', opacity: 0.85 }}>{t('Create an account as a patient, doctor or clinic.')}</p>
 			</div>
 			<div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
 				<Link href={{ pathname: '/cs', query: { tab: 'faq' } }} className="pb-btn pb-btn--outline pb-btn--lg">
-					FAQ
+					{t('FAQ')}
 				</Link>
 				<Link href="/account/join" className="pb-btn pb-btn--light pb-btn--lg">
-					Get started <Icon name="arrow" className="pb-arrow" />
+					{t('Get started')} <Icon name="arrow" className="pb-arrow" />
 				</Link>
 			</div>
 		</section>
 	);
 };
 
-const About: NextPage = () => (
-	<div className="pb-container">
-		<section className="pb-hero" style={{ paddingTop: 48 }}>
-			<div className="pb-hero__copy">
-				<span className="pb-badge pb-badge--soft pb-in" style={{ alignSelf: 'flex-start' }}>
-					About PulseBridge
-				</span>
-				<h1 className="pb-hero__title pb-in" style={{ fontSize: 52, animationDelay: '.05s' }}>
-					A calmer way to <em>reach a doctor.</em>
-				</h1>
-				<p className="pb-hero__lead pb-in" style={{ animationDelay: '.15s' }}>
-					PulseBridge connects patients, doctors and clinics. No phone queues: see who works where, pick a time and get
-					confirmed in seconds.
-				</p>
-				<div className="pb-in" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', animationDelay: '.25s' }}>
-					<Link href={{ pathname: '/cs', query: { tab: 'faq' } }} className="pb-btn pb-btn--primary pb-btn--lg">
-						Read the FAQ <Icon name="arrow" className="pb-arrow" />
-					</Link>
-					<Link href="/doctor" className="pb-btn pb-btn--outline pb-btn--lg">
-						Find a doctor
-					</Link>
+const About: NextPage = () => {
+	const { t } = useTranslation('common');
+	return (
+		<div className="pb-container">
+			<section className="pb-hero" style={{ paddingTop: 48 }}>
+				<div className="pb-hero__copy">
+					<span className="pb-badge pb-badge--soft pb-in" style={{ alignSelf: 'flex-start' }}>
+						{t('About PulseBridge')}
+					</span>
+					<h1 className="pb-hero__title pb-in" style={{ fontSize: 52, animationDelay: '.05s' }}>
+						{t('A calmer way to')} <em>{t('reach a doctor.')}</em>
+					</h1>
+					<p className="pb-hero__lead pb-in" style={{ animationDelay: '.15s' }}>
+						{t(
+							'PulseBridge connects patients, doctors and clinics. No phone queues: see who works where, pick a time and get confirmed in seconds.',
+						)}
+					</p>
+					<div className="pb-in" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', animationDelay: '.25s' }}>
+						<Link href={{ pathname: '/cs', query: { tab: 'faq' } }} className="pb-btn pb-btn--primary pb-btn--lg">
+							{t('Read the FAQ')} <Icon name="arrow" className="pb-arrow" />
+						</Link>
+						<Link href="/doctor" className="pb-btn pb-btn--outline pb-btn--lg">
+							{t('Find a doctor')}
+						</Link>
+					</div>
 				</div>
-			</div>
-			<div
-				className="pb-hero__visual"
-				style={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-				aria-hidden="true"
-			>
-				<div className="pb-hero__blob pb-hero__blob--a" />
-				<div className="pb-hero__blob pb-hero__blob--b" />
 				<div
-					className="pb-card pb-card--flat"
-					style={{ position: 'relative', alignItems: 'center', boxShadow: 'var(--pb-shadow)' }}
+					className="pb-hero__visual"
+					style={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+					aria-hidden="true"
 				>
-					<EcgLine />
-				</div>
-			</div>
-		</section>
-
-		<section className="pb-section">
-			<h2 className="pb-title" style={{ marginBottom: 20 }}>
-				How it works
-			</h2>
-			<div className="pb-grid">
-				{steps.map((step, index) => (
-					<article
-						key={step.title}
-						className="pb-card pb-card--flat pb-in"
-						style={{ animationDelay: `${index * 0.1}s` }}
+					<div className="pb-hero__blob pb-hero__blob--a" />
+					<div className="pb-hero__blob pb-hero__blob--b" />
+					<div
+						className="pb-card pb-card--flat"
+						style={{ position: 'relative', alignItems: 'center', boxShadow: 'var(--pb-shadow)' }}
 					>
-						<span
-							className="pb-avatar"
-							style={{ width: 48, height: 48, background: 'var(--pb-soft-1)', color: 'var(--pb-deep)' }}
-						>
-							<Icon name={step.icon} size={22} />
-						</span>
-						<strong style={{ fontSize: 18 }}>
-							{index + 1}. {step.title}
-						</strong>
-						<p style={{ margin: 0, color: 'var(--pb-muted)', lineHeight: 1.6 }}>{step.text}</p>
-					</article>
-				))}
-			</div>
-		</section>
+						<EcgLine />
+					</div>
+				</div>
+			</section>
 
-		<section className="pb-section">
-			<h2 className="pb-title" style={{ marginBottom: 20 }}>
-				Made for three roles
-			</h2>
-			<div className="pb-grid">
-				{roles.map((role) => (
-					<article key={role.title} className="pb-card pb-card--flat pb-card--hover">
-						<span
-							className="pb-avatar"
-							style={{ width: 48, height: 48, background: 'var(--pb-soft-2)', color: 'var(--pb-ink)' }}
+			<section className="pb-section">
+				<h2 className="pb-title" style={{ marginBottom: 20 }}>
+					{t('How it works')}
+				</h2>
+				<div className="pb-grid">
+					{steps.map((step, index) => (
+						<article
+							key={step.title}
+							className="pb-card pb-card--flat pb-in"
+							style={{ animationDelay: `${index * 0.1}s` }}
 						>
-							<Icon name={role.icon} size={22} />
-						</span>
-						<strong style={{ fontSize: 18 }}>{role.title}</strong>
-						<p style={{ margin: 0, color: 'var(--pb-muted)', lineHeight: 1.6 }}>{role.text}</p>
-					</article>
-				))}
-			</div>
-		</section>
+							<span
+								className="pb-avatar"
+								style={{ width: 48, height: 48, background: 'var(--pb-soft-1)', color: 'var(--pb-deep)' }}
+							>
+								<Icon name={step.icon} size={22} />
+							</span>
+							<strong style={{ fontSize: 18 }}>
+								{index + 1}. {t(step.title)}
+							</strong>
+							<p style={{ margin: 0, color: 'var(--pb-muted)', lineHeight: 1.6 }}>{t(step.text)}</p>
+						</article>
+					))}
+				</div>
+			</section>
 
-		<JoinCta />
-	</div>
-);
+			<section className="pb-section">
+				<h2 className="pb-title" style={{ marginBottom: 20 }}>
+					{t('Made for three roles')}
+				</h2>
+				<div className="pb-grid">
+					{roles.map((role) => (
+						<article key={role.title} className="pb-card pb-card--flat pb-card--hover">
+							<span
+								className="pb-avatar"
+								style={{ width: 48, height: 48, background: 'var(--pb-soft-2)', color: 'var(--pb-ink)' }}
+							>
+								<Icon name={role.icon} size={22} />
+							</span>
+							<strong style={{ fontSize: 18 }}>{t(role.title)}</strong>
+							<p style={{ margin: 0, color: 'var(--pb-muted)', lineHeight: 1.6 }}>{t(role.text)}</p>
+						</article>
+					))}
+				</div>
+			</section>
+
+			<JoinCta />
+		</div>
+	);
+};
 
 export default withPbLayout(About);

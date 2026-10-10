@@ -17,30 +17,30 @@ const PbFooter = () => {
 						</span>
 						pulsebridge
 					</span>
-					<p>Find clinics and doctors, book a visit and follow your health in one place.</p>
+					<p>{t('Find clinics and doctors, book a visit and follow your health in one place.')}</p>
 				</div>
-				<nav aria-label="Explore" className="pb-footer__col">
-					<strong>Explore</strong>
+				<nav aria-label={t('Explore')} className="pb-footer__col">
+					<strong>{t('Explore')}</strong>
 					<Link href="/doctor">{t('Doctors')}</Link>
 					<Link href="/clinic">{t('Clinics')}</Link>
 					<Link href="/community">{t('Community')}</Link>
 				</nav>
-				<nav aria-label="Account" className="pb-footer__col">
-					<strong>Account</strong>
+				<nav aria-label={t('Account')} className="pb-footer__col">
+					<strong>{t('Account')}</strong>
 					<Link href="/mypage">{t('My Page')}</Link>
 					<Link href="/account/join">
 						{t('Login')} / {t('Register')}
 					</Link>
 				</nav>
-				<nav aria-label="Help" className="pb-footer__col">
-					<strong>Help</strong>
-					<Link href="/cs">FAQ</Link>
-					<Link href="/about">About</Link>
+				<nav aria-label={t('Help')} className="pb-footer__col">
+					<strong>{t('Help')}</strong>
+					<Link href="/cs">{t('FAQ')}</Link>
+					<Link href="/about">{t('About')}</Link>
 				</nav>
 			</div>
 			<div className="pb-container pb-footer__bottom">
 				<span>© PulseBridge {moment().year()}</span>
-				<span>Not a replacement for emergency care. In an emergency call 119.</span>
+				<span>{t('Not a replacement for emergency care. In an emergency call 119.')}</span>
 			</div>
 		</footer>
 	);

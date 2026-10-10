@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 import type { NextPage } from 'next';
 import AdminTotal from '../../../libs/components/admin/AdminTotal';
 import withAdminLayout from '../../../libs/components/layout/LayoutAdmin';
@@ -22,6 +24,7 @@ import { REMOVE_CLINIC_BY_ADMIN, UPDATE_CLINIC_BY_ADMIN } from '../../../apollo/
 import { GET_ALL_CLINICS_BY_ADMIN } from '../../../apollo/admin/query';
 
 const AdminClinics: NextPage = ({ initialInquiry, ...props }: any) => {
+	const { t } = useTranslation('common');
 	const [anchorEl, setAnchorEl] = useState<[] | HTMLElement[]>([]);
 	const [clinicsInquiry, setClinicsInquiry] = useState<AllClinicsInquiry>(initialInquiry);
 	const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -103,7 +106,7 @@ const AdminClinics: NextPage = ({ initialInquiry, ...props }: any) => {
 	return (
 		<Box component={'div'} className={'content'}>
 			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
-				Clinic List
+				{t('Clinic List')}
 				<AdminTotal total={clinicsTotal} noun="clinic" />
 			</Typography>
 			<Box component={'div'} className={'table-wrap'}>
@@ -126,11 +129,11 @@ const AdminClinics: NextPage = ({ initialInquiry, ...props }: any) => {
 							<Stack className={'search-area'} sx={{ m: '24px' }}>
 								<Select sx={{ width: '160px', mr: '20px' }} value={searchType}>
 									<MenuItem value={'ALL'} onClick={() => searchTypeHandler('ALL')}>
-										ALL
+										{t('All')}
 									</MenuItem>
 									{Object.values(ClinicType).map((type: string) => (
 										<MenuItem value={type} onClick={() => searchTypeHandler(type)} key={type}>
-											{type}
+											{formatEnum(type)}
 										</MenuItem>
 									))}
 								</Select>
@@ -146,6 +149,8 @@ const AdminClinics: NextPage = ({ initialInquiry, ...props }: any) => {
 							removeClinicHandler={removeClinicHandler}
 						/>
 						<TablePagination
+							labelRowsPerPage={t('Rows per page:')}
+							labelDisplayedRows={({ from, to, count }) => t('{{from}}–{{to}} of {{count}}', { from, to, count })}
 							rowsPerPageOptions={[10, 20, 40, 60]}
 							component="div"
 							count={clinicsTotal}
@@ -170,5 +175,11 @@ AdminClinics.defaultProps = {
 		search: {},
 	},
 };
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 export default withAdminLayout(AdminClinics);

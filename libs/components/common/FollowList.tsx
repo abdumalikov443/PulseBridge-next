@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'next-i18next';
+import { tr } from '../../i18n';
 import Link from 'next/link';
 import { Pagination } from '@mui/material';
 import { useQuery, useReactiveVar } from '@apollo/client';
@@ -44,6 +46,7 @@ interface Row {
 const LIMIT = 10;
 const FollowList = ({ mode, target, memberId }: FollowListProps) => {
 	const user = useReactiveVar(userVar);
+	const { t } = useTranslation('common');
 	const [page, setPage] = useState(1);
 	const [items, setItems] = useState<Follow[] | null>(null);
 	const [total, setTotal] = useState(0);
@@ -59,7 +62,11 @@ const FollowList = ({ mode, target, memberId }: FollowListProps) => {
 		fetchPolicy: 'network-only',
 		skip: isFollowers ? !target?.refId : !memberId,
 		variables: {
-			input: { page, limit: LIMIT, search: isFollowers ? { followGroup: target?.followGroup, refId: target?.refId } : { followerId: memberId } },
+			input: {
+				page,
+				limit: LIMIT,
+				search: isFollowers ? { followGroup: target?.followGroup, refId: target?.refId } : { followerId: memberId },
+			},
 		},
 		onCompleted: (data: T) => {
 			setItems(data?.[key]?.list ?? []);
@@ -76,7 +83,7 @@ const FollowList = ({ mode, target, memberId }: FollowListProps) => {
 			key: doctor._id,
 			name: getMemberName(doctor.memberData),
 			image: doctor.memberData?.memberImage,
-			role: `Doctor · ${formatEnum(doctor.specialty)}`,
+			role: `${tr('Doctor')} · ${formatEnum(doctor.specialty)}`,
 			href: `/doctor/detail?id=${doctor._id}`,
 			target: { group: FollowGroup.DOCTOR, id: doctor._id, ownerId: doctor.memberId },
 		});
@@ -84,7 +91,7 @@ const FollowList = ({ mode, target, memberId }: FollowListProps) => {
 			key: clinic._id,
 			name: clinic.clinicName,
 			image: clinic.clinicImage,
-			role: `Clinic · ${formatEnum(clinic.clinicType)}`,
+			role: `${tr('Clinic')} · ${formatEnum(clinic.clinicType)}`,
 			href: `/clinic/detail?id=${clinic._id}`,
 			target: { group: FollowGroup.CLINIC, id: clinic._id, ownerId: clinic.memberId },
 		});
@@ -102,7 +109,15 @@ const FollowList = ({ mode, target, memberId }: FollowListProps) => {
 			const clinic = member.memberType === MemberType.CLINIC ? clinicByMember.get(member._id) : undefined;
 			if (doctor) return [doctorRow(doctor)];
 			if (clinic) return [clinicRow(clinic)];
-			return [{ key: member._id, name: getMemberName(member), image: member.memberImage, role: formatEnum(member.memberType), href: null }];
+			return [
+				{
+					key: member._id,
+					name: getMemberName(member),
+					image: member.memberImage,
+					role: formatEnum(member.memberType),
+					href: null,
+				},
+			];
 		});
 	}, [items, doctors, clinics, isFollowers]);
 
@@ -110,20 +125,35 @@ const FollowList = ({ mode, target, memberId }: FollowListProps) => {
 		if (!row.target) return null;
 		if (row.target.group === FollowGroup.DOCTOR) {
 			const doctor = doctors.find((ele) => ele._id === row.target?.id);
-			return { hook: doctorLike, state: doctorLike.likeState(row.target.id, !!doctor?.meLiked?.[0]?.myFavorite, doctor?.doctorLikes ?? 0) };
+			return {
+				hook: doctorLike,
+				state: doctorLike.likeState(row.target.id, !!doctor?.meLiked?.[0]?.myFavorite, doctor?.doctorLikes ?? 0),
+			};
 		}
 		const clinic = clinics.find((ele) => ele._id === row.target?.id);
-		return { hook: clinicLike, state: clinicLike.likeState(row.target.id, !!clinic?.meLiked?.[0]?.myFavorite, clinic?.clinicLikes ?? 0) };
+		return {
+			hook: clinicLike,
+			state: clinicLike.likeState(row.target.id, !!clinic?.meLiked?.[0]?.myFavorite, clinic?.clinicLikes ?? 0),
+		};
 	};
 
 	return (
 		<div className="pb-follow-list">
 			{items === null && <SkeletonCards count={3} />}
-			{items?.length === 0 && <p className="pb-empty">{isFollowers ? 'No followers yet.' : 'Not following any doctor or clinic yet.'}</p>}
+			{items?.length === 0 && (
+				<p className="pb-empty">
+					{isFollowers ? t('No followers yet.') : t('Not following any doctor or clinic yet.')}
+				</p>
+			)}
 			{rows.map((row) => {
 				const info = (
 					<>
-						<Avatar name={row.name} image={row.image} size={42} radius={row.target?.group === FollowGroup.CLINIC ? 12 : '50%'} />
+						<Avatar
+							name={row.name}
+							image={row.image}
+							size={42}
+							radius={row.target?.group === FollowGroup.CLINIC ? 12 : '50%'}
+						/>
 						<span className="pb-follow-row__text">
 							<strong>{row.name}</strong>
 							<small>{row.role}</small>
@@ -161,7 +191,7 @@ const FollowList = ({ mode, target, memberId }: FollowListProps) => {
 									aria-pressed={following}
 									onClick={() => row.target && toggleFollow(row.target.group, row.target.id)}
 								>
-									{following ? 'Following' : 'Follow'}
+									{following ? t('Following') : t('Follow')}
 								</button>
 							</span>
 						)}
@@ -170,7 +200,14 @@ const FollowList = ({ mode, target, memberId }: FollowListProps) => {
 			})}
 			{total > LIMIT && (
 				<div className="pb-pagination">
-					<Pagination page={page} count={Math.ceil(total / LIMIT)} onChange={(e, value) => setPage(value)} shape="circular" color="primary" size="small" />
+					<Pagination
+						page={page}
+						count={Math.ceil(total / LIMIT)}
+						onChange={(e, value) => setPage(value)}
+						shape="circular"
+						color="primary"
+						size="small"
+					/>
 				</div>
 			)}
 		</div>

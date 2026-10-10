@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -39,6 +40,7 @@ type Tab = 'overview' | 'doctors' | 'reviews';
 
 const ClinicDetail: NextPage = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const clinicId = router.query.id as string | undefined;
 	const [clinic, setClinic] = useState<Clinic | null>(null);
 	const [doctors, setDoctors] = useState<Doctor[] | null>(null);
@@ -80,16 +82,16 @@ const ClinicDetail: NextPage = () => {
 	const followers = (clinic.clinicFollowers ?? 0) + followDelta;
 	const followings = clinic.memberData?.memberFollowings ?? 0;
 	const tabs: { id: Tab; label: string }[] = [
-		{ id: 'overview', label: 'Overview' },
-		{ id: 'doctors', label: `Doctors (${clinic.clinicDoctors})` },
-		{ id: 'reviews', label: `Reviews (${commentTotal ?? clinic.clinicComments})` },
+		{ id: 'overview', label: t('Overview') },
+		{ id: 'doctors', label: `${t('Doctors')} (${clinic.clinicDoctors})` },
+		{ id: 'reviews', label: `${t('Reviews')} (${commentTotal ?? clinic.clinicComments})` },
 	];
 
 	return (
 		<div className="pb-container">
 			<div style={{ padding: '24px 0 16px' }}>
 				<Link href="/clinic" className="pb-link" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-					<Icon name="arrowLeft" size={16} /> All clinics
+					<Icon name="arrowLeft" size={16} /> {t('All clinics')}
 				</Link>
 			</div>
 
@@ -138,7 +140,8 @@ const ClinicDetail: NextPage = () => {
 					<span
 						style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 15, color: 'var(--pb-muted)' }}
 					>
-						<Icon name="pin" size={16} /> {clinic.clinicAddress} · since {moment(clinic.createdAt).format('YYYY')}
+						<Icon name="pin" size={16} /> {clinic.clinicAddress} ·{' '}
+						{t('since {{year}}', { year: moment(clinic.createdAt).format('YYYY') })}
 					</span>
 					<ActionChips
 						likes={like.likes}
@@ -149,10 +152,10 @@ const ClinicDetail: NextPage = () => {
 					/>
 					<div className="pb-follow-counts">
 						<button type="button" onClick={() => setFollowMode('followers')}>
-							<strong>{formatCount(followers)}</strong> {followers === 1 ? 'follower' : 'followers'}
+							<strong>{formatCount(followers)}</strong> {followers === 1 ? t('follower') : t('followers')}
 						</button>
 						<button type="button" onClick={() => setFollowMode('followings')}>
-							<strong>{formatCount(followings)}</strong> following
+							<strong>{formatCount(followings)}</strong> {t('following')}
 						</button>
 					</div>
 					<FollowModal
@@ -182,7 +185,7 @@ const ClinicDetail: NextPage = () => {
 				</div>
 			</section>
 
-			<div className="pb-pills" role="tablist" aria-label="Clinic sections" style={{ padding: '24px 0 4px' }}>
+			<div className="pb-pills" role="tablist" aria-label={t('Clinic sections')} style={{ padding: '24px 0 4px' }}>
 				{tabs.map((item) => (
 					<button
 						key={item.id}
@@ -203,7 +206,7 @@ const ClinicDetail: NextPage = () => {
 						<>
 							<section className="pb-card pb-card--flat">
 								<h2 className="pb-title" style={{ fontSize: 22 }}>
-									About
+									{t('About')}
 								</h2>
 								<p
 									style={{
@@ -219,7 +222,7 @@ const ClinicDetail: NextPage = () => {
 							</section>
 							<section className="pb-card pb-card--flat">
 								<h2 className="pb-title" style={{ fontSize: 22 }}>
-									Location
+									{t('Location')}
 								</h2>
 								<ClinicMap address={clinic.clinicAddress} name={clinic.clinicName} />
 							</section>
@@ -231,7 +234,7 @@ const ClinicDetail: NextPage = () => {
 						<section className="pb-card pb-card--flat" style={{ gap: 16 }}>
 							<div className="pb-section-head" style={{ marginBottom: 0 }}>
 								<h2 className="pb-title" style={{ fontSize: 22 }}>
-									Doctors
+									{t('Doctors')}
 								</h2>
 								<span style={{ fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
 									{doctors?.length ?? clinic.clinicDoctors}
@@ -239,7 +242,7 @@ const ClinicDetail: NextPage = () => {
 							</div>
 							{doctors === null && <SkeletonCards count={2} />}
 							{doctors?.length === 0 && (
-								<p style={{ margin: 0, color: 'var(--pb-muted)' }}>No doctors in this clinic yet.</p>
+								<p style={{ margin: 0, color: 'var(--pb-muted)' }}>{t('No doctors in this clinic yet.')}</p>
 							)}
 							{!!doctors?.length && (
 								<div className="pb-grid">
@@ -278,7 +281,7 @@ const ClinicDetail: NextPage = () => {
 				<aside className="pb-split__side">
 					<section className="pb-card pb-card--flat pb-hours">
 						<strong style={{ fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
-							<Icon name="clock" size={16} /> Working hours
+							<Icon name="clock" size={16} /> {t('Working hours')}
 						</strong>
 						<dl>
 							<div>
@@ -289,7 +292,7 @@ const ClinicDetail: NextPage = () => {
 							</div>
 							{schedule.clinicBreakStart && schedule.clinicBreakEnd && (
 								<div>
-									<dt>Break</dt>
+									<dt>{t('Break')}</dt>
 									<dd>
 										{schedule.clinicBreakStart} – {schedule.clinicBreakEnd}
 									</dd>
@@ -297,19 +300,19 @@ const ClinicDetail: NextPage = () => {
 							)}
 							{schedule.clinicOffDays.length > 0 && (
 								<div>
-									<dt>Closed</dt>
+									<dt>{t('Closed')}</dt>
 									<dd>
 										{WEEK_DAYS.filter((day) => schedule.clinicOffDays.includes(day))
-											.map((day) => WEEK_DAY_LABEL[day])
+											.map((day) => t(WEEK_DAY_LABEL[day]))
 											.join(', ')}
 									</dd>
 								</div>
 							)}
 						</dl>
-						<small>Seoul time · 30-minute visits</small>
+						<small>{t('Seoul time · 30-minute visits')}</small>
 					</section>
 					<section className="pb-card pb-card--flat">
-						<strong style={{ fontSize: 15 }}>Contact</strong>
+						<strong style={{ fontSize: 15 }}>{t('Contact')}</strong>
 						<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
 							<Avatar
 								name={getMemberName(clinic.memberData) || clinic.clinicName}

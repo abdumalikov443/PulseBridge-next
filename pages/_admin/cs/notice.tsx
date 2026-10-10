@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 import type { NextPage } from 'next';
 import withAdminLayout from '../../../libs/components/layout/LayoutAdmin';
 import { Box, Button, InputAdornment, Stack } from '@mui/material';
@@ -15,6 +17,7 @@ import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import { NoticeList } from '../../../libs/components/admin/cs/NoticeList';
 
 const AdminNotice: NextPage = (props: any) => {
+	const { t } = useTranslation('common');
 	const [anchorEl, setAnchorEl] = useState<[] | HTMLElement[]>([]);
 
 	/** APOLLO REQUESTS **/
@@ -25,7 +28,7 @@ const AdminNotice: NextPage = (props: any) => {
 		// @ts-ignore
 		<Box component={'div'} className={'content'}>
 			<Box component={'div'} className={'title flex_space'}>
-				<Typography variant={'h2'}>Notice Management</Typography>
+				<Typography variant={'h2'}>{t('Notice Management')}</Typography>
 				<Button
 					className="btn_add"
 					variant={'contained'}
@@ -33,7 +36,7 @@ const AdminNotice: NextPage = (props: any) => {
 					// onClick={() => router.push(`/_admin/cs/faq_create`)}
 				>
 					<AddRoundedIcon sx={{ mr: '8px' }} />
-					ADD
+					{t('Add')}
 				</Button>
 			</Box>
 			<Box component={'div'} className={'table-wrap'}>
@@ -46,28 +49,28 @@ const AdminNotice: NextPage = (props: any) => {
 									value="all"
 									className={'all' === 'all' ? 'li on' : 'li'}
 								>
-									All (0)
+									{t('All')} (0)
 								</ListItem>
 								<ListItem
 									// onClick={(e) => handleTabChange(e, 'active')}
 									value="active"
 									className={'all' === 'all' ? 'li on' : 'li'}
 								>
-									Active (0)
+									{t('Active')} (0)
 								</ListItem>
 								<ListItem
 									// onClick={(e) => handleTabChange(e, 'blocked')}
 									value="blocked"
 									className={'all' === 'all' ? 'li on' : 'li'}
 								>
-									Blocked (0)
+									{t('Blocked')} (0)
 								</ListItem>
 								<ListItem
 									// onClick={(e) => handleTabChange(e, 'deleted')}
 									value="deleted"
 									className={'all' === 'all' ? 'li on' : 'li'}
 								>
-									Deleted (0)
+									{t('Deleted')} (0)
 								</ListItem>
 							</List>
 							<Divider />
@@ -82,7 +85,7 @@ const AdminNotice: NextPage = (props: any) => {
 									// onChange={(e) => handleInput(e.target.value)}
 									sx={{ width: '100%' }}
 									className={'search'}
-									placeholder="Search user name"
+									placeholder={t('Search user name')}
 									onKeyDown={(event) => {
 										// if (event.key == 'Enter') searchTargetHandler().then();
 									}}
@@ -109,6 +112,8 @@ const AdminNotice: NextPage = (props: any) => {
 						/>
 
 						<TablePagination
+							labelRowsPerPage={t('Rows per page:')}
+							labelDisplayedRows={({ from, to, count }) => t('{{from}}–{{to}} of {{count}}', { from, to, count })}
 							rowsPerPageOptions={[20, 40, 60]}
 							component="div"
 							count={4}
@@ -123,5 +128,11 @@ const AdminNotice: NextPage = (props: any) => {
 		</Box>
 	);
 };
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 export default withAdminLayout(AdminNotice);

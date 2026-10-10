@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -35,9 +36,16 @@ const tabs = [
 
 const Community: NextPage = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const user = useReactiveVar(userVar);
 	const articleAccess = useArticleAccess();
-	const [input, setInput] = useState<ArticlesInquiry>({ page: 1, limit: 8, sort: 'createdAt', direction: Direction.DESC, search: {} });
+	const [input, setInput] = useState<ArticlesInquiry>({
+		page: 1,
+		limit: 8,
+		sort: 'createdAt',
+		direction: Direction.DESC,
+		search: {},
+	});
 	const [text, setText] = useState('');
 	const [articles, setArticles] = useState<Article[] | null>(null);
 	const [total, setTotal] = useState(0);
@@ -86,20 +94,29 @@ const Community: NextPage = () => {
 
 	return (
 		<div className="pb-container">
-			<header className="pb-page-head" style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16 }}>
+			<header
+				className="pb-page-head"
+				style={{
+					flexDirection: 'row',
+					flexWrap: 'wrap',
+					justifyContent: 'space-between',
+					alignItems: 'flex-end',
+					gap: 16,
+				}}
+			>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-					<h1 className="pb-title">Community</h1>
-					<p>Short health notes from doctors and clinics.</p>
+					<h1 className="pb-title">{t('Community')}</h1>
+					<p>{t('Short health notes from doctors and clinics.')}</p>
 				</div>
 				{articleAccess.allowed && (
 					<Link href="/mypage?category=writeArticle" className="pb-btn pb-btn--primary">
-						<Icon name="edit" size={16} /> Write a post
+						<Icon name="edit" size={16} /> {t('Write a post')}
 					</Link>
 				)}
 			</header>
 
 			<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', padding: '16px 0 20px' }}>
-				<div className="pb-pills" role="tablist" aria-label="Sort posts" style={{ flex: '1 1 auto' }}>
+				<div className="pb-pills" role="tablist" aria-label={t('Sort posts')} style={{ flex: '1 1 auto' }}>
 					{tabs.map((tab) => (
 						<button
 							key={tab.value}
@@ -109,25 +126,28 @@ const Community: NextPage = () => {
 							className={`pb-pill ${input.sort === tab.value ? 'pb-pill--active' : ''}`}
 							onClick={() => changeSort(tab.value)}
 						>
-							{tab.label}
+							{t(tab.label)}
 						</button>
 					))}
 				</div>
-				<form
-					className="pb-search"
-					style={{ flex: '1 1 260px', maxWidth: 360 }}
-					onSubmit={(e) => e.preventDefault()}
-				>
+				<form className="pb-search" style={{ flex: '1 1 260px', maxWidth: 360 }} onSubmit={(e) => e.preventDefault()}>
 					<Icon name="search" />
 					<label htmlFor="post-search" className="pb-sr">
-						Search posts
+						{t('Search posts')}
 					</label>
-					<input id="post-search" value={text} placeholder="Search posts" onChange={(e) => setText(e.target.value)} />
+					<input
+						id="post-search"
+						value={text}
+						placeholder={t('Search posts')}
+						onChange={(e) => setText(e.target.value)}
+					/>
 				</form>
 			</div>
 
 			<p style={{ margin: '0 0 12px', minHeight: 20, fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
-				{articles !== null && !loading && `${total} post${total === 1 ? '' : 's'} found`}
+				{articles !== null &&
+					!loading &&
+					(total === 1 ? t('{{count}} post found', { count: total }) : t('{{count}} posts found', { count: total }))}
 			</p>
 
 			<div className="pb-grid pb-grid--posts">
@@ -145,9 +165,14 @@ const Community: NextPage = () => {
 					);
 				})}
 			</div>
-			{articles?.length === 0 && !loading && <p className="pb-empty">No posts yet.</p>}
+			{articles?.length === 0 && !loading && <p className="pb-empty">{t('No posts yet.')}</p>}
 
-			<PbPagination page={input.page} total={total} limit={input.limit} onChange={(page) => setInput({ ...input, page })} />
+			<PbPagination
+				page={input.page}
+				total={total}
+				limit={input.limit}
+				onChange={(page) => setInput({ ...input, page })}
+			/>
 		</div>
 	);
 };

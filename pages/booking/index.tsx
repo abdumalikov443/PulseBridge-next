@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -19,6 +20,7 @@ import { MemberType } from '../../libs/enums/member.enum';
 import { T } from '../../libs/types/common';
 import { getMemberName } from '../../libs/config';
 import { formatEnum } from '../../libs/utils';
+import { localeTag } from '../../libs/i18n';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -32,14 +34,16 @@ const toDay = (day: DayAvailability) => {
 	const date = new Date(`${day.date}T00:00:00Z`);
 	return {
 		value: day.date,
-		weekday: date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }),
-		label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
+		weekday: date.toLocaleDateString(localeTag(), { weekday: 'short', timeZone: 'UTC' }),
+		label: date.toLocaleDateString(localeTag(), { month: 'short', day: 'numeric', timeZone: 'UTC' }),
 	};
 };
-const firstFree = (days: DayAvailability[]) => days.find((day) => day.isOpen && day.slots.some((slot) => slot.available));
+const firstFree = (days: DayAvailability[]) =>
+	days.find((day) => day.isOpen && day.slots.some((slot) => slot.available));
 
 const Booking: NextPage = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const user = useReactiveVar(userVar);
 	const doctorId = router.query.doctorId as string | undefined;
 	const [availability, setAvailability] = useState<DayAvailability[] | null>(null);
@@ -68,7 +72,9 @@ const Booking: NextPage = () => {
 			const list: DayAvailability[] = data?.getDoctorAvailability ?? [];
 			setAvailability(list);
 			// keep the chosen day if it still has room, otherwise jump to the first free day
-			setDate((current) => (list.some((day) => day.date === current && day.isOpen) ? current : firstFree(list)?.date ?? ''));
+			setDate((current) =>
+				list.some((day) => day.date === current && day.isOpen) ? current : firstFree(list)?.date ?? '',
+			);
 		},
 		onError: () => setAvailability([]),
 	});
@@ -80,7 +86,11 @@ const Booking: NextPage = () => {
 	});
 
 	/** HANDLERS **/
-	const days = useMemo(() => (availability ?? []).map((day) => ({ ...toDay(day), day })), [availability]);
+	// day names follow the current language
+	const days = useMemo(
+		() => (availability ?? []).map((day) => ({ ...toDay(day), day })),
+		[availability, router.locale],
+	);
 	const selectedDay = availability?.find((day) => day.date === date);
 	const reasonText = reason.trim();
 	const reasonOk = !reasonText || reasonText.length >= 3;
@@ -89,7 +99,14 @@ const Booking: NextPage = () => {
 		try {
 			setError('');
 			const result = await createAppointment({
-				variables: { input: { doctorId, appointmentDate: date, appointmentTime: time, ...(reasonText && { appointmentReason: reasonText }) } },
+				variables: {
+					input: {
+						doctorId,
+						appointmentDate: date,
+						appointmentTime: time,
+						...(reasonText && { appointmentReason: reasonText }),
+					},
+				},
 			});
 			setBookedId(result.data?.createAppointment?._id ?? '');
 			setDone(true);
@@ -109,7 +126,10 @@ const Booking: NextPage = () => {
 		return (
 			<div className="pb-container" style={{ padding: '48px 0' }}>
 				<p className="pb-empty">
-					Choose a doctor first. <Link href="/doctor" className="pb-link">Find a doctor</Link>
+					{t('Choose a doctor first.')}{' '}
+					<Link href="/doctor" className="pb-link">
+						{t('Find a doctor')}
+					</Link>
 				</p>
 			</div>
 		);
@@ -122,21 +142,42 @@ const Booking: NextPage = () => {
 	return (
 		<div className="pb-container">
 			<div style={{ padding: '24px 0 8px' }}>
-				<Link href={`/doctor/detail?id=${doctorId}`} className="pb-link" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-					<Icon name="arrowLeft" size={16} /> Back to {name || 'doctor'}
+				<Link
+					href={`/doctor/detail?id=${doctorId}`}
+					className="pb-link"
+					style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
+				>
+					<Icon name="arrowLeft" size={16} /> {t('Back to {{name}}', { name: name || t('doctor') })}
 				</Link>
 			</div>
 			<header className="pb-page-head" style={{ paddingTop: 8 }}>
-				<h1 className="pb-title">Book an appointment</h1>
+				<h1 className="pb-title">{t('Book an appointment')}</h1>
 			</header>
 
-			<ol className="pb-pills" aria-label="Steps" style={{ listStyle: 'none', margin: '12px 0 24px', padding: 0 }}>
+			<ol className="pb-pills" aria-label={t('Steps')} style={{ listStyle: 'none', margin: '12px 0 24px', padding: 0 }}>
 				{STEPS.map((label, i) => (
-					<li key={label} className={`pb-pill ${step === i && !done ? 'pb-pill--active' : ''}`} aria-current={step === i ? 'step' : undefined} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'default' }}>
-						<span style={{ width: 22, height: 22, borderRadius: 11, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, background: step > i || done ? 'var(--pb-success-soft)' : 'rgba(255,255,255,.25)', color: step > i || done ? 'var(--pb-success)' : 'inherit' }}>
+					<li
+						key={label}
+						className={`pb-pill ${step === i && !done ? 'pb-pill--active' : ''}`}
+						aria-current={step === i ? 'step' : undefined}
+						style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'default' }}
+					>
+						<span
+							style={{
+								width: 22,
+								height: 22,
+								borderRadius: 11,
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								fontSize: 12,
+								background: step > i || done ? 'var(--pb-success-soft)' : 'rgba(255,255,255,.25)',
+								color: step > i || done ? 'var(--pb-success)' : 'inherit',
+							}}
+						>
 							{step > i || done ? <Icon name="check" size={13} strokeWidth={3} /> : i + 1}
 						</span>
-						{label}
+						{t(label)}
 					</li>
 				))}
 			</ol>
@@ -149,23 +190,36 @@ const Booking: NextPage = () => {
 							<span style={{ display: 'flex', flexDirection: 'column' }}>
 								<strong style={{ fontSize: 17 }}>{name || '…'}</strong>
 								<span style={{ fontSize: 13, color: 'var(--pb-deep)', fontWeight: 700 }}>
-									{formatEnum(doctor?.specialty)} · {doctor?.experience ?? 0} yrs
+									{formatEnum(doctor?.specialty)} · {doctor?.experience ?? 0} {t('yrs of exp')}
 								</span>
 								<span style={{ fontSize: 13, color: 'var(--pb-muted)' }}>{doctor?.clinicData?.clinicName}</span>
 							</span>
 						</span>
-						<dl style={{ margin: 0, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 12, paddingTop: 14, borderTop: '1px solid var(--pb-line)' }}>
+						<dl
+							style={{
+								margin: 0,
+								display: 'grid',
+								gridTemplateColumns: 'repeat(2, minmax(0,1fr))',
+								gap: 12,
+								paddingTop: 14,
+								borderTop: '1px solid var(--pb-line)',
+							}}
+						>
 							<div>
-								<dt style={{ fontSize: 12, fontWeight: 700, color: 'var(--pb-muted)' }}>Date</dt>
-								<dd style={{ margin: '2px 0 0', fontWeight: 800 }}>{dayLabel ? `${dayLabel.weekday}, ${dayLabel.label}` : '—'}</dd>
+								<dt style={{ fontSize: 12, fontWeight: 700, color: 'var(--pb-muted)' }}>{t('Date')}</dt>
+								<dd style={{ margin: '2px 0 0', fontWeight: 800 }}>
+									{dayLabel ? `${dayLabel.weekday}, ${dayLabel.label}` : '—'}
+								</dd>
 							</div>
 							<div>
-								<dt style={{ fontSize: 12, fontWeight: 700, color: 'var(--pb-muted)' }}>Time</dt>
+								<dt style={{ fontSize: 12, fontWeight: 700, color: 'var(--pb-muted)' }}>{t('Time')}</dt>
 								<dd style={{ margin: '2px 0 0', fontWeight: 800 }}>{time || '—'}</dd>
 							</div>
 						</dl>
 						<p style={{ margin: 0, fontSize: 13, color: 'var(--pb-muted)', lineHeight: 1.5 }}>
-							Seoul time. Visits can be booked from tomorrow for the next 5 days, inside the clinic's working hours. You can cancel a confirmed visit from My Page.
+							{t(
+								"Seoul time. Visits can be booked from tomorrow for the next 5 days, inside the clinic's working hours. You can cancel a confirmed visit from My Page.",
+							)}
 						</p>
 					</section>
 				</aside>
@@ -175,34 +229,58 @@ const Booking: NextPage = () => {
 						<p className="pb-badge pb-badge--warning" style={{ borderRadius: 14, padding: '12px 14px', fontSize: 14 }}>
 							{blocked === 'login' ? (
 								<>
-									Log in as a patient to book. <Link href="/account/join" className="pb-link">Log in</Link>
+									{t('Log in as a patient to book.')}{' '}
+									<Link href="/account/join" className="pb-link">
+										{t('Log in')}
+									</Link>
 								</>
 							) : (
-								'Only patient accounts can book appointments.'
+								t('Only patient accounts can book appointments.')
 							)}
 						</p>
 					)}
 					{error && (
-						<p role="alert" className="pb-badge pb-badge--danger" style={{ borderRadius: 14, padding: '12px 14px', fontSize: 14 }}>
-							{error}
+						<p
+							role="alert"
+							className="pb-badge pb-badge--danger"
+							style={{ borderRadius: 14, padding: '12px 14px', fontSize: 14 }}
+						>
+							{t(error)}
 						</p>
 					)}
 
 					{done ? (
-						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '32px 0', textAlign: 'center' }} className="pb-in">
-							<span className="pb-avatar" style={{ width: 64, height: 64, background: 'var(--pb-success-soft)', color: 'var(--pb-success)' }}>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+								gap: 12,
+								padding: '32px 0',
+								textAlign: 'center',
+							}}
+							className="pb-in"
+						>
+							<span
+								className="pb-avatar"
+								style={{ width: 64, height: 64, background: 'var(--pb-success-soft)', color: 'var(--pb-success)' }}
+							>
 								<Icon name="check" size={30} strokeWidth={2.6} />
 							</span>
 							<h2 className="pb-title" style={{ fontSize: 26 }}>
-								Appointment confirmed
+								{t('Appointment confirmed')}
 							</h2>
 							<p style={{ margin: 0, color: 'var(--pb-muted)' }}>
-								{dayLabel?.weekday}, {dayLabel?.label} at {time} with {name}. The doctor has been notified.
+								{t('{{date}} at {{time}} with {{name}}. The doctor has been notified.', {
+									date: `${dayLabel?.weekday}, ${dayLabel?.label}`,
+									time,
+									name,
+								})}
 							</p>
 							<div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
 								{bookedId && (
 									<Link href={`/appointment?id=${bookedId}`} className="pb-btn pb-btn--primary">
-										View confirmation
+										{t('View confirmation')}
 									</Link>
 								)}
 								{bookedId && (
@@ -211,11 +289,11 @@ const Booking: NextPage = () => {
 										className="pb-btn pb-btn--outline"
 										onClick={() => downloadAppointmentPdf(bookedId).catch((err) => sweetErrorHandling(err))}
 									>
-										Download PDF
+										{t('Download PDF')}
 									</button>
 								)}
 								<Link href="/mypage?category=myAppointments" className="pb-btn pb-btn--light">
-									My appointments
+									{t('My appointments')}
 								</Link>
 							</div>
 						</div>
@@ -224,10 +302,14 @@ const Booking: NextPage = () => {
 							{step === 0 && (
 								<>
 									<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-										<h2 style={{ margin: 0, fontSize: 18 }}>Choose a day</h2>
+										<h2 style={{ margin: 0, fontSize: 18 }}>{t('Choose a day')}</h2>
 										{availability === null && <EcgLine small />}
-										{availability?.length === 0 && <p className="pb-empty">This doctor cannot be booked right now.</p>}
-										<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))', gap: 8 }}>
+										{availability?.length === 0 && (
+											<p className="pb-empty">{t('This doctor cannot be booked right now.')}</p>
+										)}
+										<div
+											style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))', gap: 8 }}
+										>
 											{days.map(({ value, weekday, label, day }) => {
 												const free = day.slots.filter((slot) => slot.available).length;
 												const closed = !day.isOpen;
@@ -245,23 +327,29 @@ const Booking: NextPage = () => {
 													>
 														<span style={{ fontSize: 12, opacity: 0.8 }}>{weekday}</span>
 														<span style={{ fontSize: 15 }}>{label}</span>
-														<small>{closed ? 'Closed' : free === 0 ? 'Full' : `${free} free`}</small>
+														<small>
+															{closed ? t('Closed') : free === 0 ? t('Full') : t('{{count}} free', { count: free })}
+														</small>
 													</button>
 												);
 											})}
 										</div>
 									</div>
 									<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-										<h2 style={{ margin: 0, fontSize: 18 }}>Choose a time</h2>
-										{!selectedDay && availability && availability.length > 0 && <p style={{ margin: 0, color: 'var(--pb-muted)' }}>No free time in the next 5 days.</p>}
-										<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))', gap: 8 }}>
+										<h2 style={{ margin: 0, fontSize: 18 }}>{t('Choose a time')}</h2>
+										{!selectedDay && availability && availability.length > 0 && (
+											<p style={{ margin: 0, color: 'var(--pb-muted)' }}>{t('No free time in the next 5 days.')}</p>
+										)}
+										<div
+											style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))', gap: 8 }}
+										>
 											{selectedDay?.slots.map((slot) => (
 												<button
 													key={slot.time}
 													type="button"
 													disabled={!slot.available}
 													aria-pressed={time === slot.time}
-													title={slot.available ? undefined : 'Already booked'}
+													title={slot.available ? undefined : t('Already booked')}
 													className={`pb-pill pb-slot ${time === slot.time ? 'pb-pill--active' : ''}`}
 													onClick={() => setTime(slot.time)}
 												>
@@ -276,14 +364,33 @@ const Booking: NextPage = () => {
 							{step === 1 && (
 								<label className="pb-field">
 									<span>
-										Reason for visit <span style={{ color: 'var(--pb-muted)', fontWeight: 500 }}>(optional, 3–500 characters)</span>
+										{t('Reason for visit')}{' '}
+										<span style={{ color: 'var(--pb-muted)', fontWeight: 500 }}>
+											{t('(optional, 3–500 characters)')}
+										</span>
 									</span>
-									<textarea className="pb-textarea" rows={5} maxLength={500} value={reason} placeholder="e.g. Annual check-up and blood pressure follow-up" onChange={(e) => setReason(e.target.value)} />
+									<textarea
+										className="pb-textarea"
+										rows={5}
+										maxLength={500}
+										value={reason}
+										placeholder={t('e.g. Annual check-up and blood pressure follow-up')}
+										onChange={(e) => setReason(e.target.value)}
+									/>
 								</label>
 							)}
 
 							{step === 2 && (
-								<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, padding: 18, borderRadius: 16, background: 'var(--pb-bg)' }}>
+								<div
+									style={{
+										display: 'grid',
+										gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+										gap: 14,
+										padding: 18,
+										borderRadius: 16,
+										background: 'var(--pb-bg)',
+									}}
+								>
 									{[
 										['Doctor', name],
 										['Clinic', doctor?.clinicData?.clinicName ?? '—'],
@@ -292,29 +399,54 @@ const Booking: NextPage = () => {
 										['Reason', reasonText || '—'],
 									].map(([label, value]) => (
 										<div key={label}>
-											<span style={{ fontSize: 12, fontWeight: 700, color: 'var(--pb-muted)' }}>{label}</span>
+											<span style={{ fontSize: 12, fontWeight: 700, color: 'var(--pb-muted)' }}>{t(label)}</span>
 											<div style={{ fontWeight: 800 }}>{value}</div>
 										</div>
 									))}
 								</div>
 							)}
 
-							<div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, paddingTop: 18, borderTop: '1px solid var(--pb-line)' }}>
-								<button type="button" className="pb-btn pb-btn--light" disabled={step === 0} onClick={() => setStep(step - 1)} style={{ boxShadow: 'inset 0 0 0 1px #c9dce8' }}>
-									Back
+							<div
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+									gap: 10,
+									paddingTop: 18,
+									borderTop: '1px solid var(--pb-line)',
+								}}
+							>
+								<button
+									type="button"
+									className="pb-btn pb-btn--light"
+									disabled={step === 0}
+									onClick={() => setStep(step - 1)}
+									style={{ boxShadow: 'inset 0 0 0 1px #c9dce8' }}
+								>
+									{t('Back')}
 								</button>
 								{step < 2 ? (
-									<button type="button" className="pb-btn pb-btn--primary" disabled={(step === 0 && !time) || (step === 1 && !reasonOk)} onClick={() => setStep(step + 1)}>
-										Continue <Icon name="arrow" className="pb-arrow" />
+									<button
+										type="button"
+										className="pb-btn pb-btn--primary"
+										disabled={(step === 0 && !time) || (step === 1 && !reasonOk)}
+										onClick={() => setStep(step + 1)}
+									>
+										{t('Continue')} <Icon name="arrow" className="pb-arrow" />
 									</button>
 								) : (
-									<button type="button" className="pb-btn pb-btn--primary" disabled={!!blocked || booking} onClick={confirmHandler} aria-busy={booking}>
+									<button
+										type="button"
+										className="pb-btn pb-btn--primary"
+										disabled={!!blocked || booking}
+										onClick={confirmHandler}
+										aria-busy={booking}
+									>
 										{booking ? (
 											<>
-												<EcgLine small /> Booking…
+												<EcgLine small /> {t('Booking…')}
 											</>
 										) : (
-											'Confirm booking'
+											t('Confirm booking')
 										)}
 									</button>
 								)}

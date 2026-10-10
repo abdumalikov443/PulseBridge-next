@@ -10,12 +10,13 @@ import { MemberType } from '../../enums/member.enum';
 import NotificationMenu from '../common/NotificationMenu';
 import Avatar from '../ui/Avatar';
 import Icon from '../ui/Icon';
+import Flag from '../ui/Flag';
 import { sweetActionConfirmAlert } from '../../sweetAlert';
 
 const languages = [
 	{ id: 'en', label: 'English' },
 	{ id: 'kr', label: '한국어' },
-	{ id: 'ru', label: 'Русский' },
+	{ id: 'uz', label: "O'zbekcha" },
 ];
 
 const PbHeader = () => {
@@ -58,7 +59,8 @@ const PbHeader = () => {
 
 	// asks first; on phones tel: opens the dialer, on desktops the system call app (if any)
 	const emergencyHandler = async () => {
-		if (await sweetActionConfirmAlert(t('Call 119 (ambulance and fire) now?'), t('Call 119'))) window.location.href = 'tel:119';
+		if (await sweetActionConfirmAlert(t('Call 119 (ambulance and fire) now?'), t('Call 119')))
+			window.location.href = 'tel:119';
 	};
 
 	const isActive = (href: string) => (href === '/' ? router.pathname === '/' : router.pathname.startsWith(href));
@@ -72,7 +74,7 @@ const PbHeader = () => {
 	return (
 		<header className="pb-header">
 			<div className="pb-container pb-header__bar">
-				<Link href="/" className="pb-brand" aria-label="PulseBridge home">
+				<Link href="/" className="pb-brand" aria-label={t('PulseBridge home')}>
 					<span className="pb-brand__mark" aria-hidden="true">
 						<Icon name="pulse" size={22} />
 					</span>
@@ -88,7 +90,7 @@ const PbHeader = () => {
 					</span>
 				</Link>
 
-				<nav aria-label="Main" className={`pb-header__nav ${menuOpen ? 'pb-header__nav--open' : ''}`}>
+				<nav aria-label={t('Main')} className={`pb-header__nav ${menuOpen ? 'pb-header__nav--open' : ''}`}>
 					{nav.map((item) => (
 						<Link
 							key={item.href}
@@ -106,22 +108,34 @@ const PbHeader = () => {
 				</nav>
 
 				<div className="pb-header__actions">
-					<button type="button" className="pb-emergency" onClick={emergencyHandler} aria-label={t('Call emergency 119')}>
+					<button
+						type="button"
+						className="pb-emergency"
+						onClick={emergencyHandler}
+						aria-label={t('Call emergency 119')}
+					>
 						<Icon name="asterisk" size={14} />
 						<span className="pb-emergency__label">{t('Emergency')}:&nbsp;</span>
 						<b>119</b>
 					</button>
 					<button
 						type="button"
-						className="pb-icon-btn"
-						aria-label="Language"
+						className="pb-icon-btn pb-lang-btn"
+						aria-label={t('Language')}
 						onClick={(e) => setLangAnchor(e.currentTarget)}
 					>
-						<span style={{ fontSize: 13, fontWeight: 700 }}>{(router.locale ?? 'en').toUpperCase()}</span>
+						<Flag locale={router.locale ?? 'en'} size={20} />
+						<span>{(router.locale ?? 'en').toUpperCase()}</span>
 					</button>
 					<Menu anchorEl={langAnchor} open={Boolean(langAnchor)} onClose={() => setLangAnchor(null)}>
 						{languages.map((lang) => (
-							<MenuItem key={lang.id} selected={router.locale === lang.id} onClick={() => changeLanguage(lang.id)}>
+							<MenuItem
+								key={lang.id}
+								selected={router.locale === lang.id}
+								onClick={() => changeLanguage(lang.id)}
+								sx={{ gap: 1.25 }}
+							>
+								<Flag locale={lang.id} size={22} />
 								{lang.label}
 							</MenuItem>
 						))}
@@ -133,7 +147,7 @@ const PbHeader = () => {
 							<button
 								type="button"
 								className="pb-header__user"
-								aria-label="Account menu"
+								aria-label={t('Account menu')}
 								onClick={(e) => setUserAnchor(e.currentTarget)}
 							>
 								<Avatar
@@ -146,16 +160,20 @@ const PbHeader = () => {
 								<MenuItem disabled>{user.memberNick}</MenuItem>
 								<MenuItem onClick={() => router.push('/mypage')}>{t('My Page')}</MenuItem>
 								{user.memberType === MemberType.ADMIN && (
-									<MenuItem onClick={() => router.push('/_admin/users')}>Admin</MenuItem>
+									<MenuItem onClick={() => router.push('/_admin/users')}>{t('Admin')}</MenuItem>
 								)}
 								<MenuItem onClick={() => logOut()}>
 									<Icon name="logout" size={16} />
-									<span style={{ marginLeft: 8 }}>Logout</span>
+									<span style={{ marginLeft: 8 }}>{t('Logout')}</span>
 								</MenuItem>
 							</Menu>
 						</>
 					) : (
-						<Link href="/account/join" className="pb-btn pb-btn--primary pb-btn--sm pb-header__login" aria-label={t('Sign In / Book Consult')}>
+						<Link
+							href="/account/join"
+							className="pb-btn pb-btn--primary pb-btn--sm pb-header__login"
+							aria-label={t('Sign In / Book Consult')}
+						>
 							<Icon name="userPlus" size={16} />
 							<span>{t('Sign In / Book')}</span>
 						</Link>
@@ -164,7 +182,7 @@ const PbHeader = () => {
 					<button
 						type="button"
 						className="pb-icon-btn pb-header__burger"
-						aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+						aria-label={menuOpen ? t('Close menu') : t('Open menu')}
 						aria-expanded={menuOpen}
 						onClick={() => setMenuOpen((prev) => !prev)}
 					>

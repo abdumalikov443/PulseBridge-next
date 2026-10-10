@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Icon, { IconName } from '../ui/Icon';
@@ -32,18 +33,24 @@ const sections: { title: string; links: MenuLink[] }[] = [
 
 const AdminMenuList = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 
 	return (
-		<nav aria-label="Admin" className="pb-admin__nav">
+		<nav aria-label={t('Admin')} className="pb-admin__nav">
 			{sections.map((section) => (
 				<div key={section.title} className="pb-admin__group">
-					<span className="pb-admin__group-title">{section.title}</span>
+					<span className="pb-admin__group-title">{t(section.title)}</span>
 					{section.links.map((link) => {
 						const active = router.pathname.startsWith(link.href);
 						return (
-							<Link key={link.href} href={link.href} className={`pb-admin__link ${active ? 'pb-admin__link--active' : ''}`} aria-current={active ? 'page' : undefined}>
+							<Link
+								key={link.href}
+								href={link.href}
+								className={`pb-admin__link ${active ? 'pb-admin__link--active' : ''}`}
+								aria-current={active ? 'page' : undefined}
+							>
 								<Icon name={link.icon} size={17} />
-								{link.label}
+								{t(link.label)}
 							</Link>
 						);
 					})}

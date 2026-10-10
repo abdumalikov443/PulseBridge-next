@@ -4,7 +4,12 @@ import moment from 'moment';
 import { useTranslation } from 'next-i18next';
 import { useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
-import { GET_CLINIC_APPOINTMENTS, GET_DOCTOR_APPOINTMENTS, GET_DOCTORS, GET_MY_APPOINTMENTS } from '../../../apollo/user/query';
+import {
+	GET_CLINIC_APPOINTMENTS,
+	GET_DOCTOR_APPOINTMENTS,
+	GET_DOCTORS,
+	GET_MY_APPOINTMENTS,
+} from '../../../apollo/user/query';
 import { MemberType } from '../../enums/member.enum';
 import { AppointmentStatus } from '../../enums/appointment.enum';
 import { DoctorSpecialty } from '../../enums/doctor.enum';
@@ -17,8 +22,13 @@ import Avatar from '../ui/Avatar';
 import Icon from '../ui/Icon';
 
 export const specialtyHref = (specialty: DoctorSpecialty) =>
-	`/doctor?input=${JSON.stringify({ page: 1, limit: 10, sort: 'createdAt', direction: 'DESC', search: { specialtyList: [specialty] } })}`;
-
+	`/doctor?input=${JSON.stringify({
+		page: 1,
+		limit: 10,
+		sort: 'createdAt',
+		direction: 'DESC',
+		search: { specialtyList: [specialty] },
+	})}`;
 
 const HomeHero = () => {
 	const { t } = useTranslation('common');
@@ -48,7 +58,13 @@ const HomeHero = () => {
 		fetchPolicy: 'network-only',
 		skip: !(isPatient || isDoctor || isClinic),
 		variables: {
-			input: { page: 1, limit: 1, sort: 'appointmentDate', direction: 'ASC', search: { appointmentStatus: AppointmentStatus.CONFIRMED } },
+			input: {
+				page: 1,
+				limit: 1,
+				sort: 'appointmentDate',
+				direction: 'ASC',
+				search: { appointmentStatus: AppointmentStatus.CONFIRMED },
+			},
 		},
 	});
 	const nextVisit: Appointment | null = visitData?.[visitQuery.key]?.list?.[0] ?? null;
@@ -96,8 +112,16 @@ const HomeHero = () => {
 
 					{topDoctor && (
 						<div className="pb-care__doctor">
-							<Link href={`/doctor/detail?id=${topDoctor._id}`} style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1, minWidth: 0 }}>
-								<Avatar name={getMemberName(topDoctor.memberData)} image={topDoctor.memberData?.memberImage} size={48} radius={16} />
+							<Link
+								href={`/doctor/detail?id=${topDoctor._id}`}
+								style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1, minWidth: 0 }}
+							>
+								<Avatar
+									name={getMemberName(topDoctor.memberData)}
+									image={topDoctor.memberData?.memberImage}
+									size={48}
+									radius={16}
+								/>
 								<span style={{ minWidth: 0 }}>
 									<strong style={{ display: 'block' }}>{getMemberName(topDoctor.memberData)}</strong>
 									<small>
@@ -130,7 +154,11 @@ const HomeHero = () => {
 								</strong>
 								<span>
 									{staff
-										? `${getMemberName(nextVisit.memberData)}${isClinic && nextVisit.doctorData ? ` · Dr. ${getMemberName(nextVisit.doctorData.memberData)}` : ''}`
+										? `${getMemberName(nextVisit.memberData)}${
+												isClinic && nextVisit.doctorData
+													? ` · ${t('Dr.')} ${getMemberName(nextVisit.doctorData.memberData)}`
+													: ''
+										  }`
 										: nextVisit.clinicData?.clinicName}
 								</span>
 							</span>
@@ -144,7 +172,9 @@ const HomeHero = () => {
 							<span style={{ minWidth: 0 }}>
 								<small>{t('Your schedule')}</small>
 								<strong>{t('No booked visits yet')}</strong>
-								<span>{isClinic ? t('Patients book your doctors here') : t('Patients book you from your profile')}</span>
+								<span>
+									{isClinic ? t('Patients book your doctors here') : t('Patients book you from your profile')}
+								</span>
 							</span>
 							<Icon name="arrow" className="pb-arrow" />
 						</Link>
