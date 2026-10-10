@@ -55,7 +55,7 @@ const HomeSpecialties = () => {
 					<p className="pb-section-sub">{t('Doctors grouped by their medical field')}</p>
 				</div>
 				<Link href="/doctor" className="pb-more">
-					{t('All doctors')} <Icon name="arrow" size={16} className="pb-arrow" />
+					{t('Explore all')} <Icon name="arrow" size={16} className="pb-arrow" />
 				</Link>
 			</div>
 			{/* endless row: the tiles run twice so the loop has no gap; it stops while hovered or focused */}

@@ -1098,3 +1098,122 @@
 	color: var(--pb-deep) !important;
 	box-shadow: inset 0 0 0 1.5px var(--pb-line);
 }
+
+/* clinic location: Kakao map (SDK or iframe), address and links to Kakao / Naver Map */
+.pb-map {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	&__frame {
+		position: relative;
+		height: 320px;
+		border-radius: 20px;
+		overflow: hidden;
+		background: var(--pb-soft-1);
+		box-shadow: inset 0 0 0 1px var(--pb-line);
+	}
+	&__canvas,
+	&__iframe {
+		display: block;
+		width: 100%;
+		height: 100%;
+		border: 0;
+	}
+	&__placeholder {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		padding: 16px;
+		text-align: center;
+		color: var(--pb-deep);
+		strong {
+			font-size: 15px;
+		}
+		span {
+			font-size: 13px;
+			color: var(--pb-muted);
+		}
+		// with the iframe the placeholder is only for phones
+		&.is-fallback {
+			display: none;
+		}
+	}
+	&__foot {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+	}
+	&__address {
+		display: inline-flex;
+		align-items: flex-start;
+		gap: 6px;
+		min-width: 0;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--pb-ink);
+		svg {
+			flex: none;
+			margin-top: 2px;
+			color: var(--pb-deep);
+		}
+	}
+	&__links {
+		display: flex;
+		gap: 8px;
+	}
+	@media (max-width: $pb-phone) {
+		&__frame {
+			height: 220px;
+		}
+		&__frame.is-iframe {
+			height: 160px;
+		}
+		&__iframe {
+			display: none;
+		}
+		&__placeholder.is-fallback {
+			display: flex;
+		}
+		&__links {
+			width: 100%;
+			> * {
+				flex: 1;
+			}
+		}
+	}
+}
+
+@media (max-width: $pb-phone) {
+	:root {
+		--pb-gutter: 16px;
+	}
+}
+
+/* phones: tab rows stay on one line and scroll sideways instead of wrapping */
+@media (max-width: $pb-phone) {
+	.pb-pills[role='tablist'] {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		scrollbar-width: none;
+		margin-left: calc(-1 * var(--pb-gutter));
+		margin-right: calc(-1 * var(--pb-gutter));
+		padding-left: var(--pb-gutter) !important;
+		padding-right: var(--pb-gutter) !important;
+		scroll-padding: 0 var(--pb-gutter);
+		&::-webkit-scrollbar {
+			display: none;
+		}
+		> * {
+			flex: none;
+		}
+	}
+	.pb-map__links .pb-btn--light {
+		box-shadow: inset 0 0 0 1.5px var(--pb-line);
+	}
+}

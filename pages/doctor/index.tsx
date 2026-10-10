@@ -152,8 +152,9 @@ const DoctorList: NextPage = () => {
 				)}
 			</div>
 
-			<p style={{ margin: '20px 0 12px', fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
-				{total} doctor{total === 1 ? '' : 's'} found
+			<p style={{ margin: '20px 0 12px', minHeight: 20, fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
+				{/* the count waits for the first answer, so "0 found" never flashes while loading */}
+				{doctors !== null && !(loading && doctors.length === 0) && `${total} doctor${total === 1 ? '' : 's'} found`}
 			</p>
 
 			<div className="pb-grid">

@@ -10,6 +10,7 @@ import { T } from '../../types/common';
 import { REACT_APP_API_URL } from '../../config';
 import { formatEnum } from '../../utils';
 import ActionChips from '../ui/ActionChips';
+import { kakaoMapUrl } from '../../maps';
 import Icon from '../ui/Icon';
 
 const covers = ['linear-gradient(135deg, #1f4f6b, #10283a)', 'linear-gradient(135deg, #a07a5c, #6f5039)', 'linear-gradient(135deg, #8a88b8, #5d5b8c)', 'linear-gradient(135deg, #3f8f7d, #24594d)'];
@@ -79,7 +80,7 @@ const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCa
 			<div className="pb-clinic-card__foot">
 				<ActionChips likes={likes} views={clinic.clinicViews} liked={liked} onLike={onLike} />
 				<a
-					href={`https://www.google.com/maps/search/${encodeURIComponent(clinic.clinicAddress)}`}
+					href={kakaoMapUrl(clinic.clinicAddress)}
 					target="_blank"
 					rel="noreferrer"
 					className="pb-btn pb-btn--outline pb-btn--sm"

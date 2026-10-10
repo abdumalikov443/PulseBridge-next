@@ -11,6 +11,7 @@ import DoctorCard from '../../libs/components/cards/DoctorCard';
 import Avatar from '../../libs/components/ui/Avatar';
 import ActionChips from '../../libs/components/ui/ActionChips';
 import Icon from '../../libs/components/ui/Icon';
+import ClinicMap from '../../libs/components/common/ClinicMap';
 import FollowButton from '../../libs/components/ui/FollowButton';
 import FollowModal, { FollowMode } from '../../libs/components/common/FollowModal';
 import { FollowGroup } from '../../libs/enums/follow.enum';
@@ -78,7 +79,6 @@ const ClinicDetail: NextPage = () => {
 	const schedule = withScheduleDefaults(clinic);
 	const followers = (clinic.clinicFollowers ?? 0) + followDelta;
 	const followings = clinic.memberData?.memberFollowings ?? 0;
-	const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(clinic.clinicAddress)}`;
 	const tabs: { id: Tab; label: string }[] = [
 		{ id: 'overview', label: 'Overview' },
 		{ id: 'doctors', label: `Doctors (${clinic.clinicDoctors})` },
@@ -221,25 +221,7 @@ const ClinicDetail: NextPage = () => {
 								<h2 className="pb-title" style={{ fontSize: 22 }}>
 									Location
 								</h2>
-								<a
-									href={mapsUrl}
-									target="_blank"
-									rel="noreferrer"
-									className="pb-media"
-									style={{
-										height: 180,
-										background: 'var(--pb-soft-1)',
-										alignItems: 'center',
-										justifyContent: 'center',
-										flexDirection: 'column',
-										gap: 8,
-										color: 'var(--pb-deep)',
-									}}
-								>
-									<Icon name="pin" size={32} />
-									<span style={{ fontWeight: 700 }}>{clinic.clinicAddress}</span>
-									<span style={{ fontSize: 13 }}>Open in Google Maps</span>
-								</a>
+								<ClinicMap address={clinic.clinicAddress} name={clinic.clinicName} />
 							</section>
 						</>
 					)}

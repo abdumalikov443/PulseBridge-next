@@ -1025,3 +1025,116 @@ button.pb-emergency {
 		}
 	}
 }
+
+/* phones: one header row (brand, language, bell, avatar, menu); 119 moves into the menu */
+.pb-header__sos {
+	display: none !important;
+}
+@media (max-width: $pb-phone) {
+	.pb-header__bar {
+		gap: 8px;
+		min-height: 64px;
+	}
+	.pb-header__actions {
+		gap: 4px;
+	}
+	.pb-header .pb-icon-btn {
+		min-width: 38px;
+		height: 38px;
+		border-radius: 12px;
+	}
+	.pb-header__login {
+		width: 38px !important;
+		height: 38px;
+		min-height: 38px;
+	}
+	.pb-header__user .pb-avatar,
+	.pb-header__user > * {
+		width: 36px !important;
+		height: 36px !important;
+	}
+	.pb-brand {
+		gap: 8px;
+		min-width: 0;
+		&__mark {
+			width: 36px;
+			height: 36px;
+			border-radius: 11px;
+		}
+		&__name {
+			font-size: 17px;
+		}
+	}
+	.pb-header__nav {
+		margin-bottom: 10px;
+	}
+	.pb-header__sos {
+		display: inline-flex !important;
+		align-items: center;
+		gap: 8px;
+		margin-top: 4px;
+		background: var(--pb-warning-soft) !important;
+		color: var(--pb-warning) !important;
+		svg {
+			color: var(--pb-accent);
+		}
+	}
+}
+
+/* phones: a short footer (brand line, links in two columns, one bottom line) */
+@media (max-width: $pb-phone) {
+	.pb-footer {
+		margin-top: 48px;
+		&__grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 20px 12px;
+			padding-top: 28px;
+			padding-bottom: 20px;
+		}
+		&__brand {
+			grid-column: 1 / -1;
+			p {
+				margin-top: 8px;
+				font-size: 13px;
+				max-width: none;
+			}
+		}
+		&__col {
+			gap: 8px;
+			font-size: 13px;
+			strong {
+				margin-bottom: 2px;
+			}
+		}
+		&__bottom {
+			flex-direction: column;
+			gap: 4px;
+			padding-top: 14px;
+			padding-bottom: 88px;
+			font-size: 12px;
+		}
+	}
+}
+
+// touch screens keep :hover after a tap; header buttons should not stay outlined
+@media (hover: none) {
+	.pb-icon-btn:hover,
+	.pb-header__link:hover {
+		box-shadow: none;
+	}
+}
+// phones: the AI tip is a short single line beside the chat button
+@media (max-width: $pb-phone) {
+	.pb-chat__hint {
+		right: 16px;
+		bottom: 84px;
+		max-width: 230px;
+		padding: 8px 6px 8px 12px;
+		span {
+			display: none;
+		}
+		strong {
+			font-size: 13px;
+		}
+	}
+}

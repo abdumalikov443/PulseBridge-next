@@ -7,6 +7,7 @@ import { useQuery, useReactiveVar } from '@apollo/client';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import Avatar from '../../libs/components/ui/Avatar';
+import { kakaoMapUrl } from '../../libs/maps';
 import Icon from '../../libs/components/ui/Icon';
 import { EcgLine } from '../../libs/components/ui/Loaders';
 import { userVar } from '../../apollo/store';
@@ -101,7 +102,7 @@ const AppointmentPage: NextPage = () => {
 	const day = moment.utc(appointment.appointmentDate);
 	const cancelled = appointment.appointmentStatus === AppointmentStatus.CANCELLED;
 	const mapsUrl = appointment.clinicData?.clinicAddress
-		? `https://www.google.com/maps/search/${encodeURIComponent(appointment.clinicData.clinicAddress)}`
+		? kakaoMapUrl(appointment.clinicData.clinicAddress)
 		: null;
 
 	return (

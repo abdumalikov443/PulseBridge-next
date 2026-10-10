@@ -139,7 +139,8 @@ const ClinicList: NextPage = () => {
 			</div>
 
 			<p style={{ margin: '4px 0 12px', fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
-				{total} clinic{total === 1 ? '' : 's'} found
+				{/* the count waits for the first answer, so "0 found" never flashes while loading */}
+				{clinics !== null && !(loading && clinics.length === 0) && `${total} clinic${total === 1 ? '' : 's'} found`}
 			</p>
 
 			<div className="pb-grid pb-grid--wide">

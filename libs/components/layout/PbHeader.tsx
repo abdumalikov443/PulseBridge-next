@@ -45,6 +45,15 @@ const PbHeader = () => {
 		setMenuOpen(false);
 	}, [router.asPath]);
 
+	// the open menu covers the page on phones; scrolling away closes it
+	useEffect(() => {
+		if (!menuOpen) return;
+		const start = window.scrollY;
+		const onScroll = () => Math.abs(window.scrollY - start) > 80 && setMenuOpen(false);
+		window.addEventListener('scroll', onScroll, { passive: true });
+		return () => window.removeEventListener('scroll', onScroll);
+	}, [menuOpen]);
+
 	/** HANDLERS **/
 
 	// asks first; on phones tel: opens the dialer, on desktops the system call app (if any)
@@ -89,6 +98,11 @@ const PbHeader = () => {
 							{item.label}
 						</Link>
 					))}
+					{/* phones hide the emergency chip, so it lives in the menu there */}
+					<button type="button" className="pb-header__link pb-header__sos" onClick={emergencyHandler}>
+						<Icon name="asterisk" size={14} />
+						{t('Emergency')}: 119
+					</button>
 				</nav>
 
 				<div className="pb-header__actions">
