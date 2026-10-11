@@ -30,6 +30,12 @@ const useNextSlot = (doctorId: string) => {
 	return next;
 };
 
+// the card shows the first two words of the clinic name; the doctor page shows it in full
+const shortName = (name: string) => {
+	const words = name.trim().split(/\s+/);
+	return words.length > 2 ? `${words.slice(0, 2).join(' ')}…` : name;
+};
+
 interface DoctorCardProps {
 	doctor: Doctor;
 	liked: boolean;
@@ -54,9 +60,12 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 					<span className="pb-doc-card__spec">{formatEnum(doctor.specialty)}</span>
 				</span>
 			</Link>
-			<span className="pb-doc-card__meta">
+			<span className="pb-doc-card__meta pb-doc-card__meta--one" title={doctor.clinicData?.clinicName}>
 				<Icon name="clinic" size={15} />
-				{doctor.clinicData?.clinicName ?? t('No clinic yet')} · {doctor.experience} {t('yrs of exp')}
+				<span>
+					{doctor.clinicData ? shortName(doctor.clinicData.clinicName) : t('No clinic yet')} · {doctor.experience}{' '}
+					{t('yrs of exp')}
+				</span>
 			</span>
 			<div className="pb-doc-card__next">
 				<span>{t('Next available')}</span>

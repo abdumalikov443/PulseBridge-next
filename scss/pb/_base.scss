@@ -727,6 +727,13 @@
 		font-size: 15px;
 		line-height: 1.6;
 		color: var(--pb-muted);
+		// two lines at most, the rest on the article page
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		overflow: hidden;
+		word-break: break-word;
 	}
 	&__rule {
 		width: 100%;
@@ -1346,4 +1353,12 @@
 // pills rendered as links (help center tabs): the link color must not override the active white text
 a.pb-pill--active {
 	color: #fff !important;
+}
+
+// doctor card: the clinic line always stays on one line (the text is a flex item, so it gets the ellipsis)
+.pb-doc-card__meta--one > span {
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
