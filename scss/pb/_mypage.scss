@@ -555,3 +555,22 @@
 		}
 	}
 }
+
+// approved request: the doctor now works at this clinic
+.pb-review-request__done {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 14px;
+	border-radius: 14px;
+	background: var(--pb-success-soft);
+	span {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-weight: 700;
+		color: var(--pb-success);
+	}
+}

@@ -90,9 +90,19 @@ const JoinRequests = () => {
 	const canRequest = isDoctor && !doctorProfile?.clinicId && !hasPending;
 
 	/** HANDLERS **/
+	// refetch does not run onCompleted again, so the fresh lists are applied here
 	const refreshAll = async () => {
-		await requestsRefetch({ input: inquiry });
-		if (isDoctor) await profileRefetch();
+		const { data } = await requestsRefetch({ input: inquiry });
+		setRequests(data?.[resultKey]?.list ?? []);
+		setTotal(data?.[resultKey]?.metaCounter?.[0]?.total ?? 0);
+		if (isDoctor) setDoctorProfile((await profileRefetch()).data?.getMyDoctorProfile ?? null);
+	};
+
+	// before approval the doctor has no public page, so the review page is the member profile;
+	// an approved doctor works at this clinic and has a doctor page
+	const openDoctor = (request: ClinicJoinRequest) => {
+		if (request.requestStatus === JoinRequestStatus.APPROVED) router.push(`/doctor/detail?id=${request.doctorId}`);
+		else if (request.doctorData?.memberData) router.push(`/member?memberId=${request.doctorData.memberData._id}`);
 	};
 
 	const run = async (confirmText: string, action: () => Promise<unknown>, doneText?: string) => {
@@ -215,51 +225,46 @@ const JoinRequests = () => {
 						date={request.createdAt}
 						status={formatEnum(request.requestStatus)}
 						tone={tones[request.requestStatus]}
-						// the doctor has no clinic yet, so the review page is the member profile
-						onClick={() =>
-							request.doctorData?.memberData && router.push(`/member?memberId=${request.doctorData.memberData._id}`)
-						}
+						onClick={() => openDoctor(request)}
 						actions={
 							<>
-								<button
-									type="button"
-									className="pb-btn pb-btn--outline pb-btn--sm"
-									onClick={() =>
-										request.doctorData?.memberData &&
-										router.push(`/member?memberId=${request.doctorData.memberData._id}`)
-									}
-								>
+								<button type="button" className="pb-btn pb-btn--outline pb-btn--sm" onClick={() => openDoctor(request)}>
 									<Icon name="eye" size={14} /> {t('Profile')}
 								</button>
-								<button
-									type="button"
-									className="pb-btn pb-btn--primary pb-btn--sm"
-									onClick={() =>
-										run(
-											'Approve this doctor?',
-											() =>
-												respondJoinRequest({
-													variables: { input: { _id: request._id, requestStatus: JoinRequestStatus.APPROVED } },
-												}),
-											'Approved',
-										)
-									}
-								>
-									{t('Approve')}
-								</button>
-								<button
-									type="button"
-									className="pb-btn pb-btn--danger pb-btn--sm"
-									onClick={() =>
-										run('Reject this doctor?', () =>
-											respondJoinRequest({
-												variables: { input: { _id: request._id, requestStatus: JoinRequestStatus.REJECTED } },
-											}),
-										)
-									}
-								>
-									{t('Reject')}
-								</button>
+								{/* only a pending request can be answered */}
+								{request.requestStatus === JoinRequestStatus.PENDING && (
+									<>
+										<button
+											type="button"
+											className="pb-btn pb-btn--primary pb-btn--sm"
+											onClick={() =>
+												run(
+													'Approve this doctor?',
+													() =>
+														respondJoinRequest({
+															variables: { input: { _id: request._id, requestStatus: JoinRequestStatus.APPROVED } },
+														}),
+													'Approved',
+												)
+											}
+										>
+											{t('Approve')}
+										</button>
+										<button
+											type="button"
+											className="pb-btn pb-btn--danger pb-btn--sm"
+											onClick={() =>
+												run('Reject this doctor?', () =>
+													respondJoinRequest({
+														variables: { input: { _id: request._id, requestStatus: JoinRequestStatus.REJECTED } },
+													}),
+												)
+											}
+										>
+											{t('Reject')}
+										</button>
+									</>
+								)}
 							</>
 						}
 					/>

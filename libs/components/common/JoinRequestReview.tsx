@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import moment from 'moment';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { GET_CLINIC_JOIN_REQUESTS } from '../../../apollo/user/query';
@@ -23,6 +25,7 @@ const tones: Record<JoinRequestStatus, string> = {
 // CLINIC owner on a doctor's member page: the doctor's join request with approve / reject.
 // The doctor page (getDoctor) only lists doctors who already have a clinic, so the review happens here.
 const JoinRequestReview = ({ memberId }: { memberId: string }) => {
+	const router = useRouter();
 	const user = useReactiveVar(userVar);
 	const { t } = useTranslation('common');
 	const isClinic = user?.memberType === MemberType.CLINIC;
@@ -35,12 +38,15 @@ const JoinRequestReview = ({ memberId }: { memberId: string }) => {
 		fetchPolicy: 'network-only',
 		skip: !isClinic || !memberId,
 		variables: { input: { page: 1, limit: 50 } },
-		onCompleted: (data: T) => {
-			const list: ClinicJoinRequest[] = data?.getClinicJoinRequests?.list ?? [];
-			const mine = list.filter((ele) => ele.doctorData?.memberData?._id === memberId);
-			setRequest(mine.find((ele) => ele.requestStatus === JoinRequestStatus.PENDING) ?? mine[0] ?? null);
-		},
+		onCompleted: (data: T) => applyRequests(data),
 	});
+
+	// the doctor's latest request to this clinic (a pending one first)
+	function applyRequests(data: T) {
+		const list: ClinicJoinRequest[] = data?.getClinicJoinRequests?.list ?? [];
+		const mine = list.filter((ele) => ele.doctorData?.memberData?._id === memberId);
+		setRequest(mine.find((ele) => ele.requestStatus === JoinRequestStatus.PENDING) ?? mine[0] ?? null);
+	}
 
 	if (!isClinic || !request) return null;
 
@@ -51,8 +57,11 @@ const JoinRequestReview = ({ memberId }: { memberId: string }) => {
 			if (!(await sweetConfirmAlert(approve ? 'Approve this doctor?' : 'Reject this doctor?'))) return;
 			setBusy(true);
 			await respondJoinRequest({ variables: { input: { _id: request._id, requestStatus } } });
-			await refetch();
+			// refetch does not run onCompleted again, so the new status is applied here
+			applyRequests((await refetch()).data);
 			await sweetTopSmallSuccessAlert(approve ? 'Approved' : 'Rejected', 800);
+			// an approved doctor now has a public profile with "Works at" this clinic
+			if (approve) router.push(`/doctor/detail?id=${request.doctorId}`).then();
 		} catch (err: any) {
 			await sweetErrorHandling(err);
 		} finally {
@@ -119,6 +128,16 @@ const JoinRequestReview = ({ memberId }: { memberId: string }) => {
 					>
 						<Icon name="close" size={16} /> {t('Reject')}
 					</button>
+				</div>
+			)}
+			{request.requestStatus === JoinRequestStatus.APPROVED && (
+				<div className="pb-review-request__done">
+					<span>
+						<Icon name="check" size={16} /> {t('Works at your clinic')}
+					</span>
+					<Link href={`/doctor/detail?id=${request.doctorId}`} className="pb-btn pb-btn--outline pb-btn--sm">
+						{t('Open doctor profile')} <Icon name="arrow" size={14} />
+					</Link>
 				</div>
 			)}
 		</section>
