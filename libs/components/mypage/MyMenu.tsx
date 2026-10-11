@@ -18,42 +18,55 @@ interface MenuItemType {
 }
 
 const overview: MenuItemType = { category: 'overview', title: 'Overview', icon: 'clinic' };
+const profile: MenuItemType = { category: 'myProfile', title: 'Profile', icon: 'users' };
 const appointments: MenuItemType = { category: 'myAppointments', title: 'Appointments', icon: 'calendar' };
+const myClinic: MenuItemType = { category: 'myClinic', title: 'My clinic', icon: 'clinic' };
+const clinicDoctors: MenuItemType = { category: 'clinicDoctors', title: 'Doctors', icon: 'users' };
 const joinRequests: MenuItemType = { category: 'joinRequests', title: 'Join requests', icon: 'userPlus' };
+const favorites: MenuItemType = { category: 'myFavorites', title: 'Favorites', icon: 'heart' };
+const recentlyVisited: MenuItemType = { category: 'recentlyVisited', title: 'Recently visited', icon: 'eye' };
+// only doctors and clinics write articles
+const myArticles: MenuItemType = { category: 'myArticles', title: 'My articles', icon: 'comment' };
+const writeArticle: MenuItemType = { category: 'writeArticle', title: 'Write article', icon: 'edit' };
 // only doctor profiles and clinics can be followed
 const followers: MenuItemType = { category: 'followers', title: 'Followers', icon: 'users' };
-const common: MenuItemType[] = [
-	{ category: 'myFavorites', title: 'Favorites', icon: 'heart' },
-	{ category: 'recentlyVisited', title: 'Recently visited', icon: 'eye' },
-	{ category: 'followings', title: 'Following', icon: 'userCheck' },
-	{ category: 'myProfile', title: 'Profile', icon: 'users' },
-];
-// only doctors and clinics write articles
-const articles: MenuItemType[] = [
-	{ category: 'myArticles', title: 'My articles', icon: 'comment' },
-	{ category: 'writeArticle', title: 'Write article', icon: 'edit' },
-];
+const followings: MenuItemType = { category: 'followings', title: 'Following', icon: 'userCheck' };
 
-// menu items depend on the role: patients book, doctors join clinics, clinics manage doctors
+// one order for every role (logout comes last in the menu); items a role cannot use are left out
 export const getMenuItems = (memberType: string): MenuItemType[] => {
 	switch (memberType) {
 		case MemberType.CLINIC:
 			return [
 				overview,
-				{ category: 'myClinic', title: 'My clinic', icon: 'clinic' },
-				{ category: 'clinicDoctors', title: 'Doctors', icon: 'users' },
-				joinRequests,
+				profile,
 				appointments,
+				myClinic,
+				clinicDoctors,
+				joinRequests,
+				favorites,
+				recentlyVisited,
+				myArticles,
+				writeArticle,
 				followers,
-				...articles,
-				...common,
+				followings,
 			];
 		case MemberType.DOCTOR:
-			return [overview, appointments, joinRequests, followers, ...articles, ...common];
+			return [
+				overview,
+				profile,
+				appointments,
+				joinRequests,
+				favorites,
+				recentlyVisited,
+				myArticles,
+				writeArticle,
+				followers,
+				followings,
+			];
 		case MemberType.PATIENT:
-			return [overview, appointments, ...common];
+			return [overview, profile, appointments, favorites, recentlyVisited, followings];
 		default:
-			return [overview, ...common];
+			return [overview, profile, favorites, recentlyVisited, followings];
 	}
 };
 
