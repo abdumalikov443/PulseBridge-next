@@ -20,7 +20,13 @@ const sections: { title: string; links: MenuLink[] }[] = [
 			{ href: '/_admin/appointments', label: 'Appointments', icon: 'calendar' },
 		],
 	},
-	{ title: 'Community', links: [{ href: '/_admin/community', label: 'Articles', icon: 'comment' }] },
+	{
+		title: 'Community',
+		links: [
+			{ href: '/_admin/community', label: 'Articles', icon: 'book' },
+			{ href: '/_admin/comments', label: 'Comments', icon: 'comment' },
+		],
+	},
 	{
 		title: 'Help center',
 		links: [
