@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import { tr } from '../../i18n';
+import { usePublicTargets } from '../../hooks/usePublicTargets';
+import { MemberType } from '../../enums/member.enum';
+import { getMemberName } from '../../config';
 import { useRouter } from 'next/router';
 import { Drawer } from '@mui/material';
 import Moment from 'react-moment';
@@ -41,23 +44,28 @@ const noteText = (text: string): string => {
 	return tr(text);
 };
 
+// where a notification leads: the article, the liked / commented doctor profile or clinic (notificationRefId),
+// the appointment, or the join requests; the author's own member page is never the target
 const sourceOf = (item: Notification): { href: string; label: string } => {
 	if (item.articleId) return { href: `/community/detail?id=${item.articleId}`, label: 'Open article' };
 	switch (item.notificationType) {
 		case NotificationType.APPOINTMENT:
-			return { href: '/mypage?category=myAppointments', label: 'My appointments' };
+			return item.appointmentId
+				? { href: `/appointment?id=${item.appointmentId}`, label: 'Open appointment' }
+				: { href: '/mypage?category=myAppointments', label: 'My appointments' };
 		case NotificationType.DOCTOR_REQUEST:
 			return { href: '/mypage?category=joinRequests', label: 'Join requests' };
 		// someone followed my doctor profile / clinic
 		case NotificationType.FOLLOW:
 			return { href: '/mypage?category=followers', label: 'Your followers' };
 	}
+	if (item.notificationRefId && item.notificationGroup === NotificationGroup.DOCTOR)
+		return { href: `/doctor/detail?id=${item.notificationRefId}`, label: 'Your doctor profile' };
+	if (item.notificationRefId && item.notificationGroup === NotificationGroup.CLINIC)
+		return { href: `/clinic/detail?id=${item.notificationRefId}`, label: 'Your clinic' };
 	if (item.notificationGroup === NotificationGroup.CLINIC)
 		return { href: '/mypage?category=myClinic', label: 'My clinic' };
-	return {
-		href: `/member?memberId=${item.authorId}`,
-		label: tr("{{name}}'s profile", { name: item.authorData?.memberNick ?? tr('Member') }),
-	};
+	return { href: '/mypage', label: 'My Page' };
 };
 
 const NotificationMenu = () => {
@@ -67,6 +75,17 @@ const NotificationMenu = () => {
 	const [onlyUnread, setOnlyUnread] = useState(false);
 	const [notifications, setNotifications] = useState<Notification[]>([]);
 	const [unreadCount, setUnreadCount] = useState<number>(0);
+	// doctors and clinics are named by their public profile (loaded when the drawer opens)
+	const { clinics } = usePublicTargets(!open);
+	const authorName = (item: Notification): string => {
+		const member = item.authorData;
+		if (!member) return '';
+		if (member.memberType === MemberType.CLINIC) {
+			const clinic = clinics.find((ele) => ele.memberId === member._id);
+			if (clinic) return clinic.clinicName;
+		}
+		return getMemberName(member);
+	};
 
 	/** APOLLO REQUESTS **/
 	const [readNotification] = useMutation(READ_NOTIFICATION);
@@ -195,9 +214,7 @@ const NotificationMenu = () => {
 									<span className="pb-note-item__src">
 										<Icon name="arrow" size={12} />
 										{t(source.label)}
-										{item.authorData?.memberNick && (
-											<em> · {t('by {{name}}', { name: item.authorData.memberNick })}</em>
-										)}
+										{authorName(item) && <em> · {t('by {{name}}', { name: authorName(item) })}</em>}
 									</span>
 								</span>
 								<span className="pb-note-item__time">

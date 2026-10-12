@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import Link from 'next/link';
@@ -7,6 +7,8 @@ import { useQuery, useReactiveVar } from '@apollo/client';
 import { Pagination } from '@mui/material';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
+import { MemberType } from '../../libs/enums/member.enum';
+import { usePublicTargets } from '../../libs/hooks/usePublicTargets';
 import FollowModal, { FollowMode } from '../../libs/components/common/FollowModal';
 import PostCard from '../../libs/components/cards/PostCard';
 import Avatar from '../../libs/components/ui/Avatar';
@@ -64,6 +66,27 @@ const MemberPage: NextPage = () => {
 	});
 	const member: Member | null = memberResult?.getMember ?? null;
 
+	// a doctor or clinic with a public page opens there instead of this member page;
+	// a doctor without a clinic (a join request under review) stays here
+	const hasPublicPage = member?.memberType === MemberType.DOCTOR || member?.memberType === MemberType.CLINIC;
+	const { doctors, clinics, loaded: targetsLoaded } = usePublicTargets(!hasPublicPage);
+	const publicHref = useMemo(() => {
+		if (!member || !targetsLoaded) return null;
+		if (member.memberType === MemberType.DOCTOR) {
+			const doctor = doctors.find((ele) => ele.memberId === member._id);
+			return doctor ? `/doctor/detail?id=${doctor._id}` : null;
+		}
+		if (member.memberType === MemberType.CLINIC) {
+			const clinic = clinics.find((ele) => ele.memberId === member._id);
+			return clinic ? `/clinic/detail?id=${clinic._id}` : null;
+		}
+		return null;
+	}, [member, targetsLoaded, doctors, clinics]);
+
+	useEffect(() => {
+		if (publicHref) router.replace(publicHref);
+	}, [publicHref, router]);
+
 	const { data: articleResult, error: articleError } = useQuery(GET_ARTICLES, {
 		fetchPolicy: 'network-only',
 		skip: !memberId || tab !== 'articles',
@@ -72,7 +95,7 @@ const MemberPage: NextPage = () => {
 	const articles: Article[] | null = articleError ? [] : articleResult?.getArticles?.list ?? null;
 	const total: number = articleResult?.getArticles?.metaCounter?.[0]?.total ?? 0;
 
-	if (!member) {
+	if (!member || (hasPublicPage && (!targetsLoaded || publicHref))) {
 		return (
 			<div className="pb-container" style={{ padding: '80px 0', display: 'flex', justifyContent: 'center' }}>
 				<EcgLine />

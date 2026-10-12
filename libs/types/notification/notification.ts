@@ -11,6 +11,8 @@ export interface Notification {
 	notificationDesc?: string;
 	authorId: string;
 	receiverId: string;
+	// doctor / clinic / article the notification is about
+	notificationRefId?: string;
 	articleId?: string;
 	appointmentId?: string;
 	createdAt: Date;

@@ -789,12 +789,15 @@ export const GET_NOTIFICATIONS = gql`
 				notificationDesc
 				authorId
 				receiverId
+				notificationRefId
 				articleId
 				appointmentId
 				createdAt
 				authorData {
 					_id
+					memberType
 					memberNick
+					memberFullName
 					memberImage
 				}
 			}
