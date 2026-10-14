@@ -13,7 +13,7 @@ import ClinicCard from '../libs/components/cards/ClinicCard';
 import PostCard from '../libs/components/cards/PostCard';
 import { SkeletonCards } from '../libs/components/ui/Loaders';
 import Icon from '../libs/components/ui/Icon';
-import { GET_ARTICLES, GET_CLINICS, GET_DOCTORS } from '../apollo/user/query';
+import { GET_ARTICLES, GET_CLINICS, GET_DOCTOR_CARDS } from '../apollo/user/query';
 import { LIKE_TARGET_ARTICLE, LIKE_TARGET_CLINIC, LIKE_TARGET_DOCTOR } from '../apollo/user/mutation';
 import { useLikeToggle } from '../libs/hooks/useEngagement';
 import { Doctor } from '../libs/types/doctor/doctor';
@@ -63,7 +63,7 @@ const Home: NextPage = () => {
 	const articleLikes = useLikeToggle(LIKE_TARGET_ARTICLE);
 
 	/** APOLLO REQUESTS **/
-	useQuery(GET_DOCTORS, {
+	useQuery(GET_DOCTOR_CARDS, {
 		fetchPolicy: 'network-only',
 		variables: { input: { page: 1, limit: 4, sort: 'doctorRank', direction: 'DESC', search: {} } },
 		onCompleted: (data: T) => setDoctors(data?.getDoctors?.list ?? []),

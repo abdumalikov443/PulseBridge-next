@@ -193,7 +193,7 @@ function createIsomorphicLink() {
 const replace = { merge: false };
 const byViewer = { fields: { meLiked: replace, meFollowed: replace } };
 const typePolicies = {
-	Doctor: byViewer,
+	Doctor: { fields: { ...byViewer.fields, nextAvailable: replace } },
 	Clinic: byViewer,
 	Article: { fields: { meLiked: replace } },
 	Follow: { fields: { meFollowed: replace } },

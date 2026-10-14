@@ -26,6 +26,7 @@ import { MemberType } from '../../libs/enums/member.enum';
 import { T } from '../../libs/types/common';
 import { getMemberName } from '../../libs/config';
 import { formatEnum } from '../../libs/utils';
+import { SPECIALTY_INFO } from '../../libs/specialty';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -88,10 +89,18 @@ const DoctorDetail: NextPage = () => {
 			</div>
 
 			<section
-				className="pb-card pb-card--flat pb-in"
+				className={`pb-card pb-card--flat pb-in pb-doc-head pb-spec--${SPECIALTY_INFO[doctor.specialty]?.tone ?? 'blue'}`}
 				style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 28, alignItems: 'center', padding: 28 }}
 			>
-				<Avatar name={name} image={doctor.memberData?.memberImage} size={120} />
+				{/* band in the color of the doctor's specialty, with a heartbeat line */}
+				<div className="pb-doc-head__band" aria-hidden="true">
+					<svg viewBox="0 0 800 50" preserveAspectRatio="none">
+						<path d="M0 28h300l14-20 16 36 14-28 10 12h446" />
+					</svg>
+				</div>
+				<span className="pb-doc-head__avatar">
+					<Avatar name={name} image={doctor.memberData?.memberImage} size={120} radius={34} />
+				</span>
 				<div style={{ flex: '999 1 360px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
 					<h1 className="pb-title" style={{ fontSize: 34 }}>
 						{name}

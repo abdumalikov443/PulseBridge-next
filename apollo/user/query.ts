@@ -315,6 +315,57 @@ export const GET_DOCTORS = gql`
 	}
 `;
 
+// doctor cards: the list with the first free slot of each doctor (one request instead of one per card)
+export const GET_DOCTOR_CARDS = gql`
+	query GetDoctorCards($input: DoctorsInquiry!) {
+		getDoctors(input: $input) {
+			list {
+				_id
+				memberId
+				clinicId
+				specialty
+				experience
+				doctorViews
+				doctorLikes
+				doctorComments
+				doctorFollowers
+				doctorRank
+				nextAvailable {
+					date
+					time
+				}
+				createdAt
+				updatedAt
+				meLiked {
+					memberId
+					likeRefId
+					myFavorite
+				}
+				meFollowed {
+					followerId
+					followRefId
+					myFollowing
+				}
+				memberData {
+					_id
+					memberNick
+					memberFullName
+					memberImage
+				}
+				clinicData {
+					_id
+					clinicType
+					clinicName
+					clinicAddress
+				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
 export const GET_MY_DOCTOR_PROFILE = gql`
 	query GetMyDoctorProfile {
 		getMyDoctorProfile {

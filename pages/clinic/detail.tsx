@@ -20,7 +20,7 @@ import { WEEK_DAYS, WEEK_DAY_LABEL, withScheduleDefaults, workingDaysText } from
 import { formatCount } from '../../libs/components/ui/ActionChips';
 import ClinicJoinButton from '../../libs/components/common/ClinicJoinButton';
 import { EcgLine, SkeletonCards } from '../../libs/components/ui/Loaders';
-import { GET_CLINIC, GET_DOCTORS } from '../../apollo/user/query';
+import { GET_CLINIC, GET_DOCTOR_CARDS } from '../../apollo/user/query';
 import { LIKE_TARGET_CLINIC, LIKE_TARGET_DOCTOR } from '../../apollo/user/mutation';
 import { useFollowing, useLikeToggle } from '../../libs/hooks/useEngagement';
 import { Clinic } from '../../libs/types/clinic/clinic';
@@ -60,7 +60,7 @@ const ClinicDetail: NextPage = () => {
 		onCompleted: (data: T) => setClinic(data?.getClinic ?? null),
 	});
 
-	useQuery(GET_DOCTORS, {
+	useQuery(GET_DOCTOR_CARDS, {
 		fetchPolicy: 'network-only',
 		skip: !clinicId,
 		variables: { input: { page: 1, limit: 30, sort: 'doctorRank', direction: 'DESC', search: { clinicId } } },

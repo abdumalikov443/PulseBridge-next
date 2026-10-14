@@ -236,7 +236,7 @@ const Booking: NextPage = () => {
 									</Link>
 								</>
 							) : (
-								t('Only patient accounts can book appointments.')
+								t('Only patients can book appointments.')
 							)}
 						</p>
 					)}

@@ -23,6 +23,8 @@ export interface Doctor {
 	meFollowed?: MeFollowed[];
 	memberData?: Member;
 	clinicData?: Clinic;
+	// first free slot; only in the card lists (GET_DOCTOR_CARDS), null when there is no free time
+	nextAvailable?: { date: string; time: string } | null;
 }
 
 export interface Doctors {

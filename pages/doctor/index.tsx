@@ -12,7 +12,7 @@ import SortSelect from '../../libs/components/ui/SortSelect';
 import { SPECIALTY_INFO } from '../../libs/specialty';
 import PbPagination from '../../libs/components/ui/PbPagination';
 import { useDebouncedValue } from '../../libs/hooks/useDebouncedValue';
-import { GET_DOCTORS } from '../../apollo/user/query';
+import { GET_DOCTOR_CARDS } from '../../apollo/user/query';
 import { LIKE_TARGET_DOCTOR } from '../../apollo/user/mutation';
 import { useLikeToggle } from '../../libs/hooks/useEngagement';
 import { Doctor } from '../../libs/types/doctor/doctor';
@@ -49,7 +49,7 @@ const DoctorList: NextPage = () => {
 	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_DOCTOR);
 
 	/** APOLLO REQUESTS **/
-	const { loading } = useQuery(GET_DOCTORS, {
+	const { loading } = useQuery(GET_DOCTOR_CARDS, {
 		fetchPolicy: 'network-only',
 		variables: { input },
 		notifyOnNetworkStatusChange: true,

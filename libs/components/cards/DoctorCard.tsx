@@ -53,14 +53,17 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 	const name = getMemberName(doctor.memberData);
 	const detail = `/doctor/detail?id=${doctor._id}`;
 	const cardRef = useRef<HTMLElement>(null);
-	const next = useNextSlot(doctor._id, useInView(cardRef));
+	// card lists get the slot with the doctor (GET_DOCTOR_CARDS); other lists ask for it when the card comes near the screen
+	const known = doctor.nextAvailable !== undefined;
+	const lazyNext = useNextSlot(doctor._id, useInView(cardRef) && !known);
+	const next = known ? doctor.nextAvailable : lazyNext;
 
 	return (
 		<article ref={cardRef} className="pb-card pb-card--hover pb-doc-card" style={style}>
 			<Link href={detail} className="pb-doc-card__top">
 				<Avatar name={name} image={doctor.memberData?.memberImage} size={56} radius={18} />
 				<span style={{ minWidth: 0 }}>
-					<strong className="pb-doc-card__name">{name}</strong>
+					<strong className="pb-doc-card__name">Dr. {name}</strong>
 					<span className="pb-doc-card__spec">{formatEnum(doctor.specialty)}</span>
 				</span>
 			</Link>
@@ -72,7 +75,7 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 				</span>
 			</span>
 			<div className="pb-doc-card__next">
-				<span>{t('Next available')}</span>
+				<span>{t('Next available:')}</span>
 				{next === undefined ? (
 					<b className="is-loading">…</b>
 				) : next ? (
