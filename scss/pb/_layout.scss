@@ -1160,3 +1160,75 @@ button.pb-emergency {
 		}
 	}
 }
+
+/* appointment reminder under the header (visit today or tomorrow) */
+.pb-reminder {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-top: 16px;
+	padding: 12px 14px;
+	border-radius: var(--pb-radius-sm);
+	background: var(--pb-soft-1);
+	box-shadow: inset 0 0 0 1px #cfe3f0;
+	animation: pbIn 0.35s ease both;
+	&.is-today {
+		background: var(--pb-soft-2);
+		box-shadow: inset 0 0 0 1px #f6d3a8;
+		.pb-reminder__icon {
+			background: var(--pb-accent);
+		}
+	}
+	&__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex: none;
+		width: 38px;
+		height: 38px;
+		border-radius: 12px;
+		background: var(--pb-deep);
+		color: #fff;
+	}
+	&__text {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		font-size: 14px;
+		strong {
+			font-size: 12px;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			color: var(--pb-deep);
+		}
+		em {
+			font-style: normal;
+			color: var(--pb-muted);
+		}
+	}
+	&__close {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex: none;
+		width: 32px;
+		height: 32px;
+		border: 0;
+		border-radius: 10px;
+		background: transparent;
+		color: var(--pb-muted);
+		cursor: pointer;
+		&:hover {
+			background: rgba(255, 255, 255, 0.7);
+		}
+	}
+	@media (max-width: $pb-phone) {
+		flex-wrap: wrap;
+		.pb-btn {
+			order: 3;
+			flex: 1;
+		}
+	}
+}

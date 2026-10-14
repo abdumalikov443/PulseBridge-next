@@ -5,6 +5,7 @@ import { useTranslation } from 'next-i18next';
 import PbHeader from './PbHeader';
 import PbFooter from './PbFooter';
 import Chat from '../Chat';
+import AppointmentReminder from '../common/AppointmentReminder';
 
 interface PbShellProps {
 	children: React.ReactNode;
@@ -45,6 +46,7 @@ const PbShell = ({ children }: PbShellProps) => {
 			</Head>
 			<div className="pb-app">
 				<PbHeader />
+				<AppointmentReminder />
 				<main className="pb-main">{children}</main>
 				<Chat />
 				<PbFooter />
