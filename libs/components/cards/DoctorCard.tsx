@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_DOCTOR_AVAILABILITY } from '../../../apollo/user/query';
 import { DayAvailability } from '../../types/appointment/availability';
@@ -12,12 +12,15 @@ import { formatEnum } from '../../utils';
 import Avatar from '../ui/Avatar';
 import ActionChips from '../ui/ActionChips';
 import Icon from '../ui/Icon';
+import { useInView } from '../../hooks/useInView';
 
-// first free 30-minute slot from the doctor's availability (next 5 days from tomorrow)
-const useNextSlot = (doctorId: string) => {
+// first free 30-minute slot from the doctor's availability (next 5 days from tomorrow);
+// asked only once the card comes near the screen, so a long list does not send one request per card at once
+const useNextSlot = (doctorId: string, visible: boolean) => {
 	const [next, setNext] = useState<{ date: string; time: string } | null | undefined>(undefined);
 	useQuery(GET_DOCTOR_AVAILABILITY, {
 		fetchPolicy: 'network-only',
+		skip: !visible,
 		variables: { doctorId },
 		onCompleted: (data: T) => {
 			const days: DayAvailability[] = data?.getDoctorAvailability ?? [];
@@ -49,10 +52,11 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 	const { t } = useTranslation('common');
 	const name = getMemberName(doctor.memberData);
 	const detail = `/doctor/detail?id=${doctor._id}`;
-	const next = useNextSlot(doctor._id);
+	const cardRef = useRef<HTMLElement>(null);
+	const next = useNextSlot(doctor._id, useInView(cardRef));
 
 	return (
-		<article className="pb-card pb-card--hover pb-doc-card" style={style}>
+		<article ref={cardRef} className="pb-card pb-card--hover pb-doc-card" style={style}>
 			<Link href={detail} className="pb-doc-card__top">
 				<Avatar name={name} image={doctor.memberData?.memberImage} size={56} radius={18} />
 				<span style={{ minWidth: 0 }}>

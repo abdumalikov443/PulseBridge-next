@@ -26,7 +26,7 @@ const Avatar = ({ name = '', image, size = 52, radius = '50%' }: AvatarProps) =>
 			className="pb-avatar"
 			style={{ width: size, height: size, borderRadius: radius, background: tint, fontSize: Math.round(size * 0.34) }}
 		>
-			{image ? <img src={`${REACT_APP_API_URL}/${image}`} alt="" /> : initials || '?'}
+			{image ? <img src={`${REACT_APP_API_URL}/${image}`} alt="" loading="lazy" decoding="async" /> : initials || '?'}
 		</span>
 	);
 };

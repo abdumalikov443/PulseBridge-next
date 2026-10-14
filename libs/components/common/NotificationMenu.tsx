@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import { tr } from '../../i18n';
 import { usePublicTargets } from '../../hooks/usePublicTargets';
@@ -76,7 +76,15 @@ const NotificationMenu = () => {
 	const [notifications, setNotifications] = useState<Notification[]>([]);
 	const [unreadCount, setUnreadCount] = useState<number>(0);
 	// doctors and clinics are named by their public profile (loaded when the drawer opens)
-	const { clinics } = usePublicTargets(!open);
+	const hasClinicAuthor = notifications.some((item) => item.authorData?.memberType === MemberType.CLINIC);
+	const { clinics } = usePublicTargets(!open || !hasClinicAuthor);
+	// polling stops while the browser tab is hidden and starts again when it is shown
+	const [pageVisible, setPageVisible] = useState(true);
+	useEffect(() => {
+		const update = () => setPageVisible(document.visibilityState !== 'hidden');
+		document.addEventListener('visibilitychange', update);
+		return () => document.removeEventListener('visibilitychange', update);
+	}, []);
 	const authorName = (item: Notification): string => {
 		const member = item.authorData;
 		if (!member) return '';
@@ -96,7 +104,7 @@ const NotificationMenu = () => {
 		variables: {
 			input: { page: 1, limit: LIMIT, search: onlyUnread ? { notificationStatus: NotificationStatus.WAIT } : {} },
 		},
-		pollInterval: POLL_INTERVAL,
+		pollInterval: pageVisible ? POLL_INTERVAL : 0,
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => setNotifications(data?.getNotifications?.list ?? []),
 	});
@@ -104,7 +112,7 @@ const NotificationMenu = () => {
 	const { refetch: unreadRefetch } = useQuery(GET_NOTIFICATIONS, {
 		fetchPolicy: 'network-only',
 		variables: { input: { page: 1, limit: 1, search: { notificationStatus: NotificationStatus.WAIT } } },
-		pollInterval: POLL_INTERVAL,
+		pollInterval: pageVisible ? POLL_INTERVAL : 0,
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => setUnreadCount(data?.getNotifications?.metaCounter?.[0]?.total ?? 0),
 	});

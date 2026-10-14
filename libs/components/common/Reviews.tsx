@@ -42,7 +42,11 @@ const Reviews = ({ refId, group, ownerMemberId, onPosted, onTotal, title = 'Revi
 	// the form stays folded until the button is pressed
 	const [writing, setWriting] = useState(false);
 	const isReview = title === 'Reviews';
-	const { doctors, clinics } = usePublicTargets(comments.length === 0);
+	// the public doctor / clinic lists are needed only when a doctor or a clinic wrote one of the comments
+	const hasStaffAuthor = comments.some(
+		(ele) => ele.memberData?.memberType === MemberType.DOCTOR || ele.memberData?.memberType === MemberType.CLINIC,
+	);
+	const { doctors, clinics } = usePublicTargets(!hasStaffAuthor);
 
 	// doctors and clinics are shown by their public profile; patients have no profile link
 	const authorOf = useMemo(() => {

@@ -876,3 +876,19 @@ export const GET_NOTICES = gql`
 		}
 	}
 `;
+
+// a light doctor list for counts and clinic tags (specialty counts, home stats, clinic card tags)
+export const GET_DOCTOR_INDEX = gql`
+	query GetDoctorIndex($input: DoctorsInquiry!) {
+		getDoctors(input: $input) {
+			list {
+				_id
+				specialty
+				clinicId
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;

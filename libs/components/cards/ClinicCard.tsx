@@ -11,9 +11,15 @@ import { REACT_APP_API_URL } from '../../config';
 import { formatEnum } from '../../utils';
 import ActionChips from '../ui/ActionChips';
 import { kakaoMapUrl } from '../../maps';
+import { useDoctorIndex } from '../../hooks/useDoctorIndex';
 import Icon from '../ui/Icon';
 
-const covers = ['linear-gradient(135deg, #1f4f6b, #10283a)', 'linear-gradient(135deg, #a07a5c, #6f5039)', 'linear-gradient(135deg, #8a88b8, #5d5b8c)', 'linear-gradient(135deg, #3f8f7d, #24594d)'];
+const covers = [
+	'linear-gradient(135deg, #1f4f6b, #10283a)',
+	'linear-gradient(135deg, #a07a5c, #6f5039)',
+	'linear-gradient(135deg, #8a88b8, #5d5b8c)',
+	'linear-gradient(135deg, #3f8f7d, #24594d)',
+];
 
 interface ClinicCardProps {
 	clinic: Clinic;
@@ -28,25 +34,28 @@ interface ClinicCardProps {
 const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCardProps) => {
 	const { t } = useTranslation('common');
 	const detail = `/clinic/detail?id=${clinic._id}`;
-	const [tags, setTags] = useState<string[]>([]);
+	const [ownTags, setOwnTags] = useState<string[]>([]);
 
 	/** APOLLO REQUESTS **/
-	// tags = unique specialties of the doctors who work in this clinic
+	// tags = unique specialties of the doctors who work in this clinic; all cards share one doctor index,
+	// a card asks on its own only when there are more doctors than the index holds
+	const doctorIndex = useDoctorIndex(!clinic.clinicDoctors);
 	useQuery(GET_DOCTORS, {
 		fetchPolicy: 'network-only',
-		skip: !clinic.clinicDoctors,
+		skip: !clinic.clinicDoctors || !doctorIndex || doctorIndex.complete,
 		variables: { input: { page: 1, limit: 30, search: { clinicId: clinic._id } } },
 		onCompleted: (data: T) => {
 			const list: Doctor[] = data?.getDoctors?.list ?? [];
-			setTags(Array.from(new Set(list.map((doctor) => doctor.specialty))).slice(0, 3));
+			setOwnTags(Array.from(new Set(list.map((doctor) => doctor.specialty))).slice(0, 3));
 		},
 	});
+	const tags: string[] = doctorIndex?.complete ? (doctorIndex.byClinic.get(clinic._id) ?? []).slice(0, 3) : ownTags;
 
 	return (
 		<article className="pb-card pb-card--hover pb-clinic-card" style={style}>
 			<Link href={detail} className="pb-clinic-card__cover" style={{ background: covers[index % covers.length] }}>
 				{clinic.clinicImage ? (
-					<img src={`${REACT_APP_API_URL}/${clinic.clinicImage}`} alt="" />
+					<img src={`${REACT_APP_API_URL}/${clinic.clinicImage}`} alt="" loading="lazy" decoding="async" />
 				) : (
 					<span className="pb-clinic-card__placeholder" aria-hidden="true">
 						<Icon name="clinic" size={44} strokeWidth={1.4} />

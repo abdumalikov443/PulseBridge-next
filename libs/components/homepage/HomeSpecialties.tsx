@@ -8,18 +8,38 @@ import { formatEnum } from '../../utils';
 import Icon, { IconName } from '../ui/Icon';
 import { SPECIALTY_INFO } from '../../specialty';
 import { specialtyHref } from './HomeHero';
+import { DoctorIndex, useDoctorIndex } from '../../hooks/useDoctorIndex';
 
 const tiles = Object.values(DoctorSpecialty).map((specialty) => ({ specialty, ...SPECIALTY_INFO[specialty] }));
 
-// one tile per specialty; the count is metaCounter.total for that specialty
-const SpecialtyTile = ({ specialty, icon, tone, desc, copy }: { specialty: DoctorSpecialty; icon: IconName; tone: string; desc: string; copy?: boolean }) => {
+interface TileProps {
+	specialty: DoctorSpecialty;
+	icon: IconName;
+	tone: string;
+	desc: string;
+	copy?: boolean;
+	index: DoctorIndex | null;
+}
+
+// one tile per specialty; the count comes from the shared doctor index,
+// or from its own query when there are more doctors than the index holds
+const SpecialtyTile = ({ specialty, icon, tone, desc, copy, index }: TileProps) => {
 	const { t } = useTranslation('common');
-	// read from data: onCompleted does not always fire for cached results
+	const ownQuery = !!index && !index.complete;
 	const { data, error } = useQuery(GET_DOCTORS, {
 		fetchPolicy: 'network-only',
+		skip: !ownQuery,
 		variables: { input: { page: 1, limit: 1, search: { specialtyList: [specialty] } } },
 	});
-	const count: number | null = error ? 0 : data ? data.getDoctors?.metaCounter?.[0]?.total ?? 0 : null;
+	const count: number | null = !index
+		? null
+		: !ownQuery
+		? index.bySpecialty.get(specialty) ?? 0
+		: error
+		? 0
+		: data
+		? data.getDoctors?.metaCounter?.[0]?.total ?? 0
+		: null;
 
 	return (
 		<Link
@@ -44,6 +64,7 @@ const SpecialtyTile = ({ specialty, icon, tone, desc, copy }: { specialty: Docto
 
 const HomeSpecialties = () => {
 	const { t } = useTranslation('common');
+	const index = useDoctorIndex();
 
 	return (
 		<section className="pb-container pb-section" aria-labelledby="home-specialties">
@@ -62,10 +83,10 @@ const HomeSpecialties = () => {
 			<div className="pb-spec-marquee">
 				<div className="pb-spec-marquee__track">
 					{tiles.map((tile) => (
-						<SpecialtyTile key={tile.specialty} {...tile} />
+						<SpecialtyTile key={tile.specialty} {...tile} index={index} />
 					))}
 					{tiles.map((tile) => (
-						<SpecialtyTile key={`copy-${tile.specialty}`} {...tile} copy />
+						<SpecialtyTile key={`copy-${tile.specialty}`} {...tile} copy index={index} />
 					))}
 				</div>
 			</div>
