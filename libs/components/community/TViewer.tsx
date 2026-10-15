@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import { Viewer } from '@toast-ui/react-editor';
 import { EcgLine } from '../ui/Loaders';
+import { REACT_APP_API_URL } from '../../config';
+
+// articles keep the full image address they were written with (e.g. http://localhost:3007/uploads/...);
+// uploaded images always load from the current API, so an older host or a later domain change does not break them
+const withApiImages = (markdown: string) =>
+	markdown.replace(/\]\((?:https?:\/\/[^)\s/]+)?\/?(uploads\/[^)\s]+)\)/g, (_, path) => `](${REACT_APP_API_URL}/${path})`);
 
 const TViewer = (props: any) => {
 	const [editorLoaded, setEditorLoaded] = useState(false);
@@ -19,7 +25,7 @@ const TViewer = (props: any) => {
 		<div className="pb-viewer">
 				{editorLoaded ? (
 					<Viewer
-						initialValue={props.markdown}
+						initialValue={withApiImages(props.markdown)}
 						customHTMLRenderer={{
 							htmlBlock: {
 								iframe(node: any) {
