@@ -8,7 +8,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import Reviews from '../../libs/components/common/Reviews';
 import DoctorCard from '../../libs/components/cards/DoctorCard';
-import LikeButton from '../../libs/components/ui/LikeButton';
+import LikeButton, { STAT_ICON } from '../../libs/components/ui/LikeButton';
 import OpenStatus from '../../libs/components/ui/OpenStatus';
 import { sweetActionConfirmAlert } from '../../libs/sweetAlert';
 import Icon from '../../libs/components/ui/Icon';
@@ -113,6 +113,11 @@ const ClinicDetail: NextPage = () => {
 							<path d="M0 28h300l14-20 16 36 14-28 10 12h446" />
 						</svg>
 					)}
+					{/* views: top right corner of the cover, as on the clinic cards */}
+					<span className="pb-profile__views" aria-label={t('{{count}} views', { count: clinic.clinicViews })}>
+						<Icon name="eye" size={STAT_ICON} />
+						{formatCount(clinic.clinicViews)}
+					</span>
 				</div>
 				<div className="pb-profile__body">
 					<span className="pb-profile__avatar pb-profile__avatar--clinic" aria-hidden="true">
@@ -178,10 +183,6 @@ const ClinicDetail: NextPage = () => {
 								{formatCount(commentTotal ?? clinic.clinicComments)}
 							</button>
 						</dd>
-					</div>
-					<div>
-						<dt>{t('Views')}</dt>
-						<dd>{formatCount(clinic.clinicViews)}</dd>
 					</div>
 				</dl>
 				<FollowModal
