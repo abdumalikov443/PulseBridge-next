@@ -23,6 +23,7 @@ import OpenInBrowserRoundedIcon from '@mui/icons-material/OpenInBrowserRounded';
 import Moment from 'react-moment';
 import { Article } from '../../../types/article/article';
 import { REACT_APP_API_URL } from '../../../config';
+import { statusTone } from '../statusTone';
 import { formatEnum } from '../../../utils';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Typography from '@mui/material/Typography';
@@ -206,7 +207,10 @@ const CommunityArticleList = (props: CommunityArticleListProps) => {
 											</Button>
 										) : (
 											<>
-												<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={'badge success'}>
+												<Button
+													onClick={(e: any) => menuIconClickHandler(e, index)}
+													className={`badge ${statusTone(article.articleStatus)}`}
+												>
 													{formatEnum(article.articleStatus)}
 												</Button>
 

@@ -14,7 +14,8 @@ import {
 	Fade,
 	MenuItem,
 } from '@mui/material';
-import Avatar from '@mui/material/Avatar';
+import Icon from '../../ui/Icon';
+import { statusTone } from '../statusTone';
 import { Stack } from '@mui/material';
 import { Clinic } from '../../../types/clinic/clinic';
 import { getMemberName, REACT_APP_API_URL } from '../../../config';
@@ -22,6 +23,10 @@ import { formatEnum } from '../../../utils';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Typography from '@mui/material/Typography';
 import { ClinicStatus } from '../../../enums/clinic.enum';
+
+const ClinicThumb = ({ image }: { image?: string }) => (
+	<span className="pb-admin-thumb">{image ? <img src={image} alt="" /> : <Icon name="clinic" size={18} />}</span>
+);
 
 const headCells: { id: string; label: string; numeric: boolean }[] = [
 	{ id: 'id', numeric: true, label: 'CLINIC ID' },
@@ -90,7 +95,7 @@ export const ClinicPanelList = (props: ClinicPanelListType) => {
 												<Stack direction={'row'}>
 													<Link href={`/clinic/detail?id=${clinic?._id}`}>
 														<div>
-															<Avatar alt={clinic.clinicName} src={clinicImage} sx={{ ml: '2px', mr: '10px' }} />
+															<ClinicThumb image={clinicImage} />
 														</div>
 													</Link>
 													<Link href={`/clinic/detail?id=${clinic?._id}`}>
@@ -100,7 +105,7 @@ export const ClinicPanelList = (props: ClinicPanelListType) => {
 											) : (
 												<Stack direction={'row'}>
 													<div>
-														<Avatar alt={clinic.clinicName} src={clinicImage} sx={{ ml: '2px', mr: '10px' }} />
+														<ClinicThumb image={clinicImage} />
 													</div>
 													<div style={{ marginTop: '10px' }}>{clinic.clinicName}</div>
 												</Stack>
@@ -122,7 +127,7 @@ export const ClinicPanelList = (props: ClinicPanelListType) => {
 
 											<Button
 												onClick={(e: any) => menuIconClickHandler(e, index)}
-												className={clinic.clinicStatus === ClinicStatus.ACTIVE ? 'badge success' : 'badge warning'}
+												className={`badge ${statusTone(clinic.clinicStatus)}`}
 											>
 												{formatEnum(clinic.clinicStatus)}
 											</Button>

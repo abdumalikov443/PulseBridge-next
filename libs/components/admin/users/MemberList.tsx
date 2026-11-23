@@ -14,11 +14,12 @@ import {
 	Fade,
 	MenuItem,
 } from '@mui/material';
-import Avatar from '@mui/material/Avatar';
+import PbAvatar from '../../ui/Avatar';
+import { statusTone } from '../statusTone';
 import Typography from '@mui/material/Typography';
 import { Stack } from '@mui/material';
 import { Member } from '../../../types/member/member';
-import { REACT_APP_API_URL } from '../../../config';
+import { getMemberName } from '../../../config';
 import { formatEnum } from '../../../utils';
 import { MemberStatus } from '../../../enums/member.enum';
 
@@ -162,9 +163,6 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 
 						{members.length !== 0 &&
 							members.map((member: Member, index: number) => {
-								const member_image = member.memberImage
-									? `${REACT_APP_API_URL}/${member.memberImage}`
-									: '/img/profile/defaultUser.svg';
 								return (
 									<TableRow hover key={member?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
 										<TableCell align="left">
@@ -174,9 +172,7 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 										<TableCell align="left" className={'name'}>
 											<Stack direction={'row'}>
 												<Link href={`/member?memberId=${member._id}`}>
-													<div>
-														<Avatar alt={member.memberNick} src={member_image} sx={{ ml: '2px', mr: '10px' }} />
-													</div>
+													<PbAvatar name={getMemberName(member)} image={member.memberImage} size={36} />
 												</Link>
 												<Link href={`/member?memberId=${member._id}`}>
 													<div>{member.memberNick}</div>
@@ -189,13 +185,18 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 
 										<TableCell align="center">
 											{/* memberType is fixed at signup */}
-											<Button className={'badge success'}>{formatEnum(member.memberType)}</Button>
+											<span className={`pb-admin-tag pb-admin-tag--${member.memberType.toLowerCase()}`}>
+												{formatEnum(member.memberType)}
+											</span>
 										</TableCell>
 
 										<TableCell align="center">{member.memberArticles}</TableCell>
 										<TableCell align="center">{member.memberLikes}</TableCell>
 										<TableCell align="center">
-											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={'badge success'}>
+											<Button
+												onClick={(e: any) => menuIconClickHandler(e, member._id)}
+												className={`badge ${statusTone(member.memberStatus)}`}
+											>
 												{formatEnum(member.memberStatus)}
 											</Button>
 

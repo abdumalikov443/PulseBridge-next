@@ -22,10 +22,12 @@
 			z-index: 1200;
 			left: 0;
 			transform: translateX(-100%);
-			transition: transform 0.3s ease;
-			box-shadow: var(--pb-shadow-lg);
+			transition: transform 0.3s ease, box-shadow 0.3s ease;
+			// no shadow while hidden, or it shows along the left edge
+			box-shadow: none;
 			&--open {
 				transform: none;
+				box-shadow: var(--pb-shadow-lg);
 			}
 		}
 	}
@@ -155,12 +157,28 @@
 		}
 	}
 
+	// search box and its filter on one row (the filter drops under it on phones)
 	.search-area {
 		display: flex;
 		flex-direction: row !important;
-		flex-wrap: wrap;
+		flex-wrap: nowrap;
+		align-items: center;
 		gap: 10px;
 		margin: 12px !important;
+		> .MuiInputBase-root {
+			margin-left: 0 !important;
+			flex: none;
+		}
+		> .search {
+			flex: 1 1 auto;
+			width: auto !important;
+		}
+		@media (max-width: $pb-phone) {
+			flex-wrap: wrap;
+			> .search {
+				flex-basis: 100%;
+			}
+		}
 		.MuiOutlinedInput-root {
 			border-radius: var(--pb-radius-sm);
 			background: var(--pb-bg);
@@ -208,6 +226,30 @@
 			background: var(--pb-warning-soft);
 			color: var(--pb-warning);
 		}
+		&.danger {
+			background: var(--pb-danger-soft);
+			color: var(--pb-danger);
+		}
+		&.muted {
+			background: var(--pb-chip);
+			color: var(--pb-muted);
+		}
+	}
+
+	// tables read left to right like the rest of the site (MUI centers some cells)
+	.MuiTableCell-alignCenter {
+		text-align: left !important;
+	}
+	.MuiTableBody-root .MuiTableCell-root {
+		padding-top: 12px;
+		padding-bottom: 12px;
+	}
+	.name a {
+		color: var(--pb-ink) !important;
+	}
+	.name .MuiStack-root {
+		align-items: center;
+		gap: 10px;
 	}
 
 	.no-data {
@@ -544,5 +586,292 @@
 		b {
 			color: var(--pb-ink);
 		}
+	}
+}
+
+
+/* admin shell: brand, footer link, page crumb, account button */
+.pb-admin {
+	&__brand {
+		padding: 0 6px 6px;
+		.pb-brand__text {
+			flex-direction: column;
+			gap: 3px;
+		}
+	}
+	&__brand-sub {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--pb-muted);
+	}
+	&__foot {
+		margin-top: auto;
+		padding-top: 12px;
+		border-top: 1px solid var(--pb-line);
+	}
+	&__scrim {
+		display: none;
+		@media (max-width: $pb-tablet) {
+			display: block;
+			position: fixed;
+			inset: 0;
+			z-index: 1100;
+			border: 0;
+			background: rgba(10, 30, 40, 0.35);
+		}
+	}
+	&__crumb {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		min-width: 0;
+		font-size: 14px;
+		color: var(--pb-muted);
+		svg {
+			flex: none;
+		}
+		strong {
+			color: var(--pb-ink);
+			font-size: 15px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+	}
+	&__me {
+		margin-left: auto;
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		padding: 4px 4px 4px 12px;
+		border: 0;
+		border-radius: 999px;
+		background: var(--pb-surface);
+		box-shadow: inset 0 0 0 1px var(--pb-line);
+		font: inherit;
+		cursor: pointer;
+		&:hover {
+			box-shadow: inset 0 0 0 1.5px var(--pb-deep);
+		}
+	}
+	&__me-text {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		line-height: 1.2;
+		strong {
+			font-size: 13px;
+			color: var(--pb-ink);
+		}
+		small {
+			font-size: 11px;
+			color: var(--pb-muted);
+		}
+		@media (max-width: $pb-phone) {
+			display: none;
+		}
+	}
+}
+
+/* member type tags */
+.pb-admin-tag {
+	display: inline-block;
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+	&--patient {
+		background: var(--pb-soft-1);
+		color: var(--pb-deep);
+	}
+	&--doctor {
+		background: var(--pb-soft-3);
+		color: #5d5b8c;
+	}
+	&--clinic {
+		background: var(--pb-soft-4);
+		color: var(--pb-success);
+	}
+	&--admin {
+		background: var(--pb-soft-2);
+		color: #a2581c;
+	}
+}
+
+/* admin overview */
+.pb-admin-home__date {
+	margin: 4px 0 0;
+	font-size: 15px;
+	color: var(--pb-muted);
+}
+.pb-admin-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+	gap: 14px;
+	@media (max-width: $pb-phone) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 10px;
+		.pb-admin-stat {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 10px;
+			padding: 14px;
+		}
+	}
+}
+.pb-admin-stat {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 18px;
+	border-radius: var(--pb-radius);
+	background: var(--pb-surface);
+	color: var(--pb-ink) !important;
+	transition: transform 0.25s ease, box-shadow 0.25s ease;
+	strong {
+		display: block;
+		font-family: var(--pb-font-display);
+		font-size: 28px;
+		line-height: 1.1;
+		font-variant-numeric: tabular-nums;
+	}
+	small {
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--pb-muted);
+	}
+	&__icon {
+		width: 46px;
+		height: 46px;
+		flex: none;
+		border-radius: 14px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	&__go {
+		position: absolute;
+		top: 14px;
+		right: 14px;
+		color: var(--pb-muted);
+		opacity: 0;
+		transition: opacity 0.2s ease, transform 0.2s ease;
+	}
+	&:hover {
+		transform: translateY(-2px);
+		box-shadow: var(--pb-shadow);
+	}
+	&:hover &__go {
+		opacity: 1;
+		transform: translateX(2px);
+	}
+}
+.pb-admin-panels {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+	gap: 16px;
+	align-items: start;
+}
+.pb-admin-panel {
+	display: flex;
+	flex-direction: column;
+	padding: 18px 20px 8px;
+	border-radius: var(--pb-radius-lg);
+	background: var(--pb-surface);
+	header {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 12px;
+		margin-bottom: 6px;
+	}
+	h2 {
+		margin: 0;
+		font-family: var(--pb-font-display);
+		font-size: 19px;
+	}
+	.pb-more {
+		font-size: 13px;
+	}
+	&__row {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 12px 0;
+		border-top: 1px solid var(--pb-line);
+	}
+	&__main {
+		flex: 1;
+		min-width: 0;
+		strong {
+			display: block;
+			font-size: 14px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		small {
+			display: block;
+			font-size: 12px;
+			color: var(--pb-muted);
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+	}
+	&__date {
+		width: 42px;
+		flex: none;
+		padding: 5px 0;
+		border-radius: 10px;
+		background: var(--pb-soft-1);
+		color: var(--pb-deep);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		line-height: 1.1;
+		strong {
+			font-family: var(--pb-font-display);
+			font-size: 17px;
+		}
+		small {
+			font-size: 10px;
+			font-weight: 700;
+			text-transform: uppercase;
+		}
+	}
+	&__time {
+		font-family: var(--pb-font-display);
+		font-weight: 800;
+		font-variant-numeric: tabular-nums;
+	}
+	&__empty {
+		margin: 0;
+		padding: 16px 0;
+		color: var(--pb-muted);
+		font-size: 14px;
+	}
+}
+
+/* clinic photo or icon in the admin clinic list */
+.pb-admin-thumb {
+	width: 36px;
+	height: 36px;
+	flex: none;
+	border-radius: 10px;
+	overflow: hidden;
+	background: var(--pb-soft-1);
+	color: var(--pb-deep);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
 	}
 }

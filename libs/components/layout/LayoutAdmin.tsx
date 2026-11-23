@@ -9,7 +9,7 @@ import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { getJwtToken, logOut, updateUserInfo } from '../../auth';
 import { MemberType } from '../../enums/member.enum';
-import AdminMenuList from '../admin/AdminMenuList';
+import AdminMenuList, { sections } from '../admin/AdminMenuList';
 import Avatar from '../ui/Avatar';
 import Icon from '../ui/Icon';
 import { EcgLine } from '../ui/Loaders';
@@ -46,6 +46,13 @@ const withAdminLayout = (Component: ComponentType) => {
 		}
 
 		const name = user.memberFullName || user.memberNick;
+		// the menu item the current page belongs to names the page in the top bar
+		const pageTitle =
+			sections
+				.flatMap((section) => section.links)
+				.filter((link) =>
+					link.href === '/_admin' ? router.pathname === '/_admin' : router.pathname.startsWith(link.href),
+				)[0]?.label ?? 'Admin panel';
 
 		return (
 			<>
@@ -55,18 +62,30 @@ const withAdminLayout = (Component: ComponentType) => {
 				</Head>
 				<div className="pb-app pb-admin">
 					<aside className={`pb-admin__side ${menuOpen ? 'pb-admin__side--open' : ''}`}>
-						<Link href="/" className="pb-logo">
-							<span className="pb-logo__dot" aria-hidden="true">
-								<span />
-								<span />
+						<Link href="/_admin" className="pb-brand pb-admin__brand">
+							<span className="pb-brand__mark" aria-hidden="true">
+								<Icon name="pulse" size={22} />
 							</span>
-							pulsebridge
+							<span className="pb-brand__text">
+								<span className="pb-brand__name">PulseBridge</span>
+								<span className="pb-admin__brand-sub">{t('Admin panel')}</span>
+							</span>
 						</Link>
-						<span className="pb-badge pb-badge--soft" style={{ alignSelf: 'flex-start' }}>
-							{t('Admin panel')}
-						</span>
 						<AdminMenuList />
+						<div className="pb-admin__foot">
+							<Link href="/" className="pb-admin__link">
+								<Icon name="arrowLeft" size={17} /> {t('Back to site')}
+							</Link>
+						</div>
 					</aside>
+					{menuOpen && (
+						<button
+							type="button"
+							className="pb-admin__scrim"
+							aria-label={t('Close menu')}
+							onClick={() => setMenuOpen(false)}
+						/>
+					)}
 
 					<div className="pb-admin__body">
 						<header className="pb-admin__top">
@@ -79,16 +98,21 @@ const withAdminLayout = (Component: ComponentType) => {
 							>
 								<Icon name={menuOpen ? 'close' : 'menu'} size={20} />
 							</button>
-							<Link href="/" className="pb-btn pb-btn--light pb-btn--sm">
-								<Icon name="arrowLeft" size={16} /> {t('Back to site')}
-							</Link>
+							<span className="pb-admin__crumb">
+								<span>{t('Admin')}</span>
+								<Icon name="arrow" size={14} />
+								<strong>{t(pageTitle)}</strong>
+							</span>
 							<button
 								type="button"
-								className="pb-header__user"
+								className="pb-admin__me"
 								aria-label={t('Account menu')}
 								onClick={(e) => setUserAnchor(e.currentTarget)}
-								style={{ marginLeft: 'auto' }}
 							>
+								<span className="pb-admin__me-text">
+									<strong>{name}</strong>
+									<small>{t('Administrator')}</small>
+								</span>
 								<Avatar
 									name={name}
 									image={user.memberImage && !user.memberImage.startsWith('/img') ? user.memberImage : null}

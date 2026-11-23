@@ -10,8 +10,9 @@ interface MenuLink {
 	icon: IconName;
 }
 
-const sections: { title: string; links: MenuLink[] }[] = [
-	{ title: 'Members', links: [{ href: '/_admin/users', label: 'Users', icon: 'users' }] },
+export const sections: { title: string; links: MenuLink[] }[] = [
+	{ title: '', links: [{ href: '/_admin', label: 'Overview', icon: 'pulse' }] },
+	{ title: 'Members', links: [{ href: '/_admin/users', label: 'Members', icon: 'users' }] },
 	{
 		title: 'Care',
 		links: [
@@ -44,9 +45,11 @@ const AdminMenuList = () => {
 		<nav aria-label={t('Admin')} className="pb-admin__nav">
 			{sections.map((section) => (
 				<div key={section.title} className="pb-admin__group">
-					<span className="pb-admin__group-title">{t(section.title)}</span>
+					{section.title && <span className="pb-admin__group-title">{t(section.title)}</span>}
 					{section.links.map((link) => {
-						const active = router.pathname.startsWith(link.href);
+						// the overview is the admin root, so it matches only itself
+						const active =
+							link.href === '/_admin' ? router.pathname === '/_admin' : router.pathname.startsWith(link.href);
 						return (
 							<Link
 								key={link.href}
