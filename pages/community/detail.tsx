@@ -10,7 +10,9 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import Reviews from '../../libs/components/common/Reviews';
 import Avatar from '../../libs/components/ui/Avatar';
-import ActionChips from '../../libs/components/ui/ActionChips';
+import LikeButton, { STAT_ICON } from '../../libs/components/ui/LikeButton';
+import { AuthorRole, readMinutes } from '../../libs/components/cards/PostCard';
+import { sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
 import Icon from '../../libs/components/ui/Icon';
 import { EcgLine } from '../../libs/components/ui/Loaders';
 import { GET_ARTICLE } from '../../apollo/user/query';
@@ -18,7 +20,6 @@ import { LIKE_TARGET_ARTICLE } from '../../apollo/user/mutation';
 import { useLikeToggle } from '../../libs/hooks/useEngagement';
 import { Article } from '../../libs/types/article/article';
 import { CommentGroup } from '../../libs/enums/comment.enum';
-import { MemberType } from '../../libs/enums/member.enum';
 import { T } from '../../libs/types/common';
 import { getMemberName } from '../../libs/config';
 
@@ -56,51 +57,62 @@ const CommunityDetail: NextPage = () => {
 
 	const author = getMemberName(article.memberData);
 	const like = likeState(article._id, !!article.meLiked?.[0]?.myFavorite, article.articleLikes);
+	const comments = commentTotal ?? article.articleComments;
+	const copyLink = async () => {
+		try {
+			await navigator.clipboard.writeText(window.location.href);
+			await sweetTopSmallSuccessAlert(t('Link copied'), 900);
+		} catch {
+			// clipboard blocked: nothing to do, the address bar still has the link
+		}
+	};
 
 	return (
 		<div className="pb-container" style={{ maxWidth: 860 }}>
-			<div style={{ padding: '24px 0 16px' }}>
-				<Link href="/community" className="pb-link" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+			<div className="pb-back">
+				<Link href="/community" className="pb-link">
 					<Icon name="arrowLeft" size={16} /> {t('Community')}
 				</Link>
 			</div>
 
-			<article className="pb-card pb-card--flat pb-in" style={{ gap: 18, padding: 28 }}>
-				<div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-					<Avatar name={author} image={article.memberData?.memberImage} size={48} />
-					<div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-						<span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-							<Link href={`/member?memberId=${article.memberData?._id}`} style={{ fontWeight: 700 }}>
-								{author}
-							</Link>
-							{article.memberData?.memberType === MemberType.DOCTOR && (
-								<span className="pb-badge pb-badge--soft">{t('Doctor')}</span>
-							)}
-						</span>
-						<span style={{ fontSize: 13, color: 'var(--pb-muted)' }}>
-							{moment(article.createdAt).format('MMMM D, YYYY')}
+			<article className="pb-card pb-card--flat pb-in pb-article">
+				<header className="pb-article__head">
+					<h1 className="pb-title">{article.articleTitle}</h1>
+					<div className="pb-article__by">
+						<Avatar name={author} image={article.memberData?.memberImage} size={44} />
+						<span style={{ minWidth: 0 }}>
+							<span className="pb-post__who">
+								<Link href={`/member?memberId=${article.memberData?._id}`} className="pb-post__author">
+									{author}
+								</Link>
+								<AuthorRole memberType={article.memberData?.memberType} />
+							</span>
+							<span className="pb-post__meta">
+								{moment(article.createdAt).format('MMMM D, YYYY')} ·{' '}
+								{t('{{count}} min read', { count: readMinutes(article.articleContent) })} ·{' '}
+								{t('{{count}} views', { count: article.articleViews })}
+							</span>
 						</span>
 					</div>
-				</div>
-
-				<h1 className="pb-title" style={{ fontSize: 34 }}>
-					{article.articleTitle}
-				</h1>
+				</header>
 
 				<ToastViewer markdown={article.articleContent} />
 
-				<div style={{ paddingTop: 14, borderTop: '1px solid var(--pb-line)' }}>
-					<ActionChips
-						likes={like.likes}
-						views={article.articleViews}
-						comments={commentTotal ?? article.articleComments}
-						liked={like.liked}
-						onLike={() => toggleLike(article._id, like)}
-					/>
-				</div>
+				{/* like, jump to the comments, copy the link */}
+				<footer className="pb-article__foot">
+					<LikeButton likes={like.likes} liked={like.liked} onLike={() => toggleLike(article._id, like)} />
+					<a href="#comments" className="pb-article__comments">
+						<Icon name="comment" size={STAT_ICON} />
+						{comments === 1 ? t('{{count}} comment', { count: 1 }) : t('{{count}} comments', { count: comments })}
+					</a>
+					<button type="button" className="pb-article__copy" onClick={copyLink}>
+						<Icon name="copy" size={16} />
+						{t('Copy link')}
+					</button>
+				</footer>
 			</article>
 
-			<div style={{ paddingTop: 20 }}>
+			<div id="comments" style={{ paddingTop: 20, scrollMarginTop: 96 }}>
 				<Reviews
 					title="Comments"
 					refId={article._id}

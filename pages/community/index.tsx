@@ -86,6 +86,10 @@ const Community: NextPage = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [debouncedText]);
 
+	// the newest post opens the first page of "Latest" in a wide card
+	const showFeatured =
+		input.sort === 'createdAt' && input.page === 1 && !input.search?.text && (articles?.length ?? 0) > 2;
+
 	/** HANDLERS **/
 	const changeSort = (sort: string) => {
 		setInput({ ...input, page: 1, sort });
@@ -115,36 +119,35 @@ const Community: NextPage = () => {
 				)}
 			</header>
 
-			<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', padding: '16px 0 20px' }}>
-				<div className="pb-pills" role="tablist" aria-label={t('Sort posts')} style={{ flex: '1 1 auto' }}>
-					{tabs.map((tab) => (
-						<button
-							key={tab.value}
-							type="button"
-							role="tab"
-							aria-selected={input.sort === tab.value}
-							className={`pb-pill ${input.sort === tab.value ? 'pb-pill--active' : ''}`}
-							onClick={() => changeSort(tab.value)}
-						>
-							{t(tab.label)}
-						</button>
-					))}
-				</div>
-				<form className="pb-search" style={{ flex: '1 1 260px', maxWidth: 360 }} onSubmit={(e) => e.preventDefault()}>
-					<Icon name="search" />
-					<label htmlFor="post-search" className="pb-sr">
-						{t('Search posts')}
-					</label>
-					<input
-						id="post-search"
-						value={text}
-						placeholder={t('Search posts')}
-						onChange={(e) => setText(e.target.value)}
-					/>
-				</form>
+			{/* same order as the doctor and clinic lists: search, then the tabs, then the count */}
+			<form className="pb-search" style={{ margin: '16px 0' }} onSubmit={(e) => e.preventDefault()}>
+				<Icon name="search" />
+				<label htmlFor="post-search" className="pb-sr">
+					{t('Search posts')}
+				</label>
+				<input
+					id="post-search"
+					value={text}
+					placeholder={t('Search posts')}
+					onChange={(e) => setText(e.target.value)}
+				/>
+			</form>
+			<div className="pb-pills" role="tablist" aria-label={t('Sort posts')}>
+				{tabs.map((tab) => (
+					<button
+						key={tab.value}
+						type="button"
+						role="tab"
+						aria-selected={input.sort === tab.value}
+						className={`pb-pill ${input.sort === tab.value ? 'pb-pill--active' : ''}`}
+						onClick={() => changeSort(tab.value)}
+					>
+						{t(tab.label)}
+					</button>
+				))}
 			</div>
 
-			<p style={{ margin: '0 0 12px', minHeight: 20, fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
+			<p style={{ margin: '20px 0 12px', minHeight: 20, fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
 				{articles !== null &&
 					!loading &&
 					(total === 1 ? t('{{count}} post found', { count: total }) : t('{{count}} posts found', { count: total }))}
@@ -152,12 +155,13 @@ const Community: NextPage = () => {
 
 			<div className="pb-grid pb-grid--posts">
 				{(articles === null || (loading && articles.length === 0)) && <SkeletonCards count={4} />}
-				{articles?.map((article) => {
+				{articles?.map((article, index) => {
 					const state = likeState(article._id, !!article.meLiked?.[0]?.myFavorite, article.articleLikes);
 					return (
 						<PostCard
 							key={article._id}
 							article={article}
+							featured={index === 0 && showFeatured}
 							liked={state.liked}
 							likes={state.likes}
 							onLike={() => toggleLike(article._id, state)}
