@@ -1002,6 +1002,66 @@ button.pb-emergency {
 			margin-top: 0;
 		}
 	}
+	// visit reason the AI wrote; it goes into the booking form
+	&__reason {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 10px 12px;
+		border-radius: 12px;
+		background: var(--pb-soft-1);
+		> span {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			font-size: 11px;
+			font-weight: 700;
+			color: var(--pb-deep);
+		}
+		p {
+			color: var(--pb-ink) !important;
+		}
+	}
+	&__group {
+		margin-top: 6px;
+	}
+	&__loading {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 13px;
+		color: var(--pb-muted);
+	}
+	&__clinic {
+		color: var(--pb-ink) !important;
+		transition: background-color 0.2s ease;
+		&:hover {
+			background: var(--pb-soft-1);
+		}
+		> svg {
+			flex: none;
+			color: var(--pb-muted);
+		}
+	}
+	&__clinic-icon {
+		width: 36px;
+		height: 36px;
+		flex: none;
+		border-radius: 10px;
+		background: var(--pb-soft-4);
+		color: var(--pb-success);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	&__all {
+		align-self: flex-start;
+		margin-top: 4px;
+		font-size: 13px;
+	}
+	&__hint {
+		font-size: 12px !important;
+	}
 	&__doctor-name {
 		flex: 1;
 		min-width: 0;

@@ -21,6 +21,7 @@ import { T } from '../../libs/types/common';
 import { getMemberName } from '../../libs/config';
 import { formatEnum } from '../../libs/utils';
 import { localeTag } from '../../libs/i18n';
+import { readAiOutcome } from '../../libs/components/chat/AiAssistant';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -52,11 +53,25 @@ const Booking: NextPage = () => {
 	const [date, setDate] = useState('');
 	const [time, setTime] = useState('');
 	const [reason, setReason] = useState('');
+	// true while the reason is the AI assistant's summary, so the form can say where it came from
+	const [reasonFromAi, setReasonFromAi] = useState(false);
 	// the AI assistant passes its complaint summary; the patient can still edit it
 	useEffect(() => {
 		const prefill = router.query.reason;
-		if (typeof prefill === 'string' && prefill) setReason((current) => current || prefill.slice(0, 500));
+		if (typeof prefill === 'string' && prefill) {
+			setReason((current) => current || prefill.slice(0, 500));
+			setReasonFromAi(true);
+		}
 	}, [router.query.reason]);
+	// booked from a doctor page instead of the chat: the chat's summary still fits when the doctor's specialty matches
+	useEffect(() => {
+		if (!router.isReady || router.query.reason || !doctor) return;
+		const ai = readAiOutcome();
+		if (ai && ai.specialty === doctor.specialty) {
+			setReason((current) => current || ai.complaintSummary.slice(0, 500));
+			setReasonFromAi(true);
+		}
+	}, [router.isReady, router.query.reason, doctor]);
 	const [error, setError] = useState('');
 	const [done, setDone] = useState(false);
 	const [bookedId, setBookedId] = useState('');
@@ -378,6 +393,12 @@ const Booking: NextPage = () => {
 										placeholder={t('e.g. Annual check-up and blood pressure follow-up')}
 										onChange={(e) => setReason(e.target.value)}
 									/>
+									{reasonFromAi && reason && (
+										<small className="pb-field__note">
+											<Icon name="pulse" size={14} />
+											{t('Written by the AI assistant from your chat. You can edit it.')}
+										</small>
+									)}
 								</label>
 							)}
 

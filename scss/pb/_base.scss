@@ -377,6 +377,14 @@
 		font-weight: 700;
 	}
 }
+// a line under a field (where a prefilled value came from)
+.pb-field__note {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 12px;
+	color: var(--pb-deep);
+}
 .pb-input,
 .pb-select,
 .pb-textarea {

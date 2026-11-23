@@ -901,6 +901,7 @@ export const GET_INTAKE_RECOMMENDATIONS = gql`
 				clinicData {
 					_id
 					clinicName
+					clinicAddress
 				}
 			}
 		}

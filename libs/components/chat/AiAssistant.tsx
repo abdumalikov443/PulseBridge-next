@@ -51,6 +51,25 @@ const write = (value: { sessionKey: string; turns: Turn[]; outcome: Outcome | nu
 	}
 };
 
+// the latest finished assessment of this browser's conversation (the booking page prefills its reason from it)
+export const readAiOutcome = (): { specialty: DoctorSpecialty; complaintSummary: string } | null => {
+	const outcome = read()?.outcome;
+	return outcome?.ready && outcome.specialty && outcome.complaintSummary
+		? { specialty: outcome.specialty, complaintSummary: outcome.complaintSummary }
+		: null;
+};
+
+// clinics of the recommended doctors, in the doctors' order, each once
+const clinicsOf = (doctors: Doctor[]) => {
+	const seen = new Set<string>();
+	return doctors
+		.map((doctor) => doctor.clinicData)
+		.filter(
+			(clinic): clinic is NonNullable<Doctor['clinicData']> =>
+				!!clinic && !seen.has(clinic._id) && !!seen.add(clinic._id),
+		);
+};
+
 const specialtyHref = (specialty: string) =>
 	`/doctor?input=${JSON.stringify({
 		page: 1,
@@ -134,6 +153,12 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isPatient, sessionKey, user._id]);
 
+	// matching doctors and their clinics load by themselves once a doctor type is suggested
+	useEffect(() => {
+		if (outcome?.ready && outcome.specialty && sessionKey && doctors === null && !loadingDoctors) loadDoctors();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [outcome?.ready, outcome?.specialty, sessionKey, doctors]);
+
 	useEffect(() => {
 		if (active) endRef.current?.scrollIntoView({ block: 'end' });
 	}, [turns, outcome, doctors, active]);
@@ -179,7 +204,7 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 		inputRef.current?.focus();
 	};
 
-	const showDoctors = async () => {
+	const loadDoctors = async () => {
 		try {
 			setLoadingDoctors(true);
 			const res = await client.query({
@@ -189,6 +214,8 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 			});
 			setDoctors(res.data?.getIntakeRecommendations?.list ?? []);
 		} catch (err: any) {
+			// an empty list stops the automatic retry; the result card then offers the doctor list instead
+			setDoctors([]);
 			setTurns((prev) => [...prev, { role: 'error', content: err?.graphQLErrors?.[0]?.message ?? err.message }]);
 		} finally {
 			setLoadingDoctors(false);
@@ -204,6 +231,12 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 		`/booking?doctorId=${doctorId}${
 			outcome?.complaintSummary ? `&reason=${encodeURIComponent(outcome.complaintSummary.slice(0, 500))}` : ''
 		}`;
+	// guests log in first and come back to the same booking page, reason included
+	const bookLink = (doctorId: string) =>
+		user?._id ? bookHref(doctorId) : { pathname: '/account/join', query: { referrer: bookHref(doctorId) } };
+	const canBook = !user?._id || isPatient;
+	const shownDoctors = doctors?.slice(0, 3) ?? [];
+	const shownClinics = clinicsOf(doctors ?? []).slice(0, 3);
 
 	return (
 		<>
@@ -276,24 +309,29 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 							<div className="pb-ai__result">
 								<small>{t('Suggested doctor')}</small>
 								<strong>{formatEnum(outcome.specialty)}</strong>
-								{outcome.complaintSummary && <p>{outcome.complaintSummary}</p>}
-								{isPatient ? (
-									doctors === null ? (
-										<button
-											type="button"
-											className="pb-btn pb-btn--primary pb-btn--sm"
-											onClick={showDoctors}
-											disabled={loadingDoctors}
-										>
-											{loadingDoctors ? <EcgLine small width={44} /> : t('Show matching doctors')}
-										</button>
-									) : doctors.length === 0 ? (
-										<Link href={specialtyHref(outcome.specialty)} className="pb-btn pb-btn--outline pb-btn--sm">
-											{t('Browse {{specialty}} doctors', { specialty: formatEnum(outcome.specialty) })}
-										</Link>
-									) : (
+								{outcome.complaintSummary && (
+									<div className="pb-ai__reason">
+										<span>
+											<Icon name="edit" size={13} />
+											{canBook ? t('Visit reason, added to your booking') : t('Complaint summary')}
+										</span>
+										<p>{outcome.complaintSummary}</p>
+									</div>
+								)}
+
+								{doctors === null ? (
+									<span className="pb-ai__loading">
+										<EcgLine small width={44} /> {t('Finding matching doctors…')}
+									</span>
+								) : shownDoctors.length === 0 ? (
+									<Link href={specialtyHref(outcome.specialty)} className="pb-btn pb-btn--outline pb-btn--sm">
+										{t('Browse {{specialty}} doctors', { specialty: formatEnum(outcome.specialty) })}
+									</Link>
+								) : (
+									<>
+										<small className="pb-ai__group">{t('Recommended doctors')}</small>
 										<div className="pb-ai__doctors">
-											{doctors.map((doctor) => (
+											{shownDoctors.map((doctor) => (
 												<div key={doctor._id} className="pb-ai__doctor">
 													<Avatar
 														name={getMemberName(doctor.memberData)}
@@ -301,32 +339,54 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 														size={36}
 													/>
 													<Link href={`/doctor/detail?id=${doctor._id}`} className="pb-ai__doctor-name">
-														<strong>{getMemberName(doctor.memberData)}</strong>
+														<strong>
+															{t('Dr.')} {getMemberName(doctor.memberData)}
+														</strong>
 														<small>
 															{doctor.clinicData?.clinicName} · {doctor.experience} {t('yrs of exp')}
 														</small>
 													</Link>
-													<Link href={bookHref(doctor._id)} className="pb-btn pb-btn--primary pb-btn--sm">
-														{t('Book')}
-													</Link>
+													{canBook && (
+														<Link href={bookLink(doctor._id)} className="pb-btn pb-btn--primary pb-btn--sm">
+															{t('Book')}
+														</Link>
+													)}
 												</div>
 											))}
 										</div>
-									)
-								) : (
-									<div className="pb-ai__actions">
-										<Link href={specialtyHref(outcome.specialty)} className="pb-btn pb-btn--outline pb-btn--sm">
-											{t('Browse doctors')}
+
+										{shownClinics.length > 0 && (
+											<>
+												<small className="pb-ai__group">{t('Where they work')}</small>
+												<div className="pb-ai__doctors">
+													{shownClinics.map((clinic) => (
+														<Link
+															key={clinic._id}
+															href={`/clinic/detail?id=${clinic._id}`}
+															className="pb-ai__doctor pb-ai__clinic"
+														>
+															<span className="pb-ai__clinic-icon">
+																<Icon name="clinic" size={18} />
+															</span>
+															<span className="pb-ai__doctor-name">
+																<strong>{clinic.clinicName}</strong>
+																{clinic.clinicAddress && <small>{clinic.clinicAddress}</small>}
+															</span>
+															<Icon name="arrow" size={16} />
+														</Link>
+													))}
+												</div>
+											</>
+										)}
+
+										<Link href={specialtyHref(outcome.specialty)} className="pb-more pb-ai__all">
+											{t('All {{specialty}} doctors', { specialty: formatEnum(outcome.specialty) })}{' '}
+											<Icon name="arrow" size={14} className="pb-arrow" />
 										</Link>
 										{!user?._id && (
-											<Link
-												href={{ pathname: '/account/join', query: { referrer: router.asPath } }}
-												className="pb-btn pb-btn--primary pb-btn--sm"
-											>
-												{t('Log in to book')}
-											</Link>
+											<p className="pb-ai__hint">{t('You log in before booking; your visit reason is kept.')}</p>
 										)}
-									</div>
+									</>
 								)}
 							</div>
 						)}
