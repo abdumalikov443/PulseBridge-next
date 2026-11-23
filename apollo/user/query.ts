@@ -330,6 +330,7 @@ export const GET_DOCTOR_CARDS = gql`
 				doctorComments
 				doctorFollowers
 				doctorRank
+				patientsServed
 				nextAvailable {
 					date
 					time
@@ -405,6 +406,7 @@ export const GET_FAVORITE_DOCTORS = gql`
 				doctorLikes
 				doctorComments
 				doctorRank
+				patientsServed
 				meLiked {
 					memberId
 					likeRefId
@@ -441,6 +443,7 @@ export const GET_VISITED_DOCTORS = gql`
 				doctorLikes
 				doctorComments
 				doctorRank
+				patientsServed
 				meLiked {
 					memberId
 					likeRefId

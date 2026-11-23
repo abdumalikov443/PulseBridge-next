@@ -48,7 +48,7 @@ interface DoctorCardProps {
 	style?: React.CSSProperties;
 }
 
-// list card: photo with name and like, clinic, next slot, views and book (follow and reviews live on the detail page)
+// list card: photo with name and like, clinic, next slot, patients served and book (follow and reviews live on the detail page)
 const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) => {
 	const { t } = useTranslation('common');
 	const name = getMemberName(doctor.memberData);
@@ -58,6 +58,7 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 	const known = doctor.nextAvailable !== undefined;
 	const lazyNext = useNextSlot(doctor._id, useInView(cardRef) && !known);
 	const next = known ? doctor.nextAvailable : lazyNext;
+	const served = doctor.patientsServed ?? 0;
 
 	return (
 		<article ref={cardRef} className="pb-card pb-card--hover pb-doc-card" style={style}>
@@ -91,9 +92,9 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 				)}
 			</div>
 			<div className="pb-doc-card__foot">
-				<span className="pb-meta-stat" aria-label={t('{{count}} views', { count: doctor.doctorViews })}>
-					<Icon name="eye" size={STAT_ICON} />
-					{formatCount(doctor.doctorViews)}
+				<span className="pb-meta-stat">
+					<Icon name="users" size={STAT_ICON} />
+					{formatCount(served)} {served === 1 ? t('patient served') : t('patients served')}
 				</span>
 				<Link href={`/booking?doctorId=${doctor._id}`} className="pb-btn pb-btn--primary pb-btn--sm">
 					<Icon name="calendar" size={14} />

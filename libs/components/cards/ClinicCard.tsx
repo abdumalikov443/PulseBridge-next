@@ -31,7 +31,7 @@ interface ClinicCardProps {
 	style?: React.CSSProperties;
 }
 
-// list card: cover with type, name with like, address, specialties of its doctors, doctors and views, directions
+// list card: cover with type and views, name with like, address, specialties of its doctors, doctors, directions
 const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCardProps) => {
 	const { t } = useTranslation('common');
 	const detail = `/clinic/detail?id=${clinic._id}`;
@@ -66,6 +66,10 @@ const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCa
 					<i aria-hidden="true" />
 					{formatEnum(clinic.clinicType)}
 				</span>
+				<span className="pb-clinic-card__views" aria-label={t('{{count}} views', { count: clinic.clinicViews })}>
+					<Icon name="eye" size={STAT_ICON} />
+					{formatCount(clinic.clinicViews)}
+				</span>
 			</Link>
 			<div className="pb-clinic-card__body">
 				<div className="pb-clinic-card__title">
@@ -87,16 +91,10 @@ const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCa
 				</div>
 			)}
 			<div className="pb-clinic-card__foot">
-				<div className="pb-meta-stats">
-					<span className="pb-meta-stat">
-						<Icon name="users" size={STAT_ICON} />
-						{clinic.clinicDoctors ?? 0} {clinic.clinicDoctors === 1 ? t('doctor') : t('doctors')}
-					</span>
-					<span className="pb-meta-stat" aria-label={t('{{count}} views', { count: clinic.clinicViews })}>
-						<Icon name="eye" size={STAT_ICON} />
-						{formatCount(clinic.clinicViews)}
-					</span>
-				</div>
+				<span className="pb-meta-stat">
+					<Icon name="users" size={STAT_ICON} />
+					{clinic.clinicDoctors ?? 0} {clinic.clinicDoctors === 1 ? t('doctor') : t('doctors')}
+				</span>
 				<a
 					href={kakaoMapUrl(clinic.clinicAddress)}
 					target="_blank"

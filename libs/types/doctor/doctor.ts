@@ -25,6 +25,8 @@ export interface Doctor {
 	clinicData?: Clinic;
 	// first free slot; only in the card lists (GET_DOCTOR_CARDS), null when there is no free time
 	nextAvailable?: { date: string; time: string } | null;
+	// distinct patients with a completed visit; only in the card lists and saved / visited doctors
+	patientsServed?: number;
 }
 
 export interface Doctors {
