@@ -8,7 +8,10 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import Reviews from '../../libs/components/common/Reviews';
 import Avatar from '../../libs/components/ui/Avatar';
-import ActionChips from '../../libs/components/ui/ActionChips';
+import LikeButton from '../../libs/components/ui/LikeButton';
+import OpenStatus from '../../libs/components/ui/OpenStatus';
+import { sweetActionConfirmAlert } from '../../libs/sweetAlert';
+import { dayLabel, isTomorrow } from '../../libs/schedule';
 import Icon from '../../libs/components/ui/Icon';
 import FollowButton from '../../libs/components/ui/FollowButton';
 import FollowModal, { FollowMode } from '../../libs/components/common/FollowModal';
@@ -80,98 +83,108 @@ const DoctorDetail: NextPage = () => {
 	const followings = doctor.memberData?.memberFollowings ?? 0;
 	const canBook = !user?._id || user.memberType === MemberType.PATIENT;
 
+	const tone = SPECIALTY_INFO[doctor.specialty]?.tone ?? 'blue';
+	const reviews = commentTotal ?? doctor.doctorComments;
+	const next = doctor.nextAvailable;
+	const callDoctor = async (phone: string) => {
+		if (
+			await sweetActionConfirmAlert(t('Call {{name}} at {{phone}}?', { name: `${t('Dr.')} ${name}`, phone }), t('Call'))
+		) {
+			window.location.href = `tel:${phone}`;
+		}
+	};
+
 	return (
 		<div className="pb-container">
-			<div style={{ padding: '24px 0 16px' }}>
-				<Link href="/doctor" className="pb-link" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+			<div className="pb-back">
+				<Link href="/doctor" className="pb-link">
 					<Icon name="arrowLeft" size={16} /> {t('All doctors')}
 				</Link>
 			</div>
 
-			<section
-				className={`pb-card pb-card--flat pb-in pb-doc-head pb-spec--${SPECIALTY_INFO[doctor.specialty]?.tone ?? 'blue'}`}
-				style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 28, alignItems: 'center', padding: 28 }}
-			>
+			<section className={`pb-card pb-profile pb-in pb-spec--${tone}`}>
 				{/* band in the color of the doctor's specialty, with a heartbeat line */}
-				<div className="pb-doc-head__band" aria-hidden="true">
+				<div className="pb-profile__cover pb-profile__cover--band" aria-hidden="true">
 					<svg viewBox="0 0 800 50" preserveAspectRatio="none">
 						<path d="M0 28h300l14-20 16 36 14-28 10 12h446" />
 					</svg>
 				</div>
-				<span className="pb-doc-head__avatar">
-					<Avatar name={name} image={doctor.memberData?.memberImage} size={120} radius={34} />
-				</span>
-				<div style={{ flex: '999 1 360px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-					<h1 className="pb-title" style={{ fontSize: 34 }}>
-						{name}
-					</h1>
-					<span className="pb-spec-tag">
-						<b aria-hidden="true">#</b>
-						{formatEnum(doctor.specialty)}
+				<div className="pb-profile__body">
+					<span className="pb-profile__avatar">
+						<Avatar name={name} image={doctor.memberData?.memberImage} size={112} radius={30} />
 					</span>
-					<span style={{ fontSize: 16, color: 'var(--pb-muted)' }}>
-						{t('{{count}} years of experience', { count: doctor.experience })}
+					<div className="pb-profile__info">
+						<div className="pb-profile__title">
+							<h1 className="pb-title">
+								{t('Dr.')} {name}
+							</h1>
+							<LikeButton likes={like.likes} liked={like.liked} onLike={() => toggleLike(doctor._id, like)} />
+						</div>
+						<span className="pb-profile__sub">{formatEnum(doctor.specialty)}</span>
 						{doctor.clinicData && (
-							<>
-								{' · '}
-								<Link href={`/clinic/detail?id=${doctor.clinicData._id}`} className="pb-link">
-									{doctor.clinicData.clinicName}
-								</Link>
-							</>
-						)}
-					</span>
-					{doctor.memberData?.memberPhone && (
-						<span
-							style={{ display: 'inline-flex', gap: 8, alignItems: 'center', fontSize: 14, color: 'var(--pb-muted)' }}
-						>
-							<Icon name="phone" size={16} /> {doctor.memberData.memberPhone}
-						</span>
-					)}
-					<ActionChips
-						likes={like.likes}
-						views={doctor.doctorViews}
-						comments={commentTotal ?? doctor.doctorComments}
-						liked={like.liked}
-						onLike={() => toggleLike(doctor._id, like)}
-					/>
-					<div className="pb-follow-counts">
-						<button type="button" onClick={() => setFollowMode('followers')}>
-							<strong>{formatCount(followers)}</strong> {followers === 1 ? t('follower') : t('followers')}
-						</button>
-						<button type="button" onClick={() => setFollowMode('followings')}>
-							<strong>{formatCount(followings)}</strong> {t('following')}
-						</button>
-					</div>
-					<FollowModal
-						target={{ followGroup: FollowGroup.DOCTOR, refId: doctor._id }}
-						memberId={doctor.memberId}
-						mode={followMode}
-						counts={{ followers, followings }}
-						onMode={setFollowMode}
-						onClose={() => setFollowMode(null)}
-					/>
-				</div>
-				{(canBook || canFollow(doctor.memberId)) && (
-					<div className="pb-cta">
-						{canBook && (
-							<Link
-								href={`/booking?doctorId=${doctor._id}`}
-								className="pb-btn pb-btn--primary pb-btn--lg pb-btn--block"
-							>
-								{t('Book an appointment')} <Icon name="arrow" className="pb-arrow" />
+							<Link href={`/clinic/detail?id=${doctor.clinicData._id}`} className="pb-profile__meta pb-link">
+								<Icon name="clinic" size={16} />
+								{doctor.clinicData.clinicName}
 							</Link>
 						)}
-						{canFollow(doctor.memberId) && (
-							<FollowButton
-								following={following}
-								onClick={() => {
-									setFollowDelta((delta) => delta + (following ? -1 : 1));
-									toggleFollow(FollowGroup.DOCTOR, doctor._id);
-								}}
-							/>
-						)}
 					</div>
-				)}
+					{(canBook || canFollow(doctor.memberId)) && (
+						<div className="pb-cta pb-profile__cta">
+							{canBook && (
+								<Link
+									href={`/booking?doctorId=${doctor._id}`}
+									className="pb-btn pb-btn--primary pb-btn--lg pb-btn--block"
+								>
+									<Icon name="calendar" size={18} />
+									{t('Book an appointment')}
+								</Link>
+							)}
+							{canFollow(doctor.memberId) && (
+								<FollowButton
+									following={following}
+									onClick={() => {
+										setFollowDelta((delta) => delta + (following ? -1 : 1));
+										toggleFollow(FollowGroup.DOCTOR, doctor._id);
+									}}
+								/>
+							)}
+						</div>
+					)}
+				</div>
+
+				{/* the numbers a patient compares doctors by; followers opens the list */}
+				<dl className="pb-profile__stats">
+					<div>
+						<dt>{t('Experience')}</dt>
+						<dd>
+							{doctor.experience} <small>{t('yrs')}</small>
+						</dd>
+					</div>
+					<div>
+						<dt>{t('Patients served')}</dt>
+						<dd>{formatCount(doctor.patientsServed ?? 0)}</dd>
+					</div>
+					<div>
+						<dt>{t('Followers')}</dt>
+						<dd>
+							<button type="button" onClick={() => setFollowMode('followers')}>
+								{formatCount(followers)}
+							</button>
+						</dd>
+					</div>
+					<div>
+						<dt>{t('Reviews')}</dt>
+						<dd>{formatCount(reviews)}</dd>
+					</div>
+				</dl>
+				<FollowModal
+					target={{ followGroup: FollowGroup.DOCTOR, refId: doctor._id }}
+					memberId={doctor.memberId}
+					mode={followMode}
+					counts={{ followers, followings }}
+					onMode={setFollowMode}
+					onClose={() => setFollowMode(null)}
+				/>
 			</section>
 
 			<div className="pb-split" style={{ paddingTop: 24 }}>
@@ -180,7 +193,7 @@ const DoctorDetail: NextPage = () => {
 						<h2 className="pb-title" style={{ fontSize: 22 }}>
 							{t('About')}
 						</h2>
-						<p style={{ margin: 0, fontSize: 15, lineHeight: 1.65, color: 'var(--pb-muted)' }}>
+						<p className="pb-prose">
 							{doctor.memberData?.memberDesc ||
 								t('{{name}} is a {{specialty}} doctor with {{count}} years of experience.', {
 									name,
@@ -198,42 +211,74 @@ const DoctorDetail: NextPage = () => {
 					/>
 				</div>
 
-				<aside className="pb-split__side">
+				<aside className="pb-split__side pb-profile__side">
+					{/* first free slot; the booking page shows every time */}
+					{next !== undefined && (
+						<section className="pb-card pb-card--flat pb-side-card">
+							<span className="pb-side-card__label">
+								<Icon name="calendar" size={16} /> {t('Next available')}
+							</span>
+							{next ? (
+								<strong className={`pb-slot-tag ${isTomorrow(next.date) ? '' : 'is-later'}`}>
+									{dayLabel(next.date)}, {next.time}
+								</strong>
+							) : (
+								<strong className="pb-slot-tag is-none">{t('No free time')}</strong>
+							)}
+							{canBook && next && (
+								<Link href={`/booking?doctorId=${doctor._id}`} className="pb-more">
+									{t('See all times')} <Icon name="arrow" size={14} className="pb-arrow" />
+								</Link>
+							)}
+						</section>
+					)}
+
 					{doctor.clinicData && (
-						<Link href={`/clinic/detail?id=${doctor.clinicData._id}`} className="pb-card pb-card--flat pb-card--hover">
-							<span style={{ fontSize: 13, fontWeight: 700, color: 'var(--pb-muted)' }}>{t('Works at')}</span>
-							<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-								<span
-									className="pb-avatar"
-									style={{
-										width: 48,
-										height: 48,
-										borderRadius: 14,
-										background: 'var(--pb-soft-1)',
-										color: 'var(--pb-deep)',
-									}}
-								>
-									<Icon name="clinic" size={24} />
+						<Link
+							href={`/clinic/detail?id=${doctor.clinicData._id}`}
+							className="pb-card pb-card--flat pb-card--hover pb-side-card"
+						>
+							<span className="pb-side-card__label">{t('Works at')}</span>
+							<span className="pb-side-card__row">
+								<span className="pb-side-card__icon">
+									<Icon name="clinic" size={22} />
 								</span>
-								<span style={{ display: 'flex', flexDirection: 'column' }}>
+								<span style={{ minWidth: 0 }}>
 									<strong>{doctor.clinicData.clinicName}</strong>
-									<span style={{ fontSize: 13, color: 'var(--pb-muted)' }}>
+									<small>
 										{formatEnum(doctor.clinicData.clinicType)} · {doctor.clinicData.clinicAddress}
-									</span>
+									</small>
 								</span>
 							</span>
+							<OpenStatus clinic={doctor.clinicData} />
 						</Link>
 					)}
+
+					{doctor.memberData?.memberPhone && (
+						<section className="pb-card pb-card--flat pb-side-card">
+							<span className="pb-side-card__label">{t('Contact')}</span>
+							<button
+								type="button"
+								className="pb-contact-phone"
+								onClick={() => callDoctor(doctor.memberData!.memberPhone)}
+							>
+								<span className="pb-contact-phone__icon">
+									<Icon name="phone" size={18} />
+								</span>
+								<span>
+									<small>{t('Phone')}</small>
+									<strong>{doctor.memberData.memberPhone}</strong>
+								</span>
+							</button>
+						</section>
+					)}
+
 					{articles.length > 0 && (
-						<section className="pb-card pb-card--flat">
-							<strong style={{ fontSize: 15 }}>{t('Articles by {{name}}', { name })}</strong>
+						<section className="pb-card pb-card--flat pb-side-card">
+							<span className="pb-side-card__label">{t('Articles by {{name}}', { name })}</span>
 							{articles.map((article) => (
-								<Link
-									key={article._id}
-									href={`/community/detail?id=${article._id}`}
-									className="pb-link"
-									style={{ color: 'var(--pb-ink)' }}
-								>
+								<Link key={article._id} href={`/community/detail?id=${article._id}`} className="pb-side-card__article">
+									<Icon name="book" size={16} />
 									{article.articleTitle}
 								</Link>
 							))}

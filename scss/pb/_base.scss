@@ -762,24 +762,6 @@
 	background: var(--pb-chip) !important;
 }
 
-/* doctor specialty as a hashtag chip */
-.pb-spec-tag {
-	align-self: flex-start;
-	display: inline-flex;
-	align-items: center;
-	gap: 3px;
-	padding: 5px 12px;
-	border-radius: 999px;
-	background: var(--pb-surface);
-	color: var(--pb-deep);
-	box-shadow: inset 0 0 0 1.5px var(--pb-deep);
-	font-size: 13px;
-	font-weight: 700;
-	b {
-		opacity: 0.5;
-	}
-}
-
 .pb-cta .pb-btn {
 	white-space: nowrap !important;
 }

@@ -14,7 +14,7 @@ import LikeButton, { STAT_ICON } from '../ui/LikeButton';
 import { kakaoMapUrl } from '../../maps';
 import { useDoctorIndex } from '../../hooks/useDoctorIndex';
 import Icon from '../ui/Icon';
-import { openStatus, WEEK_DAY_LABEL } from '../../schedule';
+import OpenStatus from '../ui/OpenStatus';
 
 // light covers for clinics without a photo: soft palette tones, the icon in the matching deep color
 const covers = [
@@ -39,20 +39,7 @@ const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCa
 	const detail = `/clinic/detail?id=${clinic._id}`;
 	const cover = covers[index % covers.length];
 	// only lists that ask for the working hours show the status (undefined = not in the query)
-	const status = clinic.clinicOpenTime !== undefined ? openStatus(clinic) : null;
-	const statusText = !status
-		? ''
-		: status.state === 'open'
-		? t('Open now · until {{time}}', { time: status.time })
-		: status.state === 'break'
-		? t('On a break · back at {{time}}', { time: status.time })
-		: status.day === 'today'
-		? t('Closed · opens at {{time}}', { time: status.time })
-		: status.day === 'tomorrow'
-		? t('Closed · opens tomorrow at {{time}}', { time: status.time })
-		: status.day
-		? t('Closed · opens {{day}} at {{time}}', { day: t(WEEK_DAY_LABEL[status.day]), time: status.time })
-		: t('Closed');
+	const showStatus = clinic.clinicOpenTime !== undefined;
 	const [ownTags, setOwnTags] = useState<string[]>([]);
 
 	/** APOLLO REQUESTS **/
@@ -104,12 +91,7 @@ const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCa
 					<Icon name="pin" size={15} />
 					{clinic.clinicAddress}
 				</span>
-				{status && (
-					<span className={`pb-open pb-open--${status.state}`}>
-						<i aria-hidden="true" />
-						{statusText}
-					</span>
-				)}
+				{showStatus && <OpenStatus clinic={clinic} />}
 			</div>
 			{tags.length > 0 && (
 				<div className="pb-tags">

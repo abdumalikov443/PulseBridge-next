@@ -246,6 +246,11 @@ export const GET_DOCTOR = gql`
 			doctorComments
 			doctorFollowers
 			doctorRank
+			patientsServed
+			nextAvailable {
+				date
+				time
+			}
 			createdAt
 			updatedAt
 			meLiked {
