@@ -1,5 +1,7 @@
 {
   "(optional, 3–500 characters)": "(선택, 3–500자)",
+  "Articles and experiences from doctors and patients": "의사와 환자가 쓴 글과 경험담",
+  "Ranked by likes, follows and views from patients": "환자들의 좋아요, 팔로우, 조회수 기준 순위",
   "{{count}} clinic found": "병원 {{count}}곳",
   "{{count}} clinics found": "병원 {{count}}곳",
   "{{count}} comments": "댓글 {{count}}개",

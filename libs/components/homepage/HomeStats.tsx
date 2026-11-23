@@ -36,18 +36,20 @@ const HomeStats = () => {
 	];
 
 	return (
-		<div className="pb-container pb-home-stats">
-			{items.map((item) => (
-				<div key={item.icon} className="pb-home-stat">
-					<span className={`pb-home-stat__icon pb-tone--${item.tone}`}>
-						<Icon name={item.icon} />
-					</span>
-					<span>
-						<strong>{item.value ?? '–'}</strong>
-						<small>{item.label}</small>
-					</span>
-				</div>
-			))}
+		<div className="pb-container">
+			<div className="pb-home-stats">
+				{items.map((item) => (
+					<div key={item.icon} className="pb-home-stat">
+						<span className={`pb-home-stat__icon pb-tone--${item.tone}`}>
+							<Icon name={item.icon} />
+						</span>
+						<span>
+							<strong>{item.value ?? '–'}</strong>
+							<small>{item.label}</small>
+						</span>
+					</div>
+				))}
+			</div>
 		</div>
 	);
 };

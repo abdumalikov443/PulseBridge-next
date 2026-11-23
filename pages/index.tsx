@@ -31,17 +31,15 @@ const isLiked = (item: { meLiked?: { myFavorite: boolean }[] }) => !!item.meLike
 
 interface SectionHeadProps {
 	id: string;
-	eyebrow?: string;
 	title: string;
 	sub?: string;
 	href: string;
 	more: string;
 }
 
-const SectionHead = ({ id, eyebrow, title, sub, href, more }: SectionHeadProps) => (
+const SectionHead = ({ id, title, sub, href, more }: SectionHeadProps) => (
 	<div className="pb-section-head">
 		<div>
-			{eyebrow && <span className="pb-eyebrow">{eyebrow}</span>}
 			<h2 className="pb-title" id={id}>
 				{title}
 			</h2>
@@ -65,7 +63,7 @@ const Home: NextPage = () => {
 	/** APOLLO REQUESTS **/
 	useQuery(GET_DOCTOR_CARDS, {
 		fetchPolicy: 'network-only',
-		variables: { input: { page: 1, limit: 4, sort: 'doctorRank', direction: 'DESC', search: {} } },
+		variables: { input: { page: 1, limit: 3, sort: 'doctorRank', direction: 'DESC', search: {} } },
 		onCompleted: (data: T) => setDoctors(data?.getDoctors?.list ?? []),
 		onError: () => setDoctors([]),
 	});
@@ -89,9 +87,15 @@ const Home: NextPage = () => {
 			<HomeSpecialties />
 
 			<section className="pb-container pb-section" aria-labelledby="home-doctors">
-				<SectionHead id="home-doctors" eyebrow={t('Top ranked')} title={t('Featured doctors')} href="/doctor" more={t('View all doctors')} />
-				<div className="pb-grid pb-grid--four">
-					{doctors === null && <SkeletonCards count={4} />}
+				<SectionHead
+					id="home-doctors"
+					title={t('Featured doctors')}
+					sub={t('Ranked by likes, follows and views from patients')}
+					href="/doctor"
+					more={t('View all doctors')}
+				/>
+				<div className="pb-grid">
+					{doctors === null && <SkeletonCards count={3} />}
 					{doctors?.map((doctor) => {
 						const state = doctorLikes.likeState(doctor._id, isLiked(doctor), doctor.doctorLikes);
 						return (
@@ -136,7 +140,13 @@ const Home: NextPage = () => {
 			</section>
 
 			<section className="pb-container pb-section" aria-labelledby="home-stories">
-				<SectionHead id="home-stories" eyebrow={t('Community')} title={t('Health stories')} href="/community" more={t('Browse community')} />
+				<SectionHead
+					id="home-stories"
+					title={t('Health stories')}
+					sub={t('Articles and experiences from doctors and patients')}
+					href="/community"
+					more={t('Browse community')}
+				/>
 				<div className="pb-grid pb-grid--posts">
 					{articles === null && <SkeletonCards count={2} />}
 					{articles?.map((article) => {

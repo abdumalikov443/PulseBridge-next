@@ -17,13 +17,12 @@ interface TileProps {
 	icon: IconName;
 	tone: string;
 	desc: string;
-	copy?: boolean;
 	index: DoctorIndex | null;
 }
 
 // one tile per specialty; the count comes from the shared doctor index,
 // or from its own query when there are more doctors than the index holds
-const SpecialtyTile = ({ specialty, icon, tone, desc, copy, index }: TileProps) => {
+const SpecialtyTile = ({ specialty, icon, tone, desc, index }: TileProps) => {
 	const { t } = useTranslation('common');
 	const ownQuery = !!index && !index.complete;
 	const { data, error } = useQuery(GET_DOCTORS, {
@@ -47,9 +46,6 @@ const SpecialtyTile = ({ specialty, icon, tone, desc, copy, index }: TileProps) 
 			className={`pb-spec pb-spec--${tone} pb-tip`}
 			data-tip={t(desc)}
 			aria-label={`${formatEnum(specialty)}: ${t(desc)}`}
-			// the second copy only fills the loop; screen readers and Tab skip it
-			aria-hidden={copy || undefined}
-			tabIndex={copy ? -1 : undefined}
 		>
 			<span className={`pb-spec__icon pb-tone--${tone}`}>
 				<Icon name={icon} />
@@ -79,16 +75,10 @@ const HomeSpecialties = () => {
 					{t('Explore all')} <Icon name="arrow" size={16} className="pb-arrow" />
 				</Link>
 			</div>
-			{/* endless row: the tiles run twice so the loop has no gap; it stops while hovered or focused */}
-			<div className="pb-spec-marquee">
-				<div className="pb-spec-marquee__track">
-					{tiles.map((tile) => (
-						<SpecialtyTile key={tile.specialty} {...tile} index={index} />
-					))}
-					{tiles.map((tile) => (
-						<SpecialtyTile key={`copy-${tile.specialty}`} {...tile} copy index={index} />
-					))}
-				</div>
+			<div className="pb-spec-grid pb-spec-grid--home">
+				{tiles.map((tile) => (
+					<SpecialtyTile key={tile.specialty} {...tile} index={index} />
+				))}
 			</div>
 		</section>
 	);

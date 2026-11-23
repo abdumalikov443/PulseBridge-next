@@ -64,9 +64,11 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 		<article ref={cardRef} className="pb-card pb-card--hover pb-doc-card" style={style}>
 			<div className="pb-doc-card__head">
 				<Link href={detail} className="pb-doc-card__top">
-					<Avatar name={name} image={doctor.memberData?.memberImage} size={56} radius={18} />
+					<Avatar name={name} image={doctor.memberData?.memberImage} size={52} radius={16} />
 					<span style={{ minWidth: 0 }}>
-						<strong className="pb-doc-card__name">Dr. {name}</strong>
+						<strong className="pb-doc-card__name" title={`Dr. ${name}`}>
+							Dr. {name}
+						</strong>
 						<span className="pb-doc-card__spec">{formatEnum(doctor.specialty)}</span>
 					</span>
 				</Link>
