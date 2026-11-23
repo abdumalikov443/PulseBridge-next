@@ -34,12 +34,6 @@ const useNextSlot = (doctorId: string, visible: boolean) => {
 	return next;
 };
 
-// the card shows the first two words of the clinic name; the doctor page shows it in full
-const shortName = (name: string) => {
-	const words = name.trim().split(/\s+/);
-	return words.length > 2 ? `${words.slice(0, 2).join(' ')}…` : name;
-};
-
 interface DoctorCardProps {
 	doctor: Doctor;
 	liked: boolean;
@@ -48,7 +42,7 @@ interface DoctorCardProps {
 	style?: React.CSSProperties;
 }
 
-// list card: photo with name and like, clinic, next slot, patients served and book (follow and reviews live on the detail page)
+// list card: photo with name and like; clinic, experience, next slot and patients served one per line; book (follow and reviews live on the detail page)
 const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) => {
 	const { t } = useTranslation('common');
 	const name = getMemberName(doctor.memberData);
@@ -64,7 +58,7 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 		<article ref={cardRef} className="pb-card pb-card--hover pb-doc-card" style={style}>
 			<div className="pb-doc-card__head">
 				<Link href={detail} className="pb-doc-card__top">
-					<Avatar name={name} image={doctor.memberData?.memberImage} size={52} radius={16} />
+					<Avatar name={name} image={doctor.memberData?.memberImage} size={56} radius={16} />
 					<span style={{ minWidth: 0 }}>
 						<strong className="pb-doc-card__name" title={`Dr. ${name}`}>
 							Dr. {name}
@@ -74,35 +68,41 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 				</Link>
 				<LikeButton likes={likes} liked={liked} onLike={onLike} />
 			</div>
-			<span className="pb-doc-card__meta pb-doc-card__meta--one" title={doctor.clinicData?.clinicName}>
-				<Icon name="clinic" size={15} />
-				<span>
-					{doctor.clinicData ? shortName(doctor.clinicData.clinicName) : t('No clinic yet')} · {doctor.experience}{' '}
-					{t('yrs of exp')}
-				</span>
-			</span>
-			<div className="pb-doc-card__next">
-				<span>{t('Next available:')}</span>
-				{next === undefined ? (
-					<b className="is-loading">…</b>
-				) : next ? (
-					<b className={isTomorrow(next.date) ? '' : 'is-later'}>
-						{dayLabel(next.date)}, {next.time}
-					</b>
-				) : (
-					<b className="is-none">{t('No free time')}</b>
-				)}
-			</div>
-			<div className="pb-doc-card__foot">
-				<span className="pb-meta-stat">
+			<ul className="pb-doc-card__info">
+				<li title={doctor.clinicData?.clinicName}>
+					<Icon name="clinic" size={STAT_ICON} />
+					<span>{doctor.clinicData ? doctor.clinicData.clinicName : t('No clinic yet')}</span>
+				</li>
+				<li>
+					<Icon name="stethoscope" size={STAT_ICON} />
+					<span>
+						{doctor.experience} {t('yrs of exp')}
+					</span>
+				</li>
+				<li>
+					<Icon name="calendar" size={STAT_ICON} />
+					<span>{t('Next available:')}</span>
+					{next === undefined ? (
+						<b className="is-loading">…</b>
+					) : next ? (
+						<b className={isTomorrow(next.date) ? '' : 'is-later'}>
+							{dayLabel(next.date)}, {next.time}
+						</b>
+					) : (
+						<b className="is-none">{t('No free time')}</b>
+					)}
+				</li>
+				<li>
 					<Icon name="users" size={STAT_ICON} />
-					{formatCount(served)} {served === 1 ? t('patient served') : t('patients served')}
-				</span>
-				<Link href={`/booking?doctorId=${doctor._id}`} className="pb-btn pb-btn--primary pb-btn--sm">
-					<Icon name="calendar" size={14} />
-					{t('Book')}
-				</Link>
-			</div>
+					<span>
+						{formatCount(served)} {served === 1 ? t('patient served') : t('patients served')}
+					</span>
+				</li>
+			</ul>
+			<Link href={`/booking?doctorId=${doctor._id}`} className="pb-btn pb-btn--primary pb-btn--block pb-doc-card__book">
+				<Icon name="calendar" size={16} />
+				{t('Book')}
+			</Link>
 		</article>
 	);
 };

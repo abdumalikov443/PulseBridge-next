@@ -1354,11 +1354,3 @@
 a.pb-pill--active {
 	color: #fff !important;
 }
-
-// doctor card: the clinic line always stays on one line (the text is a flex item, so it gets the ellipsis)
-.pb-doc-card__meta--one > span {
-	min-width: 0;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}

@@ -497,16 +497,69 @@
 		align-items: center;
 		gap: 12px;
 		min-width: 0;
+		// room for a two-line name, so the lines below start at the same height in every card of a row
+		min-height: 64px;
 	}
 	&__name {
-		display: block;
 		font-family: var(--pb-font-display);
 		font-size: 17px;
 		font-weight: 700;
 		line-height: 1.25;
+		// long names (with a Korean name in brackets) get two lines, then an ellipsis
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
 		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+		// Korean names wrap between words, not inside a name ("(김서연)" stays whole)
+		word-break: keep-all;
+		overflow-wrap: anywhere;
+	}
+	// one fact per line: clinic, experience, next free slot, patients served
+	&__info {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		margin: 0;
+		padding: 12px 0 0;
+		list-style: none;
+		border-top: 1px solid var(--pb-line);
+		li {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			min-width: 0;
+			font-size: 13px;
+			line-height: 1.3;
+			color: var(--pb-muted);
+			svg {
+				flex: none;
+				color: var(--pb-primary);
+			}
+			> span {
+				min-width: 0;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+		}
+		b {
+			margin-left: auto;
+			padding: 3px 9px;
+			border-radius: 8px;
+			background: var(--pb-success-soft);
+			color: var(--pb-success);
+			font-size: 12px;
+			white-space: nowrap;
+			&.is-later {
+				background: var(--pb-warning-soft);
+				color: var(--pb-warning);
+			}
+			&.is-none,
+			&.is-loading {
+				background: var(--pb-chip);
+				color: var(--pb-muted);
+			}
+		}
 	}
 	&__spec {
 		display: block;
@@ -523,29 +576,6 @@
 		color: var(--pb-muted);
 		svg {
 			flex: none;
-		}
-	}
-	&__next {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 8px;
-		padding: 10px 12px;
-		border-radius: 14px;
-		background: var(--pb-bg);
-		font-size: 13px;
-		color: var(--pb-muted);
-		b {
-			padding: 4px 10px;
-			border-radius: 8px;
-			background: var(--pb-success-soft);
-			color: var(--pb-success);
-			font-size: 12px;
-			white-space: nowrap;
-			&.is-later {
-				background: var(--pb-warning-soft);
-				color: var(--pb-warning);
-			}
 		}
 	}
 }
@@ -726,24 +756,13 @@
 	align-items: start;
 }
 
-.pb-doc-card__next b.is-none,
-.pb-doc-card__next b.is-loading {
-	background: var(--pb-chip);
-	color: var(--pb-muted);
-}
 
 // cards in a row share a height; the footer stays at the bottom with or without tags
 .pb-clinic-card__foot {
 	margin-top: auto;
 }
-.pb-doc-card__foot {
+.pb-doc-card__book {
 	margin-top: auto;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	gap: 8px;
-	padding-top: 12px;
-	border-top: 1px solid var(--pb-line);
 }
 
 .pb-tone {
