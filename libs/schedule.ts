@@ -102,3 +102,43 @@ export const dayLabel = (date: string): string => {
 		timeZone: 'UTC',
 	});
 };
+
+export type OpenState = 'open' | 'break' | 'closed';
+export interface OpenStatus {
+	state: OpenState;
+	// open: closing time; break: end of the break; closed: opening time
+	time: string;
+	// closed only: when it opens next
+	day?: 'today' | 'tomorrow' | WeekDay;
+}
+
+// whether a clinic is open right now, by its working hours in Seoul time
+export const openStatus = (clinic?: Partial<Schedule> | null, now: Date = new Date()): OpenStatus => {
+	const schedule = withScheduleDefaults(clinic);
+	const parts = new Intl.DateTimeFormat('en-US', {
+		timeZone: 'Asia/Seoul',
+		weekday: 'short',
+		hour: '2-digit',
+		minute: '2-digit',
+		hourCycle: 'h23',
+	}).formatToParts(now);
+	const part = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+	const today = part('weekday').toUpperCase() as WeekDay;
+	const time = `${part('hour')}:${part('minute')}`;
+	const works = (day: WeekDay) => !schedule.clinicOffDays.includes(day);
+
+	if (works(today)) {
+		if (time < schedule.clinicOpenTime) return { state: 'closed', time: schedule.clinicOpenTime, day: 'today' };
+		if (time < schedule.clinicCloseTime) {
+			const { clinicBreakStart: start, clinicBreakEnd: end } = schedule;
+			if (start && end && time >= start && time < end) return { state: 'break', time: end };
+			return { state: 'open', time: schedule.clinicCloseTime };
+		}
+	}
+	const index = WEEK_DAYS.indexOf(today);
+	for (let step = 1; step <= 7; step++) {
+		const day = WEEK_DAYS[(index + step) % 7];
+		if (works(day)) return { state: 'closed', time: schedule.clinicOpenTime, day: step === 1 ? 'tomorrow' : day };
+	}
+	return { state: 'closed', time: schedule.clinicOpenTime };
+};

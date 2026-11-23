@@ -14,12 +14,14 @@ import LikeButton, { STAT_ICON } from '../ui/LikeButton';
 import { kakaoMapUrl } from '../../maps';
 import { useDoctorIndex } from '../../hooks/useDoctorIndex';
 import Icon from '../ui/Icon';
+import { openStatus, WEEK_DAY_LABEL } from '../../schedule';
 
+// light covers for clinics without a photo: soft palette tones, the icon in the matching deep color
 const covers = [
-	'linear-gradient(135deg, #1f4f6b, #10283a)',
-	'linear-gradient(135deg, #a07a5c, #6f5039)',
-	'linear-gradient(135deg, #8a88b8, #5d5b8c)',
-	'linear-gradient(135deg, #3f8f7d, #24594d)',
+	{ bg: 'linear-gradient(135deg, #e3f1f9, #cde4f1)', fg: '#1f6f99' },
+	{ bg: 'linear-gradient(135deg, #e4f4ec, #cde9dc)', fg: '#0b6b61' },
+	{ bg: 'linear-gradient(135deg, #ece9f8, #dad5f0)', fg: '#5d5b8c' },
+	{ bg: 'linear-gradient(135deg, #fdeedf, #f8dcc2)', fg: '#a2581c' },
 ];
 
 interface ClinicCardProps {
@@ -35,6 +37,22 @@ interface ClinicCardProps {
 const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCardProps) => {
 	const { t } = useTranslation('common');
 	const detail = `/clinic/detail?id=${clinic._id}`;
+	const cover = covers[index % covers.length];
+	// only lists that ask for the working hours show the status (undefined = not in the query)
+	const status = clinic.clinicOpenTime !== undefined ? openStatus(clinic) : null;
+	const statusText = !status
+		? ''
+		: status.state === 'open'
+		? t('Open now · until {{time}}', { time: status.time })
+		: status.state === 'break'
+		? t('On a break · back at {{time}}', { time: status.time })
+		: status.day === 'today'
+		? t('Closed · opens at {{time}}', { time: status.time })
+		: status.day === 'tomorrow'
+		? t('Closed · opens tomorrow at {{time}}', { time: status.time })
+		: status.day
+		? t('Closed · opens {{day}} at {{time}}', { day: t(WEEK_DAY_LABEL[status.day]), time: status.time })
+		: t('Closed');
 	const [ownTags, setOwnTags] = useState<string[]>([]);
 
 	/** APOLLO REQUESTS **/
@@ -54,12 +72,16 @@ const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCa
 
 	return (
 		<article className="pb-card pb-card--hover pb-clinic-card" style={style}>
-			<Link href={detail} className="pb-clinic-card__cover" style={{ background: covers[index % covers.length] }}>
+			<Link
+				href={detail}
+				className={`pb-clinic-card__cover ${clinic.clinicImage ? 'has-image' : ''}`}
+				style={{ background: cover.bg }}
+			>
 				{clinic.clinicImage ? (
 					<img src={`${REACT_APP_API_URL}/${clinic.clinicImage}`} alt="" loading="lazy" decoding="async" />
 				) : (
-					<span className="pb-clinic-card__placeholder" aria-hidden="true">
-						<Icon name="clinic" size={44} strokeWidth={1.4} />
+					<span className="pb-clinic-card__placeholder" aria-hidden="true" style={{ color: cover.fg }}>
+						<Icon name="clinic" size={52} strokeWidth={1.3} />
 					</span>
 				)}
 				<span className={`pb-clinic-card__type ${clinic.clinicType === ClinicType.PUBLIC ? 'is-public' : ''}`}>
@@ -82,6 +104,12 @@ const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCa
 					<Icon name="pin" size={15} />
 					{clinic.clinicAddress}
 				</span>
+				{status && (
+					<span className={`pb-open pb-open--${status.state}`}>
+						<i aria-hidden="true" />
+						{statusText}
+					</span>
+				)}
 			</div>
 			{tags.length > 0 && (
 				<div className="pb-tags">

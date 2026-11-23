@@ -27,7 +27,6 @@ interface Outcome {
 	specialty?: DoctorSpecialty | null;
 	urgency: IntakeUrgency;
 	complaintSummary: string;
-	remainingMessages?: number;
 }
 
 const MESSAGE_MAX = 1000;
@@ -184,7 +183,6 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 				specialty: data.specialty,
 				urgency: data.urgency,
 				complaintSummary: data.complaintSummary,
-				remainingMessages: data.remainingMessages,
 			});
 			setDoctors(null);
 		} catch (err: any) {
@@ -422,9 +420,6 @@ const AiAssistant = ({ active }: AiAssistantProps) => {
 				</button>
 			</form>
 			<div className="pb-ai__foot">
-				{typeof outcome?.remainingMessages === 'number' && (
-					<span>{t('{{count}} messages left', { count: outcome.remainingMessages })}</span>
-				)}
 				{turns.length > 0 && (
 					<button type="button" onClick={resetHandler}>
 						{t('New conversation')}

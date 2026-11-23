@@ -93,6 +93,11 @@ export const GET_CLINICS = gql`
 				clinicType
 				clinicName
 				clinicAddress
+				clinicOpenTime
+				clinicCloseTime
+				clinicBreakStart
+				clinicBreakEnd
+				clinicOffDays
 				clinicDesc
 				clinicImage
 				clinicViews
@@ -159,6 +164,11 @@ export const GET_FAVORITE_CLINICS = gql`
 				clinicType
 				clinicName
 				clinicAddress
+				clinicOpenTime
+				clinicCloseTime
+				clinicBreakStart
+				clinicBreakEnd
+				clinicOffDays
 				clinicDesc
 				clinicImage
 				clinicViews
@@ -191,6 +201,11 @@ export const GET_VISITED_CLINICS = gql`
 				clinicType
 				clinicName
 				clinicAddress
+				clinicOpenTime
+				clinicCloseTime
+				clinicBreakStart
+				clinicBreakEnd
+				clinicOffDays
 				clinicDesc
 				clinicImage
 				clinicViews

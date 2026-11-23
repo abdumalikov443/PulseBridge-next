@@ -104,29 +104,9 @@ const ClinicList: NextPage = () => {
 				<p>{t('Private and public clinics with their doctors and patient reviews.')}</p>
 			</header>
 
+			{/* same layout as the doctor list: search and sort, then the type filter, then the count */}
 			<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', padding: '16px 0' }}>
-				<div className="pb-pills" role="group" aria-label={t('Clinic type')} style={{ flex: '1 1 auto' }}>
-					<button
-						type="button"
-						className={`pb-pill ${!clinicType ? 'pb-pill--active' : ''}`}
-						aria-pressed={!clinicType}
-						onClick={() => setSearch({ clinicType: undefined })}
-					>
-						{t('All clinics')}
-					</button>
-					{Object.values(ClinicType).map((type) => (
-						<button
-							key={type}
-							type="button"
-							className={`pb-pill ${clinicType === type ? 'pb-pill--active' : ''}`}
-							aria-pressed={clinicType === type}
-							onClick={() => setSearch({ clinicType: type })}
-						>
-							{formatEnum(type)}
-						</button>
-					))}
-				</div>
-				<form className="pb-search" style={{ flex: '1 1 260px', maxWidth: 360 }} onSubmit={(e) => e.preventDefault()}>
+				<form className="pb-search" style={{ flex: '1 1 280px' }} onSubmit={(e) => e.preventDefault()}>
 					<Icon name="search" />
 					<label htmlFor="clinic-search" className="pb-sr">
 						{t('Clinic name')}
@@ -145,7 +125,29 @@ const ClinicList: NextPage = () => {
 				/>
 			</div>
 
-			<p style={{ margin: '4px 0 12px', fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
+			<div className="pb-pills" role="group" aria-label={t('Clinic type')}>
+				<button
+					type="button"
+					className={`pb-pill ${!clinicType ? 'pb-pill--active' : ''}`}
+					aria-pressed={!clinicType}
+					onClick={() => setSearch({ clinicType: undefined })}
+				>
+					{t('All clinics')}
+				</button>
+				{Object.values(ClinicType).map((type) => (
+					<button
+						key={type}
+						type="button"
+						className={`pb-pill ${clinicType === type ? 'pb-pill--active' : ''}`}
+						aria-pressed={clinicType === type}
+						onClick={() => setSearch({ clinicType: type })}
+					>
+						{formatEnum(type)}
+					</button>
+				))}
+			</div>
+
+			<p style={{ margin: '20px 0 12px', minHeight: 20, fontSize: 14, fontWeight: 700, color: 'var(--pb-muted)' }}>
 				{/* the count waits for the first answer, so "0 found" never flashes while loading */}
 				{clinics !== null &&
 					!(loading && clinics.length === 0) &&
