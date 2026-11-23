@@ -9,7 +9,8 @@ import { ClinicType } from '../../enums/clinic.enum';
 import { T } from '../../types/common';
 import { REACT_APP_API_URL } from '../../config';
 import { formatEnum } from '../../utils';
-import ActionChips from '../ui/ActionChips';
+import { formatCount } from '../ui/ActionChips';
+import LikeButton, { STAT_ICON } from '../ui/LikeButton';
 import { kakaoMapUrl } from '../../maps';
 import { useDoctorIndex } from '../../hooks/useDoctorIndex';
 import Icon from '../ui/Icon';
@@ -30,7 +31,7 @@ interface ClinicCardProps {
 	style?: React.CSSProperties;
 }
 
-// list card: cover, address, specialties of its doctors, like and view, directions
+// list card: cover with type, name with like, address, specialties of its doctors, doctors and views, directions
 const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCardProps) => {
 	const { t } = useTranslation('common');
 	const detail = `/clinic/detail?id=${clinic._id}`;
@@ -65,15 +66,14 @@ const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCa
 					<i aria-hidden="true" />
 					{formatEnum(clinic.clinicType)}
 				</span>
-				<span className="pb-clinic-card__count">
-					<Icon name="users" size={15} />
-					{clinic.clinicDoctors} {clinic.clinicDoctors === 1 ? t('doctor') : t('doctors')}
-				</span>
 			</Link>
 			<div className="pb-clinic-card__body">
-				<Link href={detail} className="pb-clinic-card__name">
-					{clinic.clinicName}
-				</Link>
+				<div className="pb-clinic-card__title">
+					<Link href={detail} className="pb-clinic-card__name">
+						{clinic.clinicName}
+					</Link>
+					<LikeButton likes={likes} liked={liked} onLike={onLike} />
+				</div>
 				<span className="pb-doc-card__meta">
 					<Icon name="pin" size={15} />
 					{clinic.clinicAddress}
@@ -87,7 +87,16 @@ const ClinicCard = ({ clinic, liked, likes, onLike, index = 0, style }: ClinicCa
 				</div>
 			)}
 			<div className="pb-clinic-card__foot">
-				<ActionChips likes={likes} views={clinic.clinicViews} liked={liked} onLike={onLike} />
+				<div className="pb-meta-stats">
+					<span className="pb-meta-stat">
+						<Icon name="users" size={STAT_ICON} />
+						{clinic.clinicDoctors ?? 0} {clinic.clinicDoctors === 1 ? t('doctor') : t('doctors')}
+					</span>
+					<span className="pb-meta-stat" aria-label={t('{{count}} views', { count: clinic.clinicViews })}>
+						<Icon name="eye" size={STAT_ICON} />
+						{formatCount(clinic.clinicViews)}
+					</span>
+				</div>
 				<a
 					href={kakaoMapUrl(clinic.clinicAddress)}
 					target="_blank"

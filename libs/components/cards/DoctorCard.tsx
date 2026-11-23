@@ -10,7 +10,8 @@ import { Doctor } from '../../types/doctor/doctor';
 import { getMemberName } from '../../config';
 import { formatEnum } from '../../utils';
 import Avatar from '../ui/Avatar';
-import ActionChips from '../ui/ActionChips';
+import { formatCount } from '../ui/ActionChips';
+import LikeButton, { STAT_ICON } from '../ui/LikeButton';
 import Icon from '../ui/Icon';
 import { useInView } from '../../hooks/useInView';
 
@@ -47,7 +48,7 @@ interface DoctorCardProps {
 	style?: React.CSSProperties;
 }
 
-// list card: photo with name, clinic, next slot, like and view, book (follow and reviews live on the detail page)
+// list card: photo with name and like, clinic, next slot, views and book (follow and reviews live on the detail page)
 const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) => {
 	const { t } = useTranslation('common');
 	const name = getMemberName(doctor.memberData);
@@ -60,13 +61,16 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 
 	return (
 		<article ref={cardRef} className="pb-card pb-card--hover pb-doc-card" style={style}>
-			<Link href={detail} className="pb-doc-card__top">
-				<Avatar name={name} image={doctor.memberData?.memberImage} size={56} radius={18} />
-				<span style={{ minWidth: 0 }}>
-					<strong className="pb-doc-card__name">Dr. {name}</strong>
-					<span className="pb-doc-card__spec">{formatEnum(doctor.specialty)}</span>
-				</span>
-			</Link>
+			<div className="pb-doc-card__head">
+				<Link href={detail} className="pb-doc-card__top">
+					<Avatar name={name} image={doctor.memberData?.memberImage} size={56} radius={18} />
+					<span style={{ minWidth: 0 }}>
+						<strong className="pb-doc-card__name">Dr. {name}</strong>
+						<span className="pb-doc-card__spec">{formatEnum(doctor.specialty)}</span>
+					</span>
+				</Link>
+				<LikeButton likes={likes} liked={liked} onLike={onLike} />
+			</div>
 			<span className="pb-doc-card__meta pb-doc-card__meta--one" title={doctor.clinicData?.clinicName}>
 				<Icon name="clinic" size={15} />
 				<span>
@@ -86,11 +90,16 @@ const DoctorCard = ({ doctor, liked, likes, onLike, style }: DoctorCardProps) =>
 					<b className="is-none">{t('No free time')}</b>
 				)}
 			</div>
-			<ActionChips likes={likes} views={doctor.doctorViews} liked={liked} onLike={onLike} />
-			<Link href={`/booking?doctorId=${doctor._id}`} className="pb-btn pb-btn--primary pb-btn--block">
-				<Icon name="calendar" size={16} />
-				{t('Book')}
-			</Link>
+			<div className="pb-doc-card__foot">
+				<span className="pb-meta-stat" aria-label={t('{{count}} views', { count: doctor.doctorViews })}>
+					<Icon name="eye" size={STAT_ICON} />
+					{formatCount(doctor.doctorViews)}
+				</span>
+				<Link href={`/booking?doctorId=${doctor._id}`} className="pb-btn pb-btn--primary pb-btn--sm">
+					<Icon name="calendar" size={14} />
+					{t('Book')}
+				</Link>
+			</div>
 		</article>
 	);
 };

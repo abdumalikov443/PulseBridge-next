@@ -48,7 +48,7 @@ const ActionChips = (props: ActionChipsProps) => {
 			</span>
 			{comments !== undefined && (
 				<span className="pb-chip pb-chip--static" aria-label={t('{{count}} comments', { count: comments })}>
-					<Icon name="comment" size={18} />
+					<Icon name="comment" size={16} />
 					{formatCount(comments)}
 				</span>
 			)}
