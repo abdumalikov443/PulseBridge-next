@@ -86,7 +86,6 @@ const PbHeader = () => {
 								<span />
 							</span>
 						</span>
-						<span className="pb-brand__sub">{t('Clinical discovery')}</span>
 					</span>
 				</Link>
 

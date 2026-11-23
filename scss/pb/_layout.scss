@@ -12,33 +12,39 @@
 		display: flex;
 		align-items: center;
 		gap: 20px;
-		min-height: 76px;
+		min-height: 72px;
 	}
 
+	// plain links; the active page gets its color and a short line under it
 	&__nav {
 		display: flex;
-		gap: 4px;
-		padding: 6px;
-		border-radius: 999px;
-		background: var(--pb-surface);
+		gap: 2px;
 		margin: 0 auto;
 	}
 
 	&__link {
-		padding: 10px 16px;
-		border-radius: 999px;
+		position: relative;
+		padding: 10px 14px;
+		border-radius: 10px;
 		font-size: 14px;
 		font-weight: 600;
-		color: var(--pb-ink);
-		transition: box-shadow 0.25s ease, background-color 0.25s ease;
+		color: var(--pb-muted) !important;
+		transition: color 0.2s ease, background-color 0.2s ease;
 		&:hover {
-			box-shadow: inset 0 0 0 1.5px currentColor;
+			color: var(--pb-ink) !important;
+			background: var(--pb-surface);
 		}
 		&--active {
-			background: var(--pb-deep);
-			color: #fff !important;
-			&:hover {
-				box-shadow: none;
+			color: var(--pb-deep) !important;
+			&::after {
+				content: '';
+				position: absolute;
+				left: 14px;
+				right: 14px;
+				bottom: 2px;
+				height: 2px;
+				border-radius: 2px;
+				background: var(--pb-deep);
 			}
 		}
 	}
@@ -99,8 +105,19 @@
 				display: flex;
 			}
 		}
+		&__nav--open {
+			padding: 6px;
+			border-radius: var(--pb-radius);
+			background: var(--pb-surface);
+		}
 		&__link {
 			border-radius: var(--pb-radius-sm);
+			&--active {
+				background: var(--pb-soft-1);
+				&::after {
+					display: none;
+				}
+			}
 		}
 	}
 }
@@ -218,10 +235,10 @@
 		right: 24px;
 		bottom: 24px;
 		z-index: 999;
-		width: 58px;
-		height: 58px;
+		width: 54px;
+		height: 54px;
 		border: 0;
-		border-radius: 20px;
+		border-radius: 18px;
 		background: linear-gradient(140deg, var(--pb-primary), var(--pb-deep));
 		color: #fff;
 		display: flex;
@@ -499,8 +516,6 @@
 	}
 	&__text {
 		display: flex;
-		flex-direction: column;
-		gap: 3px;
 	}
 	&__name {
 		display: inline-flex;
@@ -514,18 +529,6 @@
 		.pb-logo__dot {
 			width: 7px;
 			height: 7px;
-		}
-	}
-	&__sub {
-		font-size: 10px;
-		font-weight: 700;
-		letter-spacing: 0.14em;
-		text-transform: uppercase;
-		color: var(--pb-muted);
-	}
-	@media (max-width: $pb-phone) {
-		&__sub {
-			display: none;
 		}
 	}
 }
@@ -553,19 +556,28 @@ button.pb-header__link {
 	align-items: center;
 	gap: 6px;
 	min-height: 40px;
-	padding: 0 14px;
+	padding: 0 12px;
+	border: 0;
 	border-radius: 999px;
-	background: var(--pb-warning-soft);
-	color: var(--pb-warning);
-	box-shadow: inset 0 0 0 1px #f6d3a8;
+	background: transparent;
+	color: var(--pb-ink);
+	box-shadow: inset 0 0 0 1px var(--pb-line);
+	font: inherit;
 	font-size: 13px;
 	font-weight: 600;
 	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
 	svg {
-		color: var(--pb-accent);
+		color: var(--pb-danger);
+	}
+	&:hover {
+		background: var(--pb-danger-soft);
+		box-shadow: inset 0 0 0 1px #f3c2bd;
 	}
 	b {
 		font-weight: 800;
+		color: var(--pb-danger);
 	}
 	@media (max-width: 1240px) {
 		&__label {
@@ -813,15 +825,15 @@ button.pb-emergency {
 
 .pb-chat__hint {
 	position: fixed;
-	right: 24px;
-	bottom: 92px;
+	right: 94px;
+	bottom: 26px;
 	z-index: 997;
 	display: flex;
 	align-items: flex-start;
 	gap: 4px;
 	max-width: min(280px, calc(100vw - 48px));
 	padding: 12px 8px 12px 14px;
-	border-radius: 16px 16px 4px 16px;
+	border-radius: 16px 4px 16px 16px;
 	background: var(--pb-surface);
 	box-shadow: var(--pb-shadow-lg), inset 0 0 0 1px var(--pb-line);
 	animation: pbIn 0.35s ease both;
@@ -862,9 +874,9 @@ button.pb-emergency {
 			background: var(--pb-bg);
 		}
 	}
+	// phones: the tip would cover the page, the launcher alone is enough
 	@media (max-width: $pb-phone) {
-		right: 16px;
-		bottom: 84px;
+		display: none !important;
 	}
 }
 

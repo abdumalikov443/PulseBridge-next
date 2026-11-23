@@ -21,6 +21,8 @@ type ChatTab = 'community' | 'ai';
 
 const MESSAGE_MAX = 200;
 const HINT_KEY = 'pb_chat_hint_closed';
+const HINT_DELAY = 3000;
+const HINT_TIME = 12000;
 
 // floating chat: live community chat (WebSocket, the server keeps the last 5 messages) and the AI assistant
 const Chat = () => {
@@ -47,13 +49,20 @@ const Chat = () => {
 
 	/** LIFECYCLES **/
 
+	// the tip shows once per browser: a few seconds after the page opens, then it hides by itself
 	useEffect(() => {
 		setMounted(true);
+		let seenBefore = false;
 		try {
-			setHint(!localStorage.getItem(HINT_KEY));
-		} catch {
-			setHint(true);
-		}
+			seenBefore = !!localStorage.getItem(HINT_KEY);
+		} catch {}
+		if (seenBefore) return;
+		const show = setTimeout(() => setHint(true), HINT_DELAY);
+		const hide = setTimeout(() => closeHint(), HINT_DELAY + HINT_TIME);
+		return () => {
+			clearTimeout(show);
+			clearTimeout(hide);
+		};
 	}, []);
 
 	useEffect(() => {
