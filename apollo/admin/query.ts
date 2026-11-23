@@ -11,25 +11,20 @@ export const GET_ALL_MEMBERS_BY_ADMIN = gql`
 				_id
 				memberType
 				memberStatus
-				memberAuthType
 				memberPhone
 				memberNick
 				memberFullName
 				memberImage
 				memberAddress
 				memberDesc
-				memberWarnings
-				memberBlocks
-				memberProperties
-				memberRank
 				memberArticles
 				memberPoints
 				memberLikes
 				memberViews
+				memberRank
 				deletedAt
 				createdAt
 				updatedAt
-				accessToken
 			}
 			metaCounter {
 				total
@@ -39,57 +34,34 @@ export const GET_ALL_MEMBERS_BY_ADMIN = gql`
 `;
 
 /**************************
- *        PROPERTY        *
+ *         CLINIC         *
  *************************/
 
-export const GET_ALL_PROPERTIES_BY_ADMIN = gql`
-	query GetAllPropertiesByAdmin($input: AllPropertiesInquiry!) {
-		getAllPropertiesByAdmin(input: $input) {
+export const GET_ALL_CLINICS_BY_ADMIN = gql`
+	query GetAllClinicsByAdmin($input: AllClinicsInquiry!) {
+		getAllClinicsByAdmin(input: $input) {
 			list {
 				_id
-				propertyType
-				propertyStatus
-				propertyLocation
-				propertyAddress
-				propertyTitle
-				propertyPrice
-				propertySquare
-				propertyBeds
-				propertyRooms
-				propertyViews
-				propertyLikes
-				propertyImages
-				propertyDesc
-				propertyBarter
-				propertyRent
+				clinicStatus
+				clinicType
+				clinicName
+				clinicAddress
+				clinicDesc
+				clinicImage
+				clinicViews
+				clinicLikes
+				clinicComments
+				clinicDoctors
+				clinicRank
 				memberId
-				soldAt
-				deletedAt
-				constructedAt
 				createdAt
 				updatedAt
 				memberData {
 					_id
-					memberType
-					memberStatus
-					memberAuthType
-					memberPhone
 					memberNick
 					memberFullName
 					memberImage
-					memberAddress
-					memberDesc
-					memberWarnings
-					memberBlocks
-					memberProperties
-					memberRank
-					memberPoints
-					memberLikes
-					memberViews
-					deletedAt
-					createdAt
-					updatedAt
-					accessToken
+					memberPhone
 				}
 			}
 			metaCounter {
@@ -100,46 +72,73 @@ export const GET_ALL_PROPERTIES_BY_ADMIN = gql`
 `;
 
 /**************************
- *      BOARD-ARTICLE     *
+ *       APPOINTMENT      *
  *************************/
 
-export const GET_ALL_BOARD_ARTICLES_BY_ADMIN = gql`
-	query GetAllBoardArticlesByAdmin($input: AllBoardArticlesInquiry!) {
-		getAllBoardArticlesByAdmin(input: $input) {
+export const GET_ALL_APPOINTMENTS_BY_ADMIN = gql`
+	query GetAllAppointmentsByAdmin($input: AppointmentsInquiry!) {
+		getAllAppointmentsByAdmin(input: $input) {
 			list {
 				_id
-				articleCategory
+				appointmentDate
+				appointmentTime
+				appointmentStatus
+				appointmentReason
+				memberId
+				doctorId
+				clinicId
+				createdAt
+				memberData {
+					_id
+					memberNick
+					memberFullName
+				}
+				doctorData {
+					_id
+					specialty
+					memberData {
+						_id
+						memberNick
+						memberFullName
+					}
+				}
+				clinicData {
+					_id
+					clinicName
+				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+/**************************
+ *         ARTICLE        *
+ *************************/
+
+export const GET_ALL_ARTICLES_BY_ADMIN = gql`
+	query GetAllArticlesByAdmin($input: AllArticlesInquiry!) {
+		getAllArticlesByAdmin(input: $input) {
+			list {
+				_id
 				articleStatus
 				articleTitle
 				articleContent
 				articleImage
 				articleViews
 				articleLikes
+				articleComments
 				memberId
 				createdAt
 				updatedAt
 				memberData {
 					_id
 					memberType
-					memberStatus
-					memberAuthType
-					memberPhone
 					memberNick
 					memberFullName
 					memberImage
-					memberAddress
-					memberDesc
-					memberWarnings
-					memberBlocks
-					memberProperties
-					memberRank
-					memberPoints
-					memberLikes
-					memberViews
-					deletedAt
-					createdAt
-					updatedAt
-					accessToken
 				}
 			}
 			metaCounter {
@@ -168,25 +167,41 @@ export const GET_COMMENTS = gql`
 				memberData {
 					_id
 					memberType
-					memberStatus
-					memberAuthType
-					memberPhone
 					memberNick
 					memberFullName
 					memberImage
-					memberAddress
-					memberDesc
-					memberWarnings
-					memberBlocks
-					memberProperties
-					memberRank
-					memberPoints
-					memberLikes
-					memberViews
-					deletedAt
-					createdAt
-					updatedAt
-					accessToken
+				}
+			}
+			metaCounter {
+				total
+			}
+		}
+	}
+`;
+
+/**************************
+ *     FAQ AND NOTICE     *
+ *************************/
+
+export const GET_ALL_NOTICES_BY_ADMIN = gql`
+	query GetAllNoticesByAdmin($input: AllNoticesInquiry!) {
+		getAllNoticesByAdmin(input: $input) {
+			list {
+				_id
+				noticeCategory
+				noticeStatus
+				faqTopic
+				noticeTitle
+				noticeContent
+				noticePinned
+				memberId
+				createdAt
+				updatedAt
+				memberData {
+					_id
+					memberNick
+					memberFullName
+					memberImage
 				}
 			}
 			metaCounter {

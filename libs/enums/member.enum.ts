@@ -1,6 +1,7 @@
 export enum MemberType {
-	USER = 'USER',
-	AGENT = 'AGENT',
+	PATIENT = 'PATIENT',
+	DOCTOR = 'DOCTOR',
+	CLINIC = 'CLINIC',
 	ADMIN = 'ADMIN',
 }
 
@@ -8,10 +9,4 @@ export enum MemberStatus {
 	ACTIVE = 'ACTIVE',
 	BLOCK = 'BLOCK',
 	DELETE = 'DELETE',
-}
-
-export enum MemberAuthType {
-	PHONE = 'PHONE',
-	EMAIL = 'EMAIL',
-	TELEGRAM = 'TELEGRAM',
 }

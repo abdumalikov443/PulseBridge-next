@@ -14,7 +14,9 @@
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"jsx": "preserve",
-		"incremental": true
+		"incremental": true,
+		// only this project types (a node_modules in a parent folder breaks the type check)
+		"typeRoots": ["./node_modules/@types"]
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules"]

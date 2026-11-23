@@ -1,118 +1,85 @@
 import React, { useState } from 'react';
-import { NextPage } from 'next';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
-import { Pagination, Stack, Typography } from '@mui/material';
-import CommunityCard from '../common/CommunityCard';
-import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
+import { useTranslation } from 'next-i18next';
+import Link from 'next/link';
+import { Pagination } from '@mui/material';
+import { useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
+import { Article } from '../../types/article/article';
+import { ArticlesInquiry } from '../../types/article/article.input';
+import { Direction } from '../../enums/common.enum';
 import { T } from '../../types/common';
-import { BoardArticle } from '../../types/board-article/board-article';
-import { LIKE_TARGET_BOARD_ARTICLE } from '../../../apollo/user/mutation';
-import { GET_BOARD_ARTICLES } from '../../../apollo/user/query';
-import { Messages } from '../../config';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import { GET_ARTICLES } from '../../../apollo/user/query';
+import { LIKE_TARGET_ARTICLE } from '../../../apollo/user/mutation';
+import { useLikeToggle } from '../../hooks/useEngagement';
+import PostCard from '../cards/PostCard';
+import MySection from './MySection';
+import { useArticleAccess } from '../../hooks/useArticleAccess';
+import { SkeletonCards } from '../ui/Loaders';
+import PbPagination from '../ui/PbPagination';
 
-const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
-	const device = useDeviceDetect();
+const MyArticles = () => {
+	const { t } = useTranslation('common');
+	const access = useArticleAccess();
 	const user = useReactiveVar(userVar);
-	const [searchCommunity, setSearchCommunity] = useState({
-		...initialInput,
-		search: { memberId: user._id },
-	});
-	const [boardArticles, setBoardArticles] = useState<BoardArticle[]>([]);
-	const [totalCount, setTotalCount] = useState<number>(0);
-
-	/** APOLLO REQUESTS **/
-	const [ likeTargetBoardArticle ] = useMutation(LIKE_TARGET_BOARD_ARTICLE);
-
-	const {
-		loading: boardArticlesLoading,
-		data: boardArticlesData, 
-		error: boardArticlesError, 
-		refetch: boardArticlesRefetch 
-	} = useQuery(GET_BOARD_ARTICLES, {
-		fetchPolicy: "network-only",
-		variables: { input: searchCommunity },
-		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: any) => {
-			setBoardArticles(data?.getBoardArticles?.list);
-			setTotalCount(data?.getBoardArticles?.metaCounter[0]?.total);
-		},
-	});
-
-	/** HANDLERS **/
-	const paginationHandler = (e: T, value: number) => {
-		setSearchCommunity({ ...searchCommunity, page: value });
-	};
-
-	const likeBoardArticleHandler = async (e:any, user: T, id: string) => {
-		try {
-			e.stopPropagation();
-			if (!id) return;
-			if (!user._id) throw new Error(Messages.error2);
-
-			await likeTargetBoardArticle({ variables: { input: id } });
-			
-			await boardArticlesRefetch({ input: searchCommunity });
-			await sweetTopSmallSuccessAlert('success', 750);
-		} catch (err: any) {
-			console.log("ERROR, likeBoardArticleHandler: ", err.message);
-			sweetMixinErrorAlert(err.message).then();
-		}
-	};
-
-	if (device === 'mobile') {
-		return <>ARTICLE PAGE MOBILE</>;
-	} else
-		return (
-			<div id="my-articles-page">
-				<Stack className="main-title-box">
-					<Stack className="right-box">
-						<Typography className="main-title">Article</Typography>
-						<Typography className="sub-title">We are glad to see you again!</Typography>
-					</Stack>
-				</Stack>
-				<Stack className="article-list-box">
-					{boardArticles?.length > 0 ? (
-						boardArticles?.map((boardArticle: BoardArticle) => {
-							return <CommunityCard boardArticle={boardArticle} key={boardArticle?._id} size={'small'} likeArticleHandler={likeBoardArticleHandler}/>;
-						})
-					) : (
-						<div className={'no-data'}>
-							<img src="/img/icons/icoAlert.svg" alt="" />
-							<p>No Articles found!</p>
-						</div>
-					)}
-				</Stack>
-
-				{boardArticles?.length > 0 && (
-					<Stack className="pagination-conf">
-						<Stack className="pagination-box">
-							<Pagination
-								count={Math.ceil(totalCount / searchCommunity.limit)}
-								page={searchCommunity.page}
-								shape="circular"
-								color="primary"
-								onChange={paginationHandler}
-							/>
-						</Stack>
-						<Stack className="total">
-							<Typography>Total {totalCount ?? 0} article(s) available</Typography>
-						</Stack>
-					</Stack>
-				)}
-			</div>
-		);
-};
-
-MyArticles.defaultProps = {
-	initialInput: {
+	const [input, setInput] = useState<ArticlesInquiry>({
 		page: 1,
 		limit: 6,
 		sort: 'createdAt',
-		direction: 'DESC',
-		search: {},
-	},
+		direction: Direction.DESC,
+		search: { memberId: user._id },
+	});
+	const [articles, setArticles] = useState<Article[] | null>(null);
+	const [total, setTotal] = useState(0);
+	const { likeState, toggleLike } = useLikeToggle(LIKE_TARGET_ARTICLE);
+
+	/** APOLLO REQUESTS **/
+	useQuery(GET_ARTICLES, {
+		fetchPolicy: 'network-only',
+		skip: !user._id,
+		variables: { input: { ...input, search: { memberId: user._id } } },
+		onCompleted: (data: T) => {
+			setArticles(data?.getArticles?.list ?? []);
+			setTotal(data?.getArticles?.metaCounter?.[0]?.total ?? 0);
+		},
+		onError: () => setArticles([]),
+	});
+
+	return (
+		<MySection
+			title="My articles"
+			subTitle={t('{{count}} published', { count: total })}
+			actions={
+				access.allowed ? (
+					<Link href="/mypage?category=writeArticle" className="pb-btn pb-btn--primary pb-btn--sm">
+						{t('Write article')}
+					</Link>
+				) : undefined
+			}
+		>
+			<div className="pb-grid pb-grid--posts">
+				{articles === null && <SkeletonCards count={2} />}
+				{articles?.map((article) => {
+					const state = likeState(article._id, !!article.meLiked?.[0]?.myFavorite, article.articleLikes);
+					return (
+						<PostCard
+							key={article._id}
+							article={article}
+							liked={state.liked}
+							likes={state.likes}
+							onLike={() => toggleLike(article._id, state)}
+						/>
+					);
+				})}
+			</div>
+			{articles?.length === 0 && <p className="pb-empty">{t('You have not written any article yet.')}</p>}
+			<PbPagination
+				page={input.page}
+				total={total}
+				limit={input.limit}
+				onChange={(page) => setInput({ ...input, page })}
+			/>
+		</MySection>
+	);
 };
 
 export default MyArticles;

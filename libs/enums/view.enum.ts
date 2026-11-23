@@ -1,5 +1,5 @@
 export enum ViewGroup {
-	MEMBER = 'MEMBER',
+	DOCTOR = 'DOCTOR',
+	CLINIC = 'CLINIC',
 	ARTICLE = 'ARTICLE',
-	PROPERTY = 'PROPERTY',
 }

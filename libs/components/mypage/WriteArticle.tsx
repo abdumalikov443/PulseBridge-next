@@ -1,27 +1,37 @@
 import React from 'react';
-import { NextPage } from 'next';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
-import { Stack, Typography } from '@mui/material';
+import { useTranslation } from 'next-i18next';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import MySection from './MySection';
+import { useArticleAccess } from '../../hooks/useArticleAccess';
+import { SkeletonCards } from '../ui/Loaders';
+
 const TuiEditor = dynamic(() => import('../community/Teditor'), { ssr: false });
 
-const WriteArticle: NextPage = () => {
-	const device = useDeviceDetect();
+const WriteArticle = () => {
+	const access = useArticleAccess();
+	const { t } = useTranslation('common');
 
-	if (device === 'mobile') {
-		return <>ARTICLE PAGE MOBILE</>;
-	} else
-		return (
-			<div id="write-article-page">
-				<Stack className="main-title-box">
-					<Stack className="right-box">
-						<Typography className="main-title">Write an Article</Typography>
-						<Typography className="sub-title">Feel free to write your ideas!</Typography>
-					</Stack>
-				</Stack>
-				<TuiEditor />
-			</div>
-		);
+	return (
+		<MySection title="Write an article" subTitle="Share a short health tip with the community">
+			{access.allowed === null && <SkeletonCards count={1} />}
+			{access.allowed === false && (
+				<p className="pb-empty">
+					{access.reason && t(access.reason)}{' '}
+					{access.link && (
+						<Link href={access.link.href} className="pb-link">
+							{t(access.link.label)}
+						</Link>
+					)}
+				</p>
+			)}
+			{access.allowed && (
+				<div className="pb-card pb-card--flat">
+					<TuiEditor />
+				</div>
+			)}
+		</MySection>
+	);
 };
 
 export default WriteArticle;

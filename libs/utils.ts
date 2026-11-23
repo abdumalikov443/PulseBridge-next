@@ -1,45 +1,11 @@
-import numeral from 'numeral';
-import { sweetMixinErrorAlert } from './sweetAlert';
-
-export const formatterStr = (value: number | undefined): string => {
-	return numeral(value).format('0,0') != '0' ? numeral(value).format('0,0') : '';
+import { tr } from './i18n';
+// CARDIOLOGY -> Cardiology, DOCTOR_REQUEST -> Doctor request (translated to the current language)
+export const formatEnum = (value?: string | null): string => {
+	if (!value) return '';
+	const text = value.toLowerCase().replace(/_/g, ' ');
+	return tr(text.charAt(0).toUpperCase() + text.slice(1));
 };
 
-export const likeTargetPropertyHandler = async (likeTargetProperty: any, id: string) => {
-	try {
-		await likeTargetProperty({
-			variables: {
-				input: id,
-			},
-		});
-	} catch (err: any) {
-		console.log('ERROR, likeTargetPropertyHandler:', err.message);
-		sweetMixinErrorAlert(err.message).then();
-	}
-};
-
-export const likeTargetBoardArticleHandler = async (likeTargetBoardArticle: any, id: string) => {
-	try {
-		await likeTargetBoardArticle({
-			variables: {
-				input: id,
-			},
-		});
-	} catch (err: any) {
-		console.log('ERROR, likeTargetBoardArticleHandler:', err.message);
-		sweetMixinErrorAlert(err.message).then();
-	}
-};
-
-export const likeTargetMemberHandler = async (likeTargetMember: any, id: string) => {
-	try {
-		await likeTargetMember({
-			variables: {
-				input: id,
-			},
-		});
-	} catch (err: any) {
-		console.log('ERROR, likeTargetMemberHandler:', err.message);
-		sweetMixinErrorAlert(err.message).then();
-	}
-};
+// articles are written by doctors and clinics (not by patients or the ADMIN)
+export const canWriteArticles = (memberType?: string | null): boolean =>
+	memberType === 'DOCTOR' || memberType === 'CLINIC';

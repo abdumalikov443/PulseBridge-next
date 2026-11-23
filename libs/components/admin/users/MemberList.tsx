@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'next-i18next';
+import CopyId from '../CopyId';
 import Link from 'next/link';
 import {
 	TableCell,
@@ -17,7 +19,8 @@ import Typography from '@mui/material/Typography';
 import { Stack } from '@mui/material';
 import { Member } from '../../../types/member/member';
 import { REACT_APP_API_URL } from '../../../config';
-import { MemberStatus, MemberType } from '../../../enums/member.enum';
+import { formatEnum } from '../../../utils';
+import { MemberStatus } from '../../../enums/member.enum';
 
 interface Data {
 	id: string;
@@ -84,13 +87,13 @@ const headCells: readonly HeadCell[] = [
 		id: 'warning',
 		numeric: false,
 		disablePadding: false,
-		label: 'WARNING',
+		label: 'ARTICLES',
 	},
 	{
 		id: 'block',
 		numeric: false,
 		disablePadding: false,
-		label: 'BLOCK CRIMES',
+		label: 'LIKES',
 	},
 	{
 		id: 'state',
@@ -110,6 +113,7 @@ interface EnhancedTableProps {
 }
 
 function EnhancedTableHead(props: EnhancedTableProps) {
+	const { t } = useTranslation('common');
 	const { onSelectAllClick } = props;
 
 	return (
@@ -121,7 +125,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 						align={headCell.numeric ? 'left' : 'center'}
 						padding={headCell.disablePadding ? 'none' : 'normal'}
 					>
-						{headCell.label}
+						{t(headCell.label)}
 					</TableCell>
 				))}
 			</TableRow>
@@ -139,6 +143,7 @@ interface MemberPanelListType {
 
 export const MemberPanelList = (props: MemberPanelListType) => {
 	const { members, anchorEl, menuIconClickHandler, menuIconCloseHandler, updateMemberHandler } = props;
+	const { t } = useTranslation('common');
 
 	return (
 		<Stack>
@@ -150,7 +155,7 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 						{members.length === 0 && (
 							<TableRow>
 								<TableCell align="center" colSpan={8}>
-									<span className={'no-data'}>data not found!</span>
+									<span className={'no-data'}>{t('No data found')}</span>
 								</TableCell>
 							</TableRow>
 						)}
@@ -162,13 +167,15 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 									: '/img/profile/defaultUser.svg';
 								return (
 									<TableRow hover key={member?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-										<TableCell align="left">{member._id}</TableCell>
+										<TableCell align="left">
+											<CopyId id={member._id} />
+										</TableCell>
 
 										<TableCell align="left" className={'name'}>
 											<Stack direction={'row'}>
 												<Link href={`/member?memberId=${member._id}`}>
 													<div>
-														<Avatar alt="Remy Sharp" src={member_image} sx={{ ml: '2px', mr: '10px' }} />
+														<Avatar alt={member.memberNick} src={member_image} sx={{ ml: '2px', mr: '10px' }} />
 													</div>
 												</Link>
 												<Link href={`/member?memberId=${member._id}`}>
@@ -181,41 +188,15 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 										<TableCell align="left">{member.memberPhone}</TableCell>
 
 										<TableCell align="center">
-											<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={'badge success'}>
-												{member.memberType}
-											</Button>
-
-											<Menu
-												className={'menu-modal'}
-												MenuListProps={{
-													'aria-labelledby': 'fade-button',
-												}}
-												anchorEl={anchorEl[index]}
-												open={Boolean(anchorEl[index])}
-												onClose={menuIconCloseHandler}
-												TransitionComponent={Fade}
-												sx={{ p: 1 }}
-											>
-												{Object.values(MemberType)
-													.filter((ele) => ele !== member?.memberType)
-													.map((type: string) => (
-														<MenuItem
-															onClick={() => updateMemberHandler({ _id: member._id, memberType: type })}
-															key={type}
-														>
-															<Typography variant={'subtitle1'} component={'span'}>
-																{type}
-															</Typography>
-														</MenuItem>
-													))}
-											</Menu>
+											{/* memberType is fixed at signup */}
+											<Button className={'badge success'}>{formatEnum(member.memberType)}</Button>
 										</TableCell>
 
-										<TableCell align="center">{member.memberWarnings}</TableCell>
-										<TableCell align="center">{member.memberBlocks}</TableCell>
+										<TableCell align="center">{member.memberArticles}</TableCell>
+										<TableCell align="center">{member.memberLikes}</TableCell>
 										<TableCell align="center">
 											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={'badge success'}>
-												{member.memberStatus}
+												{formatEnum(member.memberStatus)}
 											</Button>
 
 											<Menu
@@ -237,7 +218,7 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 															key={status}
 														>
 															<Typography variant={'subtitle1'} component={'span'}>
-																{status}
+																{formatEnum(status)}
 															</Typography>
 														</MenuItem>
 													))}

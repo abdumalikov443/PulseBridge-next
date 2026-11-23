@@ -1,154 +1,161 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
+import { useReactiveVar } from '@apollo/client';
+import { userVar } from '../../apollo/store';
 import { NextPage } from 'next';
-import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
-import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import { Stack, Box } from '@mui/material';
+import Link from 'next/link';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { withPbLayout } from '../../libs/components/layout/PbShell';
+import Icon, { IconName } from '../../libs/components/ui/Icon';
+import { EcgLine } from '../../libs/components/ui/Loaders';
 
-const About: NextPage = () => {
-	const device = useDeviceDetect();
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
-	if (device === 'mobile') {
-		return <div>ABOUT PAGE MOBILE</div>;
-	} else {
-		return (
-			<Stack className={'about-page'}>
-				<Stack className={'intro'}>
-					<Stack className={'container'}>
-						<Stack className={'left'}>
-							<strong>We're on a Mission to Change View of Real Estate Field.</strong>
-						</Stack>
-						<Stack className={'right'}>
-							<p>
-								It doesn’t matter how organized you are — a surplus of toys will always ensure your house is a mess
-								waiting to happen. Fortunately, getting kids on board with the idea of ditching their stuff is a lot
-								easier than it sounds.
-								<br />
-								<br />
-								Maecenas quis viverra metus, et efficitur ligula. Nam congue augue et ex congue, sed luctus lectus
-								congue. Integer convallis condimentum sem. Duis elementum tortor eget condimentum tempor. Praesent
-								sollicitudin lectus ut pharetra pulvinar.
-							</p>
-							<Stack className={'boxes'}>
-								<div className={'box'}>
-									<div>
-										<img src="/img/icons/garden.svg" alt="" />
-									</div>
-									<span>Modern Villa</span>
-									<p>Nullam sollicitudin blandit Nullam maximus.</p>
-								</div>
-								<div className={'box'}>
-									<div>
-										<img src="/img/icons/securePayment.svg" alt="" />
-									</div>
-									<span>Secure Payment</span>
-									<p>Nullam sollicitudin blandit Nullam maximus.</p>
-								</div>
-							</Stack>
-						</Stack>
-					</Stack>
-				</Stack>
-				<Stack className={'statistics'}>
-					<Stack className={'container'}>
-						<Stack className={'banner'}>
-							<img src="/img/banner/header1.svg" alt="" />
-						</Stack>
-						<Stack className={'info'}>
-							<Box component={'div'}>
-								<strong>4M</strong>
-								<p>Award Winning</p>
-							</Box>
-							<Box component={'div'}>
-								<strong>12K</strong>
-								<p>Property Ready</p>
-							</Box>
-							<Box component={'div'}>
-								<strong>20M</strong>
-								<p>Happy Customer</p>
-							</Box>
-						</Stack>
-					</Stack>
-				</Stack>
-				<Stack className={'agents'}>
-					<Stack className={'container'}>
-						<span className={'title'}>Our Exclusive Agetns</span>
-						<p className={'desc'}>Aliquam lacinia diam quis lacus euismod</p>
-						<Stack className={'wrap'}>
-							{/*{[1, 2, 3, 4, 5].map(() => {*/}
-							{/*	return <AgentCard />;*/}
-							{/*})}*/}
-						</Stack>
-					</Stack>
-				</Stack>
-				<Stack className={'options'}>
-					<img src="/img/banner/aboutBanner.svg" alt="" className={'about-banner'} />
-					<Stack className={'container'}>
-						<strong>Let’s find the right selling option for you</strong>
-						<Stack>
-							<div className={'icon-box'}>
-								<img src="/img/icons/security.svg" alt="" />
-							</div>
-							<div className={'text-box'}>
-								<span>Property Management</span>
-								<p>Nullam sollicitudin blandit eros eu pretium. Nullam maximus ultricies auctor.</p>
-							</div>
-						</Stack>
-						<Stack>
-							<div className={'icon-box'}>
-								<img src="/img/icons/keywording.svg" alt="" />
-							</div>
-							<div className={'text_-box'}>
-								<span>Property Management</span>
-								<p>Nullam sollicitudin blandit eros eu pretium. Nullam maximus ultricies auctor.</p>
-							</div>
-						</Stack>
-						<Stack>
-							<div className={'icon-box'}>
-								<img src="/img/icons/investment.svg" alt="" />
-							</div>
-							<div className={'text-box'}>
-								<span>Property Management</span>
-								<p>Nullam sollicitudin blandit eros eu pretium. Nullam maximus ultricies auctor.</p>
-							</div>
-						</Stack>
-						<Stack className={'btn'}>
-							Learn More
-							<img src="/img/icons/rightup.svg" alt="" />
-						</Stack>
-					</Stack>
-				</Stack>
-				<Stack className={'partners'}>
-					<Stack className={'container'}>
-						<span>Trusted bu the world's best</span>
-						<Stack className={'wrap'}>
-							<img src="/img/icons/brands/amazon.svg" alt="" />
-							<img src="/img/icons/brands/amd.svg" alt="" />
-							<img src="/img/icons/brands/cisco.svg" alt="" />
-							<img src="/img/icons/brands/dropcam.svg" alt="" />
-							<img src="/img/icons/brands/spotify.svg" alt="" />
-						</Stack>
-					</Stack>
-				</Stack>
-				<Stack className={'help'}>
-					<Stack className={'container'}>
-						<Box component={'div'} className={'left'}>
-							<strong>Need help? Talk to our expert.</strong>
-							<p>Talk to our experts or Browse through more properties.</p>
-						</Box>
-						<Box component={'div'} className={'right'}>
-							<div className={'white'}>
-								Contact Us
-								<img src="/img/icons/rightup.svg" alt="" />
-							</div>
-							<div className={'black'}>
-								<img src="/img/icons/call.svg" alt="" />
-								920 851 9087
-							</div>
-						</Box>
-					</Stack>
-				</Stack>
-			</Stack>
-		);
-	}
+const steps: { title: string; text: string; icon: IconName }[] = [
+	{ title: 'Find', text: 'Search doctors by specialty or browse private and public clinics.', icon: 'search' },
+	{ title: 'Book', text: 'Pick a day and a free time. The visit is confirmed right away.', icon: 'calendar' },
+	{ title: 'Follow up', text: 'Leave a review, follow your doctor and read health tips.', icon: 'heart' },
+];
+
+const roles: { title: string; text: string; icon: IconName }[] = [
+	{ title: 'Patients', text: 'Book visits, save favorite doctors and clinics, and join the community.', icon: 'users' },
+	{ title: 'Doctors', text: 'Join a clinic, manage appointments and share articles with patients.', icon: 'userCheck' },
+	{ title: 'Clinics', text: 'Present the clinic, approve doctors and see every booking in one place.', icon: 'clinic' },
+];
+
+// sign-up call to action: only for visitors who are not logged in (checked after mount, the static HTML has no user)
+const JoinCta = () => {
+	const user = useReactiveVar(userVar);
+	const { t } = useTranslation('common');
+	const [mounted, setMounted] = useState(false);
+	useEffect(() => setMounted(true), []);
+	if (!mounted || user?._id) return null;
+
+	return (
+		<section
+			className="pb-card pb-card--flat"
+			style={{
+				marginTop: 48,
+				flexDirection: 'row',
+				flexWrap: 'wrap',
+				alignItems: 'center',
+				gap: 16,
+				background: 'var(--pb-deep)',
+				color: '#fff',
+				padding: 32,
+			}}
+		>
+			<div style={{ flex: '1 1 320px' }}>
+				<strong style={{ fontFamily: 'var(--pb-font-display)', fontSize: 26 }}>{t('Ready when you are')}</strong>
+				<p style={{ margin: '6px 0 0', opacity: 0.85 }}>{t('Create an account as a patient, doctor or clinic.')}</p>
+			</div>
+			<div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+				<Link href={{ pathname: '/cs', query: { tab: 'faq' } }} className="pb-btn pb-btn--outline pb-btn--lg">
+					{t('FAQ')}
+				</Link>
+				<Link href="/account/join" className="pb-btn pb-btn--light pb-btn--lg">
+					{t('Get started')} <Icon name="arrow" className="pb-arrow" />
+				</Link>
+			</div>
+		</section>
+	);
 };
 
-export default withLayoutBasic(About);
+const About: NextPage = () => {
+	const { t } = useTranslation('common');
+	return (
+		<div className="pb-container">
+			<section className="pb-hero" style={{ paddingTop: 48 }}>
+				<div className="pb-hero__copy">
+					<span className="pb-badge pb-badge--soft pb-in" style={{ alignSelf: 'flex-start' }}>
+						{t('About PulseBridge')}
+					</span>
+					<h1 className="pb-hero__title pb-in" style={{ fontSize: 52, animationDelay: '.05s' }}>
+						{t('A calmer way to')} <em>{t('reach a doctor.')}</em>
+					</h1>
+					<p className="pb-hero__lead pb-in" style={{ animationDelay: '.15s' }}>
+						{t(
+							'PulseBridge connects patients, doctors and clinics. No phone queues: see who works where, pick a time and get confirmed in seconds.',
+						)}
+					</p>
+					<div className="pb-in" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', animationDelay: '.25s' }}>
+						<Link href={{ pathname: '/cs', query: { tab: 'faq' } }} className="pb-btn pb-btn--primary pb-btn--lg">
+							{t('Read the FAQ')} <Icon name="arrow" className="pb-arrow" />
+						</Link>
+						<Link href="/doctor" className="pb-btn pb-btn--outline pb-btn--lg">
+							{t('Find a doctor')}
+						</Link>
+					</div>
+				</div>
+				<div
+					className="pb-hero__visual"
+					style={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+					aria-hidden="true"
+				>
+					<div className="pb-hero__blob pb-hero__blob--a" />
+					<div className="pb-hero__blob pb-hero__blob--b" />
+					<div
+						className="pb-card pb-card--flat"
+						style={{ position: 'relative', alignItems: 'center', boxShadow: 'var(--pb-shadow)' }}
+					>
+						<EcgLine />
+					</div>
+				</div>
+			</section>
+
+			<section className="pb-section">
+				<h2 className="pb-title" style={{ marginBottom: 20 }}>
+					{t('How it works')}
+				</h2>
+				<div className="pb-grid">
+					{steps.map((step, index) => (
+						<article
+							key={step.title}
+							className="pb-card pb-card--flat pb-in"
+							style={{ animationDelay: `${index * 0.1}s` }}
+						>
+							<span
+								className="pb-avatar"
+								style={{ width: 48, height: 48, background: 'var(--pb-soft-1)', color: 'var(--pb-deep)' }}
+							>
+								<Icon name={step.icon} size={22} />
+							</span>
+							<strong style={{ fontSize: 18 }}>
+								{index + 1}. {t(step.title)}
+							</strong>
+							<p style={{ margin: 0, color: 'var(--pb-muted)', lineHeight: 1.6 }}>{t(step.text)}</p>
+						</article>
+					))}
+				</div>
+			</section>
+
+			<section className="pb-section">
+				<h2 className="pb-title" style={{ marginBottom: 20 }}>
+					{t('Made for three roles')}
+				</h2>
+				<div className="pb-grid">
+					{roles.map((role) => (
+						<article key={role.title} className="pb-card pb-card--flat pb-card--hover">
+							<span
+								className="pb-avatar"
+								style={{ width: 48, height: 48, background: 'var(--pb-soft-2)', color: 'var(--pb-ink)' }}
+							>
+								<Icon name={role.icon} size={22} />
+							</span>
+							<strong style={{ fontSize: 18 }}>{t(role.title)}</strong>
+							<p style={{ margin: 0, color: 'var(--pb-muted)', lineHeight: 1.6 }}>{t(role.text)}</p>
+						</article>
+					))}
+				</div>
+			</section>
+
+			<JoinCta />
+		</div>
+	);
+};
+
+export default withPbLayout(About);

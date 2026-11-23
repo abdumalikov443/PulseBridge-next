@@ -1,7 +1,8 @@
 import decodeJWT from 'jwt-decode';
 import { initializeApollo } from '../../apollo/client';
-import { userVar } from '../../apollo/store';
+import { initialUser, userVar } from '../../apollo/store';
 import { CustomJwtPayload } from '../types/customJwtPayload';
+import { MemberInput } from '../types/member/member.input';
 import { sweetMixinErrorAlert } from '../sweetAlert';
 import { LOGIN, SIGN_UP } from '../../apollo/user/mutation';
 
@@ -26,7 +27,6 @@ export const logIn = async (nick: string, password: string): Promise<void> => {
 	} catch (err) {
 		console.warn('login err', err);
 		logOut();
-		// throw new Error('Login Err');
 	}
 };
 
@@ -46,77 +46,56 @@ const requestJwtToken = async ({
 			fetchPolicy: 'network-only',
 		});
 
-		console.log('---------- login ----------');
 		const { accessToken } = result?.data?.login;
 
 		return { jwtToken: accessToken };
 	} catch (err: any) {
 		console.log('request token err', err.graphQLErrors);
-		switch (err.graphQLErrors[0].message) {
-			case 'Definer: login and password do not match':
-				await sweetMixinErrorAlert('Please check your password again');
-				break;
-			case 'Definer: user has been blocked!':
-				await sweetMixinErrorAlert('User has been blocked!');
-				break;
-		}
+		await authErrorAlert(err);
 		throw new Error('token error');
 	}
 };
 
-export const signUp = async (nick: string, password: string, phone: string, type: string): Promise<void> => {
+export const signUp = async (input: MemberInput): Promise<void> => {
 	try {
-		const { jwtToken } = await requestSignUpJwtToken({ nick, password, phone, type });
+		const { jwtToken } = await requestSignUpJwtToken(input);
 
 		if (jwtToken) {
 			updateStorage({ jwtToken });
 			updateUserInfo(jwtToken);
 		}
 	} catch (err) {
-		console.warn('login err', err);
+		console.warn('signup err', err);
 		logOut();
-		// throw new Error('Login Err');
 	}
 };
 
-const requestSignUpJwtToken = async ({
-	nick,
-	password,
-	phone,
-	type,
-}: {
-	nick: string;
-	password: string;
-	phone: string;
-	type: string;
-}): Promise<{ jwtToken: string }> => {
+const requestSignUpJwtToken = async (input: MemberInput): Promise<{ jwtToken: string }> => {
 	const apolloClient = await initializeApollo();
 
 	try {
 		const result = await apolloClient.mutate({
 			mutation: SIGN_UP,
-			variables: {
-				input: { memberNick: nick, memberPassword: password, memberPhone: phone, memberType: type },
-			},
+			variables: { input },
 			fetchPolicy: 'network-only',
 		});
 
-		console.log('---------- login ----------');
 		const { accessToken } = result?.data?.signup;
 
 		return { jwtToken: accessToken };
 	} catch (err: any) {
 		console.log('request token err', err.graphQLErrors);
-		switch (err.graphQLErrors[0].message) {
-			case 'Definer: login and password do not match':
-				await sweetMixinErrorAlert('Please check your password again');
-				break;
-			case 'Definer: user has been blocked!':
-				await sweetMixinErrorAlert('User has been blocked!');
-				break;
-		}
+		await authErrorAlert(err);
 		throw new Error('token error');
 	}
+};
+
+// messages come from the backend Message enum
+const authErrorAlert = async (err: any) => {
+	const message: string = err?.graphQLErrors?.[0]?.message ?? '';
+	if (message.startsWith('Wrong password')) await sweetMixinErrorAlert('Please check your password again');
+	else if (message.startsWith('You have been blocked')) await sweetMixinErrorAlert('User has been blocked!');
+	else if (message.startsWith('No member with that')) await sweetMixinErrorAlert('No member with that nick!');
 };
 
 export const updateStorage = ({ jwtToken }: { jwtToken: any }) => {
@@ -132,7 +111,6 @@ export const updateUserInfo = (jwtToken: any) => {
 		_id: claims._id ?? '',
 		memberType: claims.memberType ?? '',
 		memberStatus: claims.memberStatus ?? '',
-		memberAuthType: claims.memberAuthType,
 		memberPhone: claims.memberPhone ?? '',
 		memberNick: claims.memberNick ?? '',
 		memberFullName: claims.memberFullName ?? '',
@@ -142,14 +120,14 @@ export const updateUserInfo = (jwtToken: any) => {
 				: `${claims.memberImage}`,
 		memberAddress: claims.memberAddress ?? '',
 		memberDesc: claims.memberDesc ?? '',
-		memberProperties: claims.memberProperties,
-		memberRank: claims.memberRank,
-		memberArticles: claims.memberArticles,
-		memberPoints: claims.memberPoints,
-		memberLikes: claims.memberLikes,
-		memberViews: claims.memberViews,
-		memberWarnings: claims.memberWarnings,
-		memberBlocks: claims.memberBlocks,
+		memberArticles: claims.memberArticles ?? 0,
+		memberFollowers: claims.memberFollowers ?? 0,
+		memberFollowings: claims.memberFollowings ?? 0,
+		memberPoints: claims.memberPoints ?? 0,
+		memberLikes: claims.memberLikes ?? 0,
+		memberViews: claims.memberViews ?? 0,
+		memberComments: claims.memberComments ?? 0,
+		memberRank: claims.memberRank ?? 0,
 	});
 };
 
@@ -165,24 +143,5 @@ const deleteStorage = () => {
 };
 
 const deleteUserInfo = () => {
-	userVar({
-		_id: '',
-		memberType: '',
-		memberStatus: '',
-		memberAuthType: '',
-		memberPhone: '',
-		memberNick: '',
-		memberFullName: '',
-		memberImage: '',
-		memberAddress: '',
-		memberDesc: '',
-		memberProperties: 0,
-		memberRank: 0,
-		memberArticles: 0,
-		memberPoints: 0,
-		memberLikes: 0,
-		memberViews: 0,
-		memberWarnings: 0,
-		memberBlocks: 0,
-	});
+	userVar(initialUser);
 };

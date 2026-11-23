@@ -1,26 +1,29 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Box, Button, FormControl, MenuItem, Stack, Typography, Select, TextField } from '@mui/material';
-import { BoardArticleCategory } from '../../enums/board-article.enum';
+import { useTranslation } from 'next-i18next';
+import { tr } from '../../i18n';
 import { Editor } from '@toast-ui/react-editor';
 import { getJwtToken } from '../../auth';
-import { REACT_APP_API_URL } from '../../config';
+import { ARTICLE_CONTENT_MAX, ARTICLE_TITLE_MAX, REACT_APP_API_URL } from '../../config';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import { T } from '../../types/common'; //@ts-ignore
 import '@toast-ui/editor/dist/toastui-editor.css';
+import '@toast-ui/editor/dist/i18n/ko-kr';
 import { useMutation } from '@apollo/client';
-import { CREATE_BOARD_ARTICLE } from '../../../apollo/user/mutation';
+import { CREATE_ARTICLE } from '../../../apollo/user/mutation';
 import { sweetErrorHandling, sweetTopSuccessAlert } from '../../sweetAlert';
 import { Message } from '../../enums/common.enum';
 
+// the backend keeps articleContent between 3 and 250 characters, so the editor writes markdown (shorter than HTML)
 const TuiEditor = () => {
 	const editorRef = useRef<Editor>(null),
 		token = getJwtToken(),
 		router = useRouter();
-	const [articleCategory, setArticleCategory] = useState<BoardArticleCategory>(BoardArticleCategory.FREE);
+	const [contentLength, setContentLength] = useState<number>(0);
+	const { t } = useTranslation('common');
 
 	/** APOLLO REQUESTS **/
-	const [ createBoardArticle ] = useMutation(CREATE_BOARD_ARTICLE);
+	const [createArticle] = useMutation(CREATE_ARTICLE);
 
 	const memorizedValues = useMemo(() => {
 		const articleTitle = '',
@@ -31,6 +34,7 @@ const TuiEditor = () => {
 	}, []);
 
 	/** HANDLERS **/
+
 	const uploadImage = async (image: any) => {
 		try {
 			const formData = new FormData();
@@ -38,7 +42,7 @@ const TuiEditor = () => {
 				'operations',
 				JSON.stringify({
 					query: `mutation ImageUploader($file: Upload!, $target: String!) {
-						imageUploader(file: $file, target: $target) 
+						imageUploader(file: $file, target: $target)
 				  }`,
 					variables: {
 						file: null,
@@ -63,7 +67,6 @@ const TuiEditor = () => {
 			});
 
 			const responseImage = response.data.data.imageUploader;
-			console.log('=responseImage: ', responseImage);
 			memorizedValues.articleImage = responseImage;
 
 			return `${REACT_APP_API_URL}/${responseImage}`;
@@ -72,118 +75,98 @@ const TuiEditor = () => {
 		}
 	};
 
-	const changeCategoryHandler = (e: any) => {
-		setArticleCategory(e.target.value);
+	const articleTitleHandler = (e: T) => {
+		memorizedValues.articleTitle = e.target.value;
 	};
 
-	const articleTitleHandler = (e: T) => {
-		console.log(e.target.value);
-		memorizedValues.articleTitle = e.target.value;
+	const contentChangeHandler = () => {
+		const markdown = editorRef.current?.getInstance().getMarkdown() ?? '';
+		setContentLength(markdown.trim().length);
 	};
 
 	const handleRegisterButton = async () => {
 		try {
-			const editor = editorRef.current;
-			const articleContent = editor?.getInstance().getHTML() as string;
-			memorizedValues.articleContent = articleContent;
+			const articleContent = (editorRef.current?.getInstance().getMarkdown() ?? '').trim();
+			const articleTitle = memorizedValues.articleTitle.trim();
 
-			if (memorizedValues.articleContent === '' && memorizedValues.articleTitle === '') {
-				throw new Error(Message.INSERT_ALL_INPUTS);
-			}
+			if (!articleContent || !articleTitle) throw new Error(Message.INSERT_ALL_INPUTS);
+			if (articleTitle.length < 3) throw new Error('Title must be at least 3 characters');
+			if (articleContent.length < 3) throw new Error('Content must be at least 3 characters');
+			if (articleContent.length > ARTICLE_CONTENT_MAX)
+				throw new Error(tr('Content must be at most {{max}} characters', { max: ARTICLE_CONTENT_MAX }));
 
-			await createBoardArticle({
-				variables: {input: {...memorizedValues, articleCategory} }
+			await createArticle({
+				variables: {
+					input: {
+						articleTitle,
+						articleContent,
+						...(memorizedValues.articleImage && { articleImage: memorizedValues.articleImage }),
+					},
+				},
 			});
 
-			await sweetTopSuccessAlert('Artcle has been created successfully', 700);
+			await sweetTopSuccessAlert('Article has been created successfully', 700);
 			await router.push({
 				pathname: '/mypage',
-				query: { category: 'myArticles'},
+				query: { category: 'myArticles' },
 			});
 		} catch (err: any) {
 			console.log(err);
-			sweetErrorHandling(new Error(Message.INSERT_ALL_INPUTS)).then();			
-		}
-	};
-
-	const doDisabledCheck = () => {
-		if (memorizedValues.articleContent === '' || memorizedValues.articleTitle === '') {
-			return true;
+			sweetErrorHandling(err).then();
 		}
 	};
 
 	return (
-		<Stack>
-			<Stack direction="row" style={{ margin: '40px' }} justifyContent="space-evenly">
-				<Box component={'div'} className={'form_row'} style={{ width: '300px' }}>
-					<Typography style={{ color: '#7f838d', margin: '10px' }} variant="h3">
-						Category
-					</Typography>
-					<FormControl sx={{ width: '100%', background: 'white' }}>
-						<Select
-							value={articleCategory}
-							onChange={changeCategoryHandler}
-							displayEmpty
-							inputProps={{ 'aria-label': 'Without label' }}
-						>
-							<MenuItem value={BoardArticleCategory.FREE}>
-								<span>Free</span>
-							</MenuItem>
-							<MenuItem value={BoardArticleCategory.HUMOR}>Humor</MenuItem>
-							<MenuItem value={BoardArticleCategory.NEWS}>News</MenuItem>
-							<MenuItem value={BoardArticleCategory.RECOMMEND}>Recommendation</MenuItem>
-						</Select>
-					</FormControl>
-				</Box>
-				<Box component={'div'} style={{ width: '300px', flexDirection: 'column' }}>
-					<Typography style={{ color: '#7f838d', margin: '10px' }} variant="h3">
-						Title
-					</Typography>
-					<TextField
-						onChange={articleTitleHandler}
-						id="filled-basic"
-						label="Type Title"
-						style={{ width: '300px', background: 'white' }}
-					/>
-				</Box>
-			</Stack>
+		<div className="pb-editor" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+			<label className="pb-field">
+				<span>{t('Title')}</span>
+				<input
+					className="pb-input"
+					placeholder={t('e.g. 5 habits for a healthy heart')}
+					maxLength={ARTICLE_TITLE_MAX}
+					onChange={articleTitleHandler}
+				/>
+			</label>
 
-			<Editor
-				initialValue={'Type here'}
-				placeholder={'Type here'}
-				previewStyle={'vertical'}
-				height={'640px'}
-				// @ts-ignore
-				initialEditType={'WYSIWYG'}
-				toolbarItems={[
-					['heading', 'bold', 'italic', 'strike'],
-					['image', 'table', 'link'],
-					['ul', 'ol', 'task'],
-				]}
-				ref={editorRef}
-				hooks={{
-					addImageBlobHook: async (image: any, callback: any) => {
-						const uploadedImageURL = await uploadImage(image);
-						callback(uploadedImageURL);
-						return false;
-					},
-				}}
-				events={{
-					load: function (param: any) {},
-				}}
-			/>
+			<div className="pb-field">
+				<span>{t('Content')}</span>
+				<Editor
+					initialValue={''}
+					placeholder={t('Type here')}
+					// the editor toolbar has its own Korean texts; other languages use English
+					language={router.locale === 'kr' ? 'ko-KR' : 'en-US'}
+					previewStyle={'vertical'}
+					height={'420px'}
+					// @ts-ignore
+					initialEditType={'markdown'}
+					toolbarItems={[
+						['heading', 'bold', 'italic', 'strike'],
+						['image', 'link'],
+						['ul', 'ol'],
+					]}
+					ref={editorRef}
+					onChange={contentChangeHandler}
+					hooks={{
+						addImageBlobHook: async (image: any, callback: any) => {
+							const uploadedImageURL = await uploadImage(image);
+							callback(uploadedImageURL);
+							return false;
+						},
+					}}
+				/>
+			</div>
 
-			<Stack direction="row" justifyContent="center">
-				<Button
-					variant="contained"
-					color="primary"
-					style={{ margin: '30px', width: '250px', height: '45px' }}
-					onClick={handleRegisterButton}
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+				<span
+					style={{ fontSize: 13, color: contentLength > ARTICLE_CONTENT_MAX ? 'var(--pb-danger)' : 'var(--pb-muted)' }}
 				>
-					Register
-				</Button>
-			</Stack>
-		</Stack>
+					{contentLength} / {ARTICLE_CONTENT_MAX}
+				</span>
+				<button type="button" className="pb-btn pb-btn--primary" onClick={handleRegisterButton}>
+					{t('Publish')}
+				</button>
+			</div>
+		</div>
 	);
 };
 

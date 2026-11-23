@@ -1,53 +1,54 @@
-import React from 'react';
-import { Stack, Box } from '@mui/material';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
+import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
+import moment from 'moment';
+import { useQuery } from '@apollo/client';
+import { GET_NOTICES } from '../../../apollo/user/query';
+import { NoticeCategory } from '../../enums/notice.enum';
+import { Notice as NoticeItem } from '../../types/notice/notice';
+import Icon from '../ui/Icon';
+import { SkeletonCards } from '../ui/Loaders';
+import PbPagination from '../ui/PbPagination';
 
+const LIMIT = 10;
+
+// published platform notices (pinned first, then newest); a notice opens to show its text
 const Notice = () => {
-	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
+	const [page, setPage] = useState(1);
 
-	/** APOLLO REQUESTS **/
-	/** LIFECYCLES **/
-	/** HANDLERS **/
+	const { data, loading, error } = useQuery(GET_NOTICES, {
+		fetchPolicy: 'network-only',
+		variables: { input: { page, limit: LIMIT, search: { noticeCategory: NoticeCategory.NOTICE } } },
+	});
+	const notices: NoticeItem[] = data?.getNotices?.list ?? [];
+	const total: number = data?.getNotices?.metaCounter?.[0]?.total ?? 0;
 
-	const data = [
-		{
-			no: 1,
-			event: true,
-			title: 'Register to use and get discounts',
-			date: '01.03.2024',
-		},
-		{
-			no: 2,
-			title: "It's absolutely free to upload and trade properties",
-			date: '31.03.2024',
-		},
-	];
-
-	if (device === 'mobile') {
-		return <div>NOTICE MOBILE</div>;
-	} else {
-		return (
-			<Stack className={'notice-content'}>
-				<span className={'title'}>Notice</span>
-				<Stack className={'main'}>
-					<Box component={'div'} className={'top'}>
-						<span>number</span>
-						<span>title</span>
-						<span>date</span>
-					</Box>
-					<Stack className={'bottom'}>
-						{data.map((ele: any) => (
-							<div className={`notice-card ${ele?.event && 'event'}`} key={ele.title}>
-								{ele?.event ? <div>event</div> : <span className={'notice-number'}>{ele.no}</span>}
-								<span className={'notice-title'}>{ele.title}</span>
-								<span className={'notice-date'}>{ele.date}</span>
-							</div>
-						))}
-					</Stack>
-				</Stack>
-			</Stack>
-		);
-	}
+	return (
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+			{loading && !data && <SkeletonCards count={3} />}
+			{!loading && (error || notices.length === 0) && <p className="pb-empty">{t('No notices yet.')}</p>}
+			{notices.map((notice, index) => (
+				<details key={notice._id} className="pb-faq pb-notice pb-in" style={{ animationDelay: `${index * 0.06}s` }}>
+					<summary>
+						<span className="pb-notice__main">
+							{notice.noticePinned && (
+								<span className="pb-badge pb-badge--warning">
+									<Icon name="pin" size={12} /> {t('Pinned')}
+								</span>
+							)}
+							<span className="pb-notice__title">{notice.noticeTitle}</span>
+						</span>
+						<time className="pb-notice__date" dateTime={moment(notice.createdAt).toISOString()}>
+							{moment(notice.createdAt).format('YYYY-MM-DD')}
+						</time>
+						<Icon name="arrow" size={16} />
+					</summary>
+					<p style={{ whiteSpace: 'pre-line' }}>{notice.noticeContent}</p>
+				</details>
+			))}
+			<PbPagination page={page} total={total} limit={LIMIT} onChange={setPage} scrollTop={false} />
+		</div>
+	);
 };
 
 export default Notice;

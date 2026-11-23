@@ -1,10 +1,19 @@
-interface FollowSearch {
-	followingId?: string;
-	followerId?: string;
+import { FollowGroup } from '../../enums/follow.enum';
+
+// subscribe / unsubscribe target: doctors._id or clinics._id
+export interface FollowInput {
+	followGroup: FollowGroup;
+	refId: string;
 }
 
-export interface FollowInquiry {
+export interface FollowingsInquiry {
 	page: number;
 	limit: number;
-	search: FollowSearch;
+	search: { followerId: string };
+}
+
+export interface FollowersInquiry {
+	page: number;
+	limit: number;
+	search: FollowInput;
 }

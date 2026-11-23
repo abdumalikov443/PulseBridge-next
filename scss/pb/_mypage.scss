@@ -1,0 +1,576 @@
+/** My Page: side menu, rows, stats **/
+
+.pb-side-menu {
+	position: sticky;
+	top: 96px;
+	@media (max-width: $pb-tablet) {
+		position: static;
+	}
+	nav {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		@media (max-width: $pb-tablet) {
+			flex-direction: row;
+			flex-wrap: wrap;
+		}
+	}
+	a,
+	button.pb-side-menu__item {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 11px 12px;
+		border-radius: var(--pb-radius-sm);
+		border: 0;
+		background: none;
+		font: inherit;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--pb-muted);
+		cursor: pointer;
+		transition: background-color 0.2s ease, color 0.2s ease;
+		&:hover {
+			background: var(--pb-chip);
+			color: var(--pb-ink);
+		}
+	}
+	&__item--active {
+		background: var(--pb-soft-1) !important;
+		color: var(--pb-deep) !important;
+		font-weight: 700 !important;
+	}
+}
+
+.pb-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 20px;
+	align-items: center;
+	padding: 14px 16px;
+	border-radius: var(--pb-radius);
+	background: var(--pb-surface);
+	animation: pbIn 0.5s ease both;
+
+	&__main {
+		flex: 1 1 240px;
+		min-width: 0;
+		display: flex;
+		gap: 12px;
+		align-items: center;
+		border: 0;
+		background: none;
+		padding: 0;
+		color: inherit;
+		font: inherit;
+		cursor: pointer;
+		&:disabled {
+			cursor: default;
+		}
+	}
+
+	&__meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		align-items: center;
+		justify-content: flex-end;
+	}
+
+	&__cell {
+		font-size: 14px;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	&__actions {
+		display: flex;
+		gap: 6px;
+	}
+}
+
+.pb-stats {
+	display: grid;
+	gap: 14px;
+	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+.pb-stat {
+	background: var(--pb-surface);
+	border-radius: var(--pb-radius);
+	padding: 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	span {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--pb-muted);
+	}
+	strong {
+		font-family: var(--pb-font-display);
+		font-size: 30px;
+		font-weight: 800;
+	}
+}
+
+.pb-form-grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+}
+
+.pb-photo-pick {
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+/* login / signup */
+.pb-auth {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 32px;
+	align-items: center;
+
+	&__form {
+		flex: 999 1 460px;
+		min-width: 0;
+		gap: 18px !important;
+		padding: 28px !important;
+	}
+
+	&__visual {
+		flex: 1 1 320px;
+		position: relative;
+		min-height: 420px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		@media (max-width: $pb-tablet) {
+			display: none;
+		}
+	}
+
+	&__role {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		text-align: left;
+		padding: 14px;
+		border-radius: var(--pb-radius-sm);
+		border: 0;
+		background: var(--pb-bg);
+		color: var(--pb-ink);
+		cursor: pointer;
+		box-shadow: inset 0 0 0 1px #c9dce8;
+		transition: box-shadow 0.2s ease, background-color 0.2s ease;
+		span {
+			font-size: 13px;
+			color: var(--pb-muted);
+		}
+		&[data-active='true'] {
+			background: var(--pb-soft-1);
+			box-shadow: inset 0 0 0 2px var(--pb-deep);
+		}
+	}
+}
+
+/* article editor (toast ui) */
+.pb-editor .toastui-editor-defaultUI {
+	border-color: #c9dce8;
+	border-radius: var(--pb-radius-sm);
+	overflow: hidden;
+	font-family: inherit;
+}
+
+/* image picker with local preview (signup) */
+.pb-picker {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex-wrap: wrap;
+	padding: 14px;
+	border-radius: var(--pb-radius);
+	background: var(--pb-bg);
+	&__frame {
+		position: relative;
+		flex: none;
+		width: 88px;
+		height: 88px;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		overflow: hidden;
+		cursor: pointer;
+		background: var(--pb-soft-1);
+		box-shadow: inset 0 0 0 1.5px #c9dce8;
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+			animation: pbIn 0.3s ease both;
+		}
+	}
+	&--wide &__frame {
+		width: 168px;
+		height: 96px;
+		border-radius: 16px;
+	}
+	&__empty {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--pb-deep);
+	}
+	&__info {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		min-width: 0;
+		flex: 1 1 200px;
+		strong {
+			font-size: 14px;
+		}
+		> span {
+			font-size: 13px;
+			color: var(--pb-muted);
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+	}
+}
+
+/* clinic owner reviews a doctor's join request on the member page */
+.pb-review-request {
+	margin-top: 16px;
+	gap: 16px !important;
+	box-shadow: inset 0 0 0 1.5px #f6d3a8 !important;
+	&__head {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		strong {
+			display: block;
+			font-size: 16px;
+		}
+		small {
+			font-size: 13px;
+			color: var(--pb-muted);
+		}
+	}
+	&__icon {
+		width: 40px;
+		height: 40px;
+		border-radius: 12px;
+		background: var(--pb-warning-soft);
+		color: var(--pb-warning);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex: none;
+	}
+	&__facts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px 32px;
+		margin: 0;
+		dt {
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			color: var(--pb-muted);
+		}
+		dd {
+			margin: 2px 0 0;
+			font-weight: 700;
+		}
+	}
+	&__actions {
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+	}
+}
+
+/* followers / following list (My Page and the popup) */
+.pb-follow-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.pb-follow-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px;
+	border-radius: 14px;
+	&__main {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		border-radius: 12px;
+	}
+	a.pb-follow-row__main:hover strong {
+		text-decoration: underline;
+	}
+	&__text {
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		strong {
+			font-size: 14px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		small {
+			font-size: 12px;
+			color: var(--pb-muted);
+		}
+	}
+	&__acts {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		flex: none;
+		.pb-chip {
+			min-height: 32px;
+		}
+	}
+	&__like {
+		width: 32px;
+		height: 32px;
+		border: 0;
+		border-radius: 50%;
+		background: var(--pb-chip);
+		color: var(--pb-muted);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		&.is-on {
+			color: var(--pb-like);
+			svg {
+				animation: pbPop 0.45s ease;
+			}
+		}
+	}
+	&:hover {
+		background: var(--pb-bg);
+	}
+}
+
+.MuiDialog-paper.pb-follow-modal {
+	width: min(440px, calc(100vw - 32px));
+	max-height: min(600px, calc(100vh - 64px));
+	margin: 16px;
+	border-radius: 24px;
+	background: var(--pb-surface);
+	color: var(--pb-ink);
+	font-family: var(--pb-font);
+	box-shadow: var(--pb-shadow-lg);
+	display: flex;
+	flex-direction: column;
+}
+.pb-follow-modal {
+	&__head {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 16px 16px 12px;
+		border-bottom: 1px solid var(--pb-line);
+	}
+	&__tabs {
+		flex: 1;
+		display: flex;
+		gap: 6px;
+		.pb-pill {
+			min-height: 36px;
+			padding: 0 14px;
+			font-size: 13px;
+			background: var(--pb-chip);
+		}
+		.pb-pill--active {
+			background: var(--pb-deep);
+		}
+	}
+	&__body {
+		overflow-y: auto;
+		padding: 8px 8px 14px;
+		.pb-empty {
+			background: transparent;
+		}
+	}
+}
+
+/* clickable follower counts on profile headers */
+.pb-follow-counts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	button {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		min-height: 34px;
+		padding: 0 12px;
+		border: 0;
+		border-radius: 999px;
+		background: var(--pb-chip);
+		color: var(--pb-muted);
+		font: inherit;
+		font-size: 13px;
+		cursor: pointer;
+		transition: box-shadow 0.2s ease;
+		strong {
+			color: var(--pb-ink);
+		}
+		&:hover {
+			box-shadow: inset 0 0 0 1.5px var(--pb-ink);
+		}
+	}
+}
+
+/* clinic working hours form */
+.pb-schedule {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	margin: 0;
+	padding: 16px;
+	border: 0;
+	border-radius: var(--pb-radius);
+	background: var(--pb-bg);
+	legend {
+		float: left;
+		padding: 0;
+		font-size: 15px;
+		font-weight: 800;
+		& + * {
+			clear: both;
+		}
+	}
+	&__check {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		input {
+			width: 18px;
+			height: 18px;
+			accent-color: var(--pb-deep);
+		}
+	}
+	&__days {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	&__day {
+		min-width: 48px;
+		min-height: 38px;
+		padding: 0 12px;
+		border: 0;
+		border-radius: 999px;
+		background: var(--pb-surface);
+		color: var(--pb-muted);
+		box-shadow: inset 0 0 0 1px #c9dce8;
+		font: inherit;
+		font-size: 13px;
+		font-weight: 700;
+		text-decoration: line-through;
+		cursor: pointer;
+		&.is-open {
+			background: var(--pb-deep);
+			color: #fff;
+			box-shadow: none;
+			text-decoration: none;
+		}
+	}
+	&__error {
+		margin: 0;
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--pb-danger);
+	}
+}
+
+.pb-auth__missing {
+	margin: -6px 0 0;
+	text-align: center;
+	font-size: 13px;
+	color: var(--pb-warning);
+}
+
+/* save button with the reason it is disabled */
+.pb-form-actions {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 8px;
+}
+.pb-form-hint {
+	margin: 0;
+	font-size: 13px;
+	color: var(--pb-warning);
+	text-align: right;
+}
+
+/* doctor fields inside the profile form */
+.pb-profile-doctor {
+	margin: 0;
+	padding: 16px 0 0;
+	border: 0;
+	border-top: 1px solid var(--pb-line);
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	legend {
+		float: left;
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+		padding: 0;
+		font-family: var(--pb-font-display);
+		font-size: 18px;
+		font-weight: 800;
+		& + * {
+			clear: both;
+		}
+	}
+}
+
+// approved request: the doctor now works at this clinic
+.pb-review-request__done {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 14px;
+	border-radius: 14px;
+	background: var(--pb-success-soft);
+	span {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-weight: 700;
+		color: var(--pb-success);
+	}
+}

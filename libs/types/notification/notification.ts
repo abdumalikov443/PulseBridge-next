@@ -1,0 +1,35 @@
+import { NotificationGroup, NotificationStatus, NotificationType } from '../../enums/notification.enum';
+import { Member } from '../member/member';
+import { TotalCounter } from '../common';
+
+export interface Notification {
+	_id: string;
+	notificationType: NotificationType;
+	notificationStatus: NotificationStatus;
+	notificationGroup: NotificationGroup;
+	notificationTitle: string;
+	notificationDesc?: string;
+	authorId: string;
+	receiverId: string;
+	// doctor / clinic / article the notification is about
+	notificationRefId?: string;
+	articleId?: string;
+	appointmentId?: string;
+	createdAt: Date;
+	updatedAt: Date;
+	/** from aggregation **/
+	authorData?: Member;
+}
+
+export interface Notifications {
+	list: Notification[];
+	metaCounter: TotalCounter[];
+}
+
+export interface NotificationsInquiry {
+	page: number;
+	limit: number;
+	search: {
+		notificationStatus?: NotificationStatus;
+	};
+}
