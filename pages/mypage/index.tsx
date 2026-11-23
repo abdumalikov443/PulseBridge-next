@@ -69,7 +69,7 @@ const MyPage: NextPage = () => {
 	return (
 		<div className="pb-container" style={{ paddingTop: 32 }}>
 			<div className="pb-split">
-				<div style={{ flex: '1 1 260px', maxWidth: 320, minWidth: 0 }}>
+				<div className="pb-mypage__menu">
 					<MyMenu />
 				</div>
 				<div className="pb-split__main" key={category}>

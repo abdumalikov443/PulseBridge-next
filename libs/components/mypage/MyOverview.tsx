@@ -88,36 +88,30 @@ const MyOverview = () => {
 				title={t('Welcome back, {{name}}', { name })}
 				subTitle="Here is what is happening with your health and your account."
 			>
-				<div className="pb-stats">
+				<div className="pb-stat-strip">
 					{stats.map((stat) => (
-						<div key={stat.label} className="pb-stat">
+						<div key={stat.label}>
+							<span className="pb-stat-strip__icon">
+								<Icon name={stat.icon} size={18} />
+							</span>
 							<span>
-								<Icon name={stat.icon} size={15} /> {t(stat.label)}
+								<strong>{formatCount(stat.value ?? 0)}</strong>
+								<small>{t(stat.label)}</small>
 							</span>
-							<strong>{formatCount(stat.value ?? 0)}</strong>
 						</div>
-					))}
-				</div>
-				<div className="pb-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))' }}>
-					{quickActions(user.memberType).map((action) => (
-						<Link
-							key={action.href}
-							href={action.href}
-							className="pb-card pb-card--flat pb-card--hover"
-							style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
-						>
-							<span
-								className="pb-avatar"
-								style={{ width: 44, height: 44, background: 'var(--pb-soft-1)', color: 'var(--pb-deep)' }}
-							>
-								<Icon name={action.icon} size={20} />
-							</span>
-							<strong>{t(action.label)}</strong>
-						</Link>
 					))}
 				</div>
 			</MySection>
 			{user.memberType !== MemberType.ADMIN && <MyAppointments compact />}
+			<nav className="pb-quick-links" aria-label={t('Quick links')}>
+				{quickActions(user.memberType).map((action) => (
+					<Link key={action.href} href={action.href}>
+						<Icon name={action.icon} size={16} />
+						{t(action.label)}
+						<Icon name="arrow" size={14} className="pb-arrow" />
+					</Link>
+				))}
+			</nav>
 		</>
 	);
 };

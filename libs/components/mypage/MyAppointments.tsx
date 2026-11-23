@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import moment from 'moment';
 import { Pagination } from '@mui/material';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
@@ -12,7 +11,6 @@ import { AppointmentStatus } from '../../enums/appointment.enum';
 import { MemberType } from '../../enums/member.enum';
 import { Direction } from '../../enums/common.enum';
 import { T } from '../../types/common';
-import { getMemberName } from '../../config';
 import { formatEnum } from '../../utils';
 import { UPDATE_APPOINTMENT } from '../../../apollo/user/mutation';
 import {
@@ -23,17 +21,11 @@ import {
 } from '../../../apollo/user/query';
 import { sweetConfirmAlert, sweetErrorHandling, sweetTopSmallSuccessAlert } from '../../sweetAlert';
 import { downloadAppointmentPdf } from '../../appointmentPdf';
-import ListRow, { Tone } from './ListRow';
+import AppointmentRow from './AppointmentRow';
 import MySection from './MySection';
-import Avatar from '../ui/Avatar';
 import { SkeletonCards } from '../ui/Loaders';
 
 const statusTabs = [AppointmentStatus.CONFIRMED, AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED];
-const tones: Record<AppointmentStatus, Tone> = {
-	[AppointmentStatus.CONFIRMED]: 'soft',
-	[AppointmentStatus.COMPLETED]: 'success',
-	[AppointmentStatus.CANCELLED]: 'danger',
-};
 
 // patient: own bookings; doctor: bookings with me; clinic: bookings of my clinic
 const getAppointmentsQuery = (memberType: string) => {
@@ -173,62 +165,28 @@ const MyAppointments = ({ compact = false }: MyAppointmentsProps) => {
 					)}
 				</p>
 			)}
-			{appointments?.map((appointment) => {
-				const person = isPatient ? appointment.doctorData?.memberData : appointment.memberData;
-				const doctorLine = isPatient
-					? formatEnum(appointment.doctorData?.specialty)
-					: `${t('Dr.')} ${getMemberName(appointment.doctorData?.memberData)}`;
-				const confirmed = appointment.appointmentStatus === AppointmentStatus.CONFIRMED;
-				return (
-					<ListRow
-						key={appointment._id}
-						avatar={<Avatar name={getMemberName(person)} image={person?.memberImage} size={46} />}
-						title={getMemberName(person)}
-						subTitle={`${doctorLine} · ${appointment.clinicData?.clinicName ?? ''}`}
-						extra={appointment.appointmentReason}
-						dateText={`${moment.utc(appointment.appointmentDate).format('ddd, MMM D')} · ${
-							appointment.appointmentTime
-						}`}
-						status={formatEnum(appointment.appointmentStatus)}
-						tone={tones[appointment.appointmentStatus]}
-						onClick={() => router.push(`/appointment?id=${appointment._id}`)}
-						actions={
-							<>
-								{appointment.appointmentStatus !== AppointmentStatus.CANCELLED && (
-									<button
-										type="button"
-										className="pb-btn pb-btn--light pb-btn--sm"
-										onClick={() => pdfHandler(appointment._id)}
-										aria-label={t('Download PDF')}
-									>
-										PDF
-									</button>
-								)}
-								{confirmed && (
-									<>
-										{!isPatient && (
-											<button
-												type="button"
-												className="pb-btn pb-btn--primary pb-btn--sm"
-												onClick={() => updateStatusHandler(appointment._id, AppointmentStatus.COMPLETED)}
-											>
-												{t('Complete')}
-											</button>
-										)}
-										<button
-											type="button"
-											className="pb-btn pb-btn--danger pb-btn--sm"
-											onClick={() => updateStatusHandler(appointment._id, AppointmentStatus.CANCELLED)}
-										>
-											{t('Cancel')}
-										</button>
-									</>
-								)}
-							</>
-						}
-					/>
-				);
-			})}
+			<div className="pb-visits">
+				{appointments?.map((appointment, index) => {
+					const confirmed = appointment.appointmentStatus === AppointmentStatus.CONFIRMED;
+					return (
+						<AppointmentRow
+							key={appointment._id}
+							appointment={appointment}
+							isPatient={isPatient}
+							featured={compact && index === 0}
+							showStatus={!compact}
+							onOpen={() => router.push(`/appointment?id=${appointment._id}`)}
+							onPdf={() => pdfHandler(appointment._id)}
+							onComplete={
+								confirmed && !isPatient
+									? () => updateStatusHandler(appointment._id, AppointmentStatus.COMPLETED)
+									: undefined
+							}
+							onCancel={confirmed ? () => updateStatusHandler(appointment._id, AppointmentStatus.CANCELLED) : undefined}
+						/>
+					);
+				})}
+			</div>
 
 			{!compact && total > input.limit && (
 				<div className="pb-pagination">

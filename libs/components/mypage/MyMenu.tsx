@@ -17,7 +17,7 @@ interface MenuItemType {
 	icon: IconName;
 }
 
-const overview: MenuItemType = { category: 'overview', title: 'Overview', icon: 'clinic' };
+const overview: MenuItemType = { category: 'overview', title: 'Overview', icon: 'pulse' };
 const profile: MenuItemType = { category: 'myProfile', title: 'Profile', icon: 'users' };
 const appointments: MenuItemType = { category: 'myAppointments', title: 'Appointments', icon: 'calendar' };
 const myClinic: MenuItemType = { category: 'myClinic', title: 'My clinic', icon: 'clinic' };
@@ -83,20 +83,15 @@ const MyMenu = () => {
 
 	return (
 		<aside className="pb-card pb-card--flat pb-side-menu" aria-label={t('My Page')}>
-			<div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+			<div className="pb-side-menu__me">
 				<Avatar
 					name={name}
 					image={user.memberImage && !user.memberImage.startsWith('/img') ? user.memberImage : null}
 					size={52}
 				/>
 				<div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-					<strong style={{ fontSize: 16 }}>{name}</strong>
-					<span
-						className="pb-badge pb-badge--success"
-						style={{ alignSelf: 'flex-start', marginTop: 4, padding: '3px 8px', fontSize: 11 }}
-					>
-						{formatEnum(user.memberType)}
-					</span>
+					<strong className="pb-side-menu__name">{name}</strong>
+					<span className="pb-badge pb-badge--success pb-side-menu__role">{formatEnum(user.memberType)}</span>
 				</div>
 			</div>
 			<nav>
