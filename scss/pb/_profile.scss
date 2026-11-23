@@ -147,51 +147,9 @@
 		padding-top: 18px;
 	}
 
-	// the numbers row under the header; a number that opens something is a button
-	&__stats {
-		margin: 0;
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		border-top: 1px solid var(--pb-line);
-		> div {
-			padding: 16px 28px;
-			min-width: 0;
-		}
-		> div + div {
-			border-left: 1px solid var(--pb-line);
-		}
-		dt {
-			font-size: 13px;
-			font-weight: 600;
-			color: var(--pb-muted);
-		}
-		dd {
-			margin: 4px 0 0;
-			font-family: var(--pb-font-display);
-			font-size: 24px;
-			font-weight: 800;
-			line-height: 1.1;
-			font-variant-numeric: tabular-nums;
-			small {
-				font-family: var(--pb-font);
-				font-size: 14px;
-				font-weight: 600;
-				color: var(--pb-muted);
-			}
-			button {
-				padding: 0;
-				border: 0;
-				background: none;
-				font: inherit;
-				color: var(--pb-deep);
-				cursor: pointer;
-				text-decoration: underline dotted 2px;
-				text-underline-offset: 5px;
-				&:hover {
-					text-decoration-style: solid;
-				}
-			}
-		}
+	// followers / following buttons under the facts (open the follow list)
+	.pb-follow-counts {
+		margin-top: 6px;
 	}
 
 	&__side {
@@ -225,18 +183,6 @@
 		&__cta {
 			flex-basis: 100%;
 			padding-top: 4px;
-		}
-		&__stats {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-			> div {
-				padding: 14px 18px;
-			}
-			> div:nth-child(3) {
-				border-left: 0;
-			}
-			> div:nth-child(n + 3) {
-				border-top: 1px solid var(--pb-line);
-			}
 		}
 	}
 }

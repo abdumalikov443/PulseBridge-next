@@ -8,7 +8,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { withPbLayout } from '../../libs/components/layout/PbShell';
 import Reviews from '../../libs/components/common/Reviews';
 import Avatar from '../../libs/components/ui/Avatar';
-import LikeButton from '../../libs/components/ui/LikeButton';
+import LikeButton, { STAT_ICON } from '../../libs/components/ui/LikeButton';
 import OpenStatus from '../../libs/components/ui/OpenStatus';
 import { sweetActionConfirmAlert } from '../../libs/sweetAlert';
 import { dayLabel, isTomorrow } from '../../libs/schedule';
@@ -84,7 +84,6 @@ const DoctorDetail: NextPage = () => {
 	const canBook = !user?._id || user.memberType === MemberType.PATIENT;
 
 	const tone = SPECIALTY_INFO[doctor.specialty]?.tone ?? 'blue';
-	const reviews = commentTotal ?? doctor.doctorComments;
 	const next = doctor.nextAvailable;
 	const callDoctor = async (phone: string) => {
 		if (
@@ -104,10 +103,15 @@ const DoctorDetail: NextPage = () => {
 
 			<section className={`pb-card pb-profile pb-in pb-spec--${tone}`}>
 				{/* band in the color of the doctor's specialty, with a heartbeat line */}
-				<div className="pb-profile__cover pb-profile__cover--band" aria-hidden="true">
-					<svg viewBox="0 0 800 50" preserveAspectRatio="none">
+				<div className="pb-profile__cover pb-profile__cover--band">
+					<svg viewBox="0 0 800 50" preserveAspectRatio="none" aria-hidden="true">
 						<path d="M0 28h300l14-20 16 36 14-28 10 12h446" />
 					</svg>
+					{/* views: top right corner of the cover, as on the clinic page */}
+					<span className="pb-profile__views" aria-label={t('{{count}} views', { count: doctor.doctorViews })}>
+						<Icon name="eye" size={STAT_ICON} />
+						{formatCount(doctor.doctorViews)}
+					</span>
 				</div>
 				<div className="pb-profile__body">
 					<span className="pb-profile__avatar">
@@ -127,6 +131,21 @@ const DoctorDetail: NextPage = () => {
 								{doctor.clinicData.clinicName}
 							</Link>
 						)}
+						<span className="pb-profile__meta">
+							<Icon name="stethoscope" size={16} />
+							{t('{{count}} years of experience', { count: doctor.experience })} ·{' '}
+							{doctor.patientsServed === 1
+								? t('{{count}} patient served', { count: 1 })
+								: t('{{count}} patients served', { count: doctor.patientsServed ?? 0 })}
+						</span>
+						<div className="pb-follow-counts">
+							<button type="button" onClick={() => setFollowMode('followers')}>
+								<strong>{formatCount(followers)}</strong> {followers === 1 ? t('follower') : t('followers')}
+							</button>
+							<button type="button" onClick={() => setFollowMode('followings')}>
+								<strong>{formatCount(followings)}</strong> {t('following')}
+							</button>
+						</div>
 					</div>
 					{(canBook || canFollow(doctor.memberId)) && (
 						<div className="pb-cta pb-profile__cta">
@@ -152,31 +171,6 @@ const DoctorDetail: NextPage = () => {
 					)}
 				</div>
 
-				{/* the numbers a patient compares doctors by; followers opens the list */}
-				<dl className="pb-profile__stats">
-					<div>
-						<dt>{t('Experience')}</dt>
-						<dd>
-							{doctor.experience} <small>{t('yrs')}</small>
-						</dd>
-					</div>
-					<div>
-						<dt>{t('Patients served')}</dt>
-						<dd>{formatCount(doctor.patientsServed ?? 0)}</dd>
-					</div>
-					<div>
-						<dt>{t('Followers')}</dt>
-						<dd>
-							<button type="button" onClick={() => setFollowMode('followers')}>
-								{formatCount(followers)}
-							</button>
-						</dd>
-					</div>
-					<div>
-						<dt>{t('Reviews')}</dt>
-						<dd>{formatCount(reviews)}</dd>
-					</div>
-				</dl>
 				<FollowModal
 					target={{ followGroup: FollowGroup.DOCTOR, refId: doctor._id }}
 					memberId={doctor.memberId}

@@ -140,6 +140,14 @@ const ClinicDetail: NextPage = () => {
 							{clinic.clinicAddress}
 						</span>
 						<OpenStatus clinic={clinic} />
+						<div className="pb-follow-counts">
+							<button type="button" onClick={() => setFollowMode('followers')}>
+								<strong>{formatCount(followers)}</strong> {followers === 1 ? t('follower') : t('followers')}
+							</button>
+							<button type="button" onClick={() => setFollowMode('followings')}>
+								<strong>{formatCount(followings)}</strong> {t('following')}
+							</button>
+						</div>
 					</div>
 					<div className="pb-cta pb-profile__cta">
 						<ClinicJoinButton
@@ -159,32 +167,6 @@ const ClinicDetail: NextPage = () => {
 					</div>
 				</div>
 
-				<dl className="pb-profile__stats">
-					<div>
-						<dt>{t('Doctors')}</dt>
-						<dd>
-							<button type="button" onClick={() => setTab('doctors')}>
-								{formatCount(clinic.clinicDoctors)}
-							</button>
-						</dd>
-					</div>
-					<div>
-						<dt>{t('Followers')}</dt>
-						<dd>
-							<button type="button" onClick={() => setFollowMode('followers')}>
-								{formatCount(followers)}
-							</button>
-						</dd>
-					</div>
-					<div>
-						<dt>{t('Reviews')}</dt>
-						<dd>
-							<button type="button" onClick={() => setTab('reviews')}>
-								{formatCount(commentTotal ?? clinic.clinicComments)}
-							</button>
-						</dd>
-					</div>
-				</dl>
 				<FollowModal
 					target={{ followGroup: FollowGroup.CLINIC, refId: clinic._id }}
 					memberId={clinic.memberId}

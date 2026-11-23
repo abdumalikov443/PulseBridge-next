@@ -33,6 +33,8 @@
   "{{count}} messages left": "남은 메시지 {{count}}개",
   "{{count}} min read": "{{count}}분 읽기",
   "{{count}} online": "{{count}}명 접속 중",
+  "{{count}} patient served": "환자 {{count}}명 진료",
+  "{{count}} patients served": "환자 {{count}}명 진료",
   "{{count}} post found": "글 {{count}}개",
   "{{count}} posts found": "글 {{count}}개",
   "{{count}} published": "{{count}}개 게시됨",
